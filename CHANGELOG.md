@@ -5,6 +5,10 @@
 ### NEXT_VERSION_DESCRIPTION_BEGIN
 ### NEXT_VERSION_DESCRIPTION_END
 
+## [6.5.3] (04-07-2022)
+
+- Upgrade AppMetrica version
+
 ## [6.5.2] (05-04-2022)
 
 - Solved the problem with YooMoney tokenization
