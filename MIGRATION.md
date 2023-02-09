@@ -1,6 +1,9 @@
 # Migration guide
 
 ### Table of Contents
+[6.5.5 -> 6.5.6](##6---6)
+- Добавить в networkSecurityConfig информацию для корректной работы библиотеки.
+
 [6.4.5 -> 6.5.0](##6---6)
 - Удалить библиотеку ThreatMetrix-Android-SDK-.aar, теперь она встроена в само SDK.
 

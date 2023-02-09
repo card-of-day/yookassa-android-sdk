@@ -31,9 +31,8 @@ import ru.yoomoney.sdk.kassa.payments.di.ViewModelKey
 import ru.yoomoney.sdk.kassa.payments.extensions.CheckoutOkHttpClient
 import ru.yoomoney.sdk.kassa.payments.http.HostProvider
 import ru.yoomoney.sdk.kassa.payments.metrics.ErrorReporter
-import ru.yoomoney.sdk.kassa.payments.tmx.TmxSessionIdStorage
-import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
 import ru.yoomoney.sdk.kassa.payments.metrics.Reporter
+import ru.yoomoney.sdk.kassa.payments.payment.CurrentUserRepository
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.ApiV3PaymentAuthRepository
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.MockPaymentAuthTypeRepository
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.MockProcessPaymentAuthRepository
@@ -41,20 +40,21 @@ import ru.yoomoney.sdk.kassa.payments.paymentAuth.MockSmsSessionRetryRepository
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuth
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuthAnalytics
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuthBusinessLogic
+import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuthTokenRepository
+import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuthTypeRepository
+import ru.yoomoney.sdk.kassa.payments.paymentAuth.ProcessPaymentAuthRepository
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.ProcessPaymentAuthUseCase
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.ProcessPaymentAuthUseCaseImpl
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.RequestPaymentAuthUseCase
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.RequestPaymentAuthUseCaseImpl
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.SelectAppropriateAuthType
-import ru.yoomoney.sdk.kassa.payments.payment.CurrentUserRepository
-import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuthTokenRepository
-import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuthTypeRepository
-import ru.yoomoney.sdk.kassa.payments.paymentAuth.ProcessPaymentAuthRepository
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.SmsSessionRetryRepository
+import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
+import ru.yoomoney.sdk.kassa.payments.tmx.ProfilingSessionIdStorage
 import ru.yoomoney.sdk.march.Out
 import ru.yoomoney.sdk.march.RuntimeViewModel
 import ru.yoomoney.sdk.march.input
-import ru.yoomoney.sdk.tmx.TmxProfiler
+import ru.yoomoney.sdk.yooprofiler.YooProfiler
 import javax.inject.Singleton
 
 @Module
@@ -67,14 +67,14 @@ internal class PaymentAuthModule {
         hostProvider: HostProvider,
         tokensStorage: TokensStorage,
         paymentParameters: PaymentParameters,
-        profiler: TmxProfiler,
-        tmxSessionIdStorage: TmxSessionIdStorage
+        profiler: YooProfiler,
+        profilingSessionIdStorage: ProfilingSessionIdStorage
     ): ApiV3PaymentAuthRepository {
         return ApiV3PaymentAuthRepository(
             httpClient = lazy { httpClient },
             tokensStorage = tokensStorage,
             shopToken = paymentParameters.clientApplicationKey,
-            tmxSessionIdStorage = tmxSessionIdStorage,
+            profilingSessionIdStorage = profilingSessionIdStorage,
             profiler = profiler,
             selectAppropriateAuthType = SelectAppropriateAuthType(),
             hostProvider = hostProvider

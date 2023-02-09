@@ -74,14 +74,20 @@ internal data class Wallet(
     override val id: Int,
     override val charge: Amount,
     override val fee: Fee?,
-    val walletId: String,
-    val balance: Amount,
+    val walletId: String?,
+    val balance: Amount?,
     override val icon: String?,
     override val title: String?,
     override val savePaymentMethodAllowed: Boolean,
     override val confirmationTypes: List<ConfirmationType>,
     override val savePaymentInstrument: Boolean
-) : YooMoney()
+) : YooMoney() {
+    override fun toString(): String {
+        return "Wallet(id=$id, charge=$charge, fee=$fee, walletId=****, balance=$balance, icon=$icon," +
+                " title=$title, savePaymentMethodAllowed=$savePaymentMethodAllowed, " +
+                "confirmationTypes=$confirmationTypes, savePaymentInstrument=$savePaymentInstrument})"
+    }
+}
 
 @[Parcelize Keep SuppressLint("ParcelCreator")]
 internal data class AbstractWallet(
@@ -146,7 +152,14 @@ internal data class PaymentIdCscConfirmation(
     override val savePaymentMethodAllowed: Boolean,
     override val confirmationTypes: List<ConfirmationType>,
     override val savePaymentInstrument: Boolean
-) : PaymentOption()
+) : PaymentOption() {
+    override fun toString(): String {
+        return "PaymentIdCscConfirmation(id=$id, charge=$charge, fee=$fee, icon=$icon," +
+                "title=$title," + "paymentMethodId=$paymentMethodId,first=******, last=$last, brand=$brand," +
+                "savePaymentMethodAllowed=$savePaymentMethodAllowed, " +
+                "confirmationTypes=$confirmationTypes, savePaymentInstrument=$savePaymentInstrument})"
+    }
+}
 
 internal fun PaymentOption.toType() = when (this) {
     is BankCardPaymentOption -> PaymentMethodType.BANK_CARD

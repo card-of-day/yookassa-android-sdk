@@ -30,7 +30,7 @@ import org.junit.runners.Parameterized
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.Amount
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.SavePaymentMethod
-import ru.yoomoney.sdk.kassa.payments.tmx.TmxSessionIdStorage
+import ru.yoomoney.sdk.kassa.payments.tmx.ProfilingSessionIdStorage
 import ru.yoomoney.sdk.kassa.payments.extensions.RUB
 import ru.yoomoney.sdk.kassa.payments.metrics.MoneyAuthLoginSchemeAuthSdk
 import ru.yoomoney.sdk.kassa.payments.userAuth.MoneyAuth
@@ -107,7 +107,7 @@ internal class MoneyAuthBusinessLogicTest(
     private val logic = MoneyAuthBusinessLogic(
         showState = mock(),
         source = mock(),
-        tmxSessionIdStorage = TmxSessionIdStorage(),
+        profilingSessionIdStorage = ProfilingSessionIdStorage(),
         currentUserRepository = mock(),
         userAuthInfoRepository = mock(),
         paymentOptionsListUseCase = mock(),

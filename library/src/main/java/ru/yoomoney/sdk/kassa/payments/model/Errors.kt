@@ -66,3 +66,5 @@ internal open class ApiMethodException(open val error: Error) : SdkException() {
 internal data class AuthCheckApiMethodException(override val error: Error, val authState: AuthTypeState?) : ApiMethodException(error)
 
 internal class PassphraseCheckFailedException : SdkException()
+
+internal object NotModifiedFailure: SdkException()

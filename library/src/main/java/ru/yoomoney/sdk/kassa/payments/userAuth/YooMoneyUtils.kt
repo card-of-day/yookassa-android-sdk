@@ -23,7 +23,7 @@ package ru.yoomoney.sdk.kassa.payments.userAuth
 
 import android.content.Intent
 import android.net.Uri
-import ru.yoomoney.sdk.auth.auxAuthorization.model.AuxTokenScope
+import ru.yoomoney.sdk.auth.api.auxAuthorization.model.AuxTokenScope
 
 internal fun createYooMoneyAuxDeepLink(authCenterClientId: String, scopes: List<AuxTokenScope>): Intent {
     val data =  Uri.Builder()

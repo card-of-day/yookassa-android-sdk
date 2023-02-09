@@ -34,7 +34,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
-import ru.yoomoney.sdk.kassa.payments.tmx.TmxSessionIdStorage
+import ru.yoomoney.sdk.kassa.payments.tmx.ProfilingSessionIdStorage
 import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
 import ru.yoomoney.sdk.kassa.payments.extensions.edit
 import ru.yoomoney.sdk.kassa.payments.payment.SharedPreferencesCurrentUserRepository
@@ -51,7 +51,7 @@ class LogoutGatewayImplTest {
     private lateinit var logoutRepository: LogoutRepository
     private lateinit var tokensStorage: TokensStorage
     private lateinit var currentUserRepository: SharedPreferencesCurrentUserRepository
-    private val tmxSessionIdStorage = TmxSessionIdStorage()
+    private val profilingSessionIdStorage = ProfilingSessionIdStorage()
 
     @Before
     fun setUp() {
@@ -71,7 +71,7 @@ class LogoutGatewayImplTest {
             userAuthInfoRepository = tokensStorage,
             paymentAuthTokenRepository = tokensStorage,
             removeKeys = { },
-            tmxSessionIdStorage = tmxSessionIdStorage,
+            profilingSessionIdStorage = profilingSessionIdStorage,
             revokeUserAuthToken = {},
             loadedPaymentOptionListRepository = mock()
         )

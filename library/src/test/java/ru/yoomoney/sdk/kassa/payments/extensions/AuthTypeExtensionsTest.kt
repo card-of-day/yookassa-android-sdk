@@ -21,9 +21,9 @@
 
 package ru.yoomoney.sdk.kassa.payments.extensions
 
+import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.nullValue
+import org.hamcrest.core.IsNull.nullValue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.ParameterizedRobolectricTestRunner

@@ -21,9 +21,9 @@
 
 package ru.yoomoney.sdk.kassa.payments.paymentOptionList
 
+import org.hamcrest.CoreMatchers.not
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.not
+import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -35,7 +35,6 @@ import org.robolectric.RuntimeEnvironment
 import ru.yoomoney.sdk.kassa.payments.R
 import ru.yoomoney.sdk.kassa.payments.payment.loadOptionList.PaymentOptionListIsEmptyException
 import ru.yoomoney.sdk.kassa.payments.errorFormatter.ErrorFormatter
-import ru.yoomoney.sdk.kassa.payments.paymentOptionList.PaymentOptionListErrorFormatter
 import java.util.concurrent.TimeUnit
 
 @RunWith(RobolectricTestRunner::class)

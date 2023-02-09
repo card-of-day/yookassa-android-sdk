@@ -27,7 +27,7 @@ internal class ConfigUseCaseImpl(
     private val configRepository: ConfigRepository
 ) : ConfigUseCase {
 
-    override fun loadConfig(): PaymentOptionList.Action {
+    override suspend fun loadConfig(): PaymentOptionList.Action {
         configRepository.loadConfig()
         return PaymentOptionList.Action.ConfigLoadFinish
     }

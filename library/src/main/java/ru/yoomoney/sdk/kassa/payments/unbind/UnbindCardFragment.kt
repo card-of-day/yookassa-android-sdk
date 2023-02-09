@@ -27,6 +27,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewPropertyAnimator
+import android.widget.LinearLayout
 import androidx.activity.addCallback
 import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
@@ -37,9 +38,9 @@ import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.ViewModelProvider
 import kotlinx.android.synthetic.main.ym_fragment_unbind_card.bankCardView
 import kotlinx.android.synthetic.main.ym_fragment_unbind_card.informerView
+import kotlinx.android.synthetic.main.ym_fragment_unbind_card.rootContainer
 import kotlinx.android.synthetic.main.ym_fragment_unbind_card.topBar
 import kotlinx.android.synthetic.main.ym_fragment_unbind_card.unbindCardButton
-import kotlinx.android.synthetic.main.ym_fragment_unbind_card.rootContainer
 import ru.yoomoney.sdk.kassa.payments.R
 import ru.yoomoney.sdk.kassa.payments.contract.SavePaymentMethodInfoActivity
 import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
@@ -56,6 +57,7 @@ import ru.yoomoney.sdk.kassa.payments.utils.viewModel
 import ru.yoomoney.sdk.march.RuntimeViewModel
 import ru.yoomoney.sdk.march.observe
 import javax.inject.Inject
+
 
 internal typealias UntieCardViewModel = RuntimeViewModel<UnbindCard.State, UnbindCard.Action, UnbindCard.Effect>
 
@@ -192,6 +194,7 @@ internal class UnbindCardFragment : Fragment(R.layout.ym_fragment_unbind_card) {
                 false
             )
         )
+        updateViewMargin()
     }
 
     private fun showContentLinkedWallet(state: UnbindCard.State.ContentLinkedWallet) {
@@ -211,6 +214,19 @@ internal class UnbindCardFragment : Fragment(R.layout.ym_fragment_unbind_card) {
                 true
             )
         )
+        updateViewMargin()
+    }
+
+    private fun updateViewMargin() {
+        val margin = resources.getDimensionPixelSize(R.dimen.ym_space_m)
+        informerView.layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ).apply {
+            bottomMargin = margin
+            marginStart = margin
+            marginEnd = margin
+        }
     }
 
     private fun resumePostponedViewSetup() {

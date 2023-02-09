@@ -1,6 +1,6 @@
 /*
  * The MIT License (MIT)
- * Copyright © 2020 NBCO YooMoney LLC
+ * Copyright © 2022 NBCO YooMoney LLC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the “Software”), to deal in the Software without restriction, including
@@ -19,11 +19,20 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package ru.yoomoney.sdk.kassa.payments.payment.tokenize
+package ru.yoomoney.sdk.kassa.payments.api
 
-import ru.yoomoney.sdk.kassa.payments.model.PaymentOption
-import ru.yoomoney.sdk.kassa.payments.model.PaymentOptionInfo
+import retrofit2.http.GET
+import retrofit2.http.Query
+import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionsResponse
 
-internal interface PaymentOptionInfoGateway {
-    fun getPaymentOptionInfo(paymentOption: PaymentOption): PaymentOptionInfo?
+internal interface PaymentsApi {
+
+    @GET("/api/frontend/v3/payment_options")
+    suspend fun getPaymentOptions(
+        @Query("gateway_id") gatewayId: String?,
+        @Query("amount") amount: String?,
+        @Query("currency") currency: String?,
+        @Query("save_payment_method") savePaymentMethod: Boolean?,
+        @Query("merchant_customer_id") merchantCustomerId: String?
+    ): Result<PaymentOptionsResponse>
 }

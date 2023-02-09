@@ -21,8 +21,10 @@
 
 package androidx.lifecycle
 
+import android.annotation.SuppressLint
 import android.util.Log
 
+@SuppressLint("RestrictedApi")
 internal class YooKassaViewModelProvider(
     private val store: ViewModelStore,
     private val factory: Factory

@@ -40,6 +40,7 @@ import ru.yoomoney.sdk.kassa.payments.contract.ContractFragment
 import ru.yoomoney.sdk.kassa.payments.paymentOptionList.PaymentOptionListFragment
 import ru.yoomoney.sdk.kassa.payments.tokenize.TokenizeFragment
 import ru.yoomoney.sdk.kassa.payments.tokenize.di.TokenizeModule
+import ru.yoomoney.sdk.kassa.payments.ui.ConfirmationActivity
 import ru.yoomoney.sdk.kassa.payments.ui.view.BankCardView
 import ru.yoomoney.sdk.kassa.payments.unbind.UnbindCardFragment
 import ru.yoomoney.sdk.kassa.payments.unbind.di.UnbindCardModule
@@ -84,6 +85,8 @@ internal interface CheckoutActivityComponent {
     fun inject(paymentAuthFragment: PaymentAuthFragment)
 
     fun inject(moneyAuthFragment: MoneyAuthFragment)
+
+    fun inject(activity: ConfirmationActivity)
 
     fun inject(bankCardView: BankCardView)
 

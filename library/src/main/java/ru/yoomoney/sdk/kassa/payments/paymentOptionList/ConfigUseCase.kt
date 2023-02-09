@@ -22,5 +22,5 @@
 package ru.yoomoney.sdk.kassa.payments.paymentOptionList
 
 internal interface ConfigUseCase {
-    fun loadConfig(): PaymentOptionList.Action
+    suspend fun loadConfig(): PaymentOptionList.Action
 }

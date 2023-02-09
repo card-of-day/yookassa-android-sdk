@@ -21,27 +21,39 @@
 
 package ru.yoomoney.sdk.kassa.payments.logging
 
+import android.content.Context
 import android.util.Log
 import ru.yoomoney.sdk.kassa.payments.metrics.Param
 import ru.yoomoney.sdk.kassa.payments.metrics.Reporter
+import ru.yoomoney.sdk.kassa.payments.utils.isBuildDebug
 
-internal class ReporterLogger(private val reporter: Reporter) : Reporter {
+internal class ReporterLogger(
+    private val reporter: Reporter,
+    private val showLogs: Boolean,
+    private val context: Context
+) : Reporter {
     override fun report(name: String, args: List<Param>?) {
-        if (args == null) {
-            Log.d("ANALYTICS_EVENT", name)
-        } else {
-            Log.d("ANALYTICS_EVENT", "$name ${args.joinToString(",")}")
+        if (showLogs && context.isBuildDebug()) {
+            if (args == null) {
+                Log.d("ANALYTICS_EVENT", name)
+            } else {
+                Log.d("ANALYTICS_EVENT", "$name ${args.joinToString(",")}")
+            }
         }
         reporter.report(name, args)
     }
 
     override fun report(name: String, arg: String) {
-        Log.d("ANALYTICS_EVENT", "$name - $arg")
+        if (showLogs && context.isBuildDebug()) {
+            Log.d("ANALYTICS_EVENT", "$name - $arg")
+        }
         reporter.report(name, arg)
     }
 
     override fun report(name: String, arg: Boolean) {
-        Log.d("ANALYTICS_EVENT", "$name - $arg")
+        if (showLogs && context.isBuildDebug()) {
+            Log.d("ANALYTICS_EVENT", "$name - $arg")
+        }
         reporter.report(name, arg)
     }
 }

@@ -22,7 +22,6 @@
 package ru.yoomoney.sdk.kassa.payments.config
 
 import ru.yoomoney.sdk.kassa.payments.model.Config
-import ru.yoomoney.sdk.kassa.payments.model.Result
 
 internal class MockConfigRepository(
     private val getDefaultConfig: Config
@@ -30,5 +29,5 @@ internal class MockConfigRepository(
 
     override fun getConfig(): Config = getDefaultConfig
 
-    override fun loadConfig(): Result<Config> = Result.Success(getDefaultConfig)
+    override suspend fun loadConfig(): Result<Config> = Result.success(getDefaultConfig)
 }

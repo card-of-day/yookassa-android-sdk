@@ -40,6 +40,7 @@ import ru.yoomoney.sdk.kassa.payments.Checkout.EXTRA_ERROR_DESCRIPTION
 import ru.yoomoney.sdk.kassa.payments.Checkout.EXTRA_ERROR_FAILING_URL
 import ru.yoomoney.sdk.kassa.payments.Checkout.RESULT_ERROR
 import ru.yoomoney.sdk.kassa.payments.R
+import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
 import ru.yoomoney.sdk.kassa.payments.extensions.visible
 import ru.yoomoney.sdk.kassa.payments.logging.ReporterLogger
 import ru.yoomoney.sdk.kassa.payments.metrics.YandexMetricaReporter
@@ -47,10 +48,10 @@ import ru.yoomoney.sdk.kassa.payments.metrics.YandexMetricaReporter
 private const val ACTION_CLOSE_3DS_SCREEN = "close3dsScreen"
 
 const val EXTRA_URL = "ru.yoomoney.sdk.kassa.payments.extra.URL"
+const val EXTRA_TEST_PARAMETERS = "ru.yoomoney.sdk.kassa.payments.extra.TEST_PARAMETERS"
 const val EXTRA_LOG_PARAM = "ru.yoomoney.sdk.kassa.payments.extra.LOG_PARAM"
 
-class WebViewActivity : AppCompatActivity(),
-    WebViewFragment.Listener {
+class WebViewActivity : AppCompatActivity(), WebViewFragment.Listener {
 
     private lateinit var webViewFragment: WebViewFragment
     private lateinit var reporterLogger: ReporterLogger
@@ -61,9 +62,12 @@ class WebViewActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        reporterLogger = ReporterLogger(YandexMetricaReporter(
-            YandexMetrica.getReporter(applicationContext, BuildConfig.APP_METRICA_KEY)
-        ))
+
+        reporterLogger = ReporterLogger(
+            YandexMetricaReporter(YandexMetrica.getReporter(applicationContext, BuildConfig.APP_METRICA_KEY)),
+            (requireNotNull(intent.getParcelableExtra(EXTRA_TEST_PARAMETERS)) as TestParameters).showLogs,
+            this
+        )
 
         val url = requireNotNull(intent.getStringExtra(EXTRA_URL))
         val logParam = intent.getStringExtra(EXTRA_LOG_PARAM)
@@ -181,9 +185,15 @@ class WebViewActivity : AppCompatActivity(),
     }
 
     companion object {
-        fun create(context: Context, url: String, logParam: String? = null): Intent {
+        fun create(
+            context: Context,
+            url: String,
+            logParam: String? = null,
+            testParameters: TestParameters,
+        ): Intent {
             return Intent(context, WebViewActivity::class.java).apply {
                 putExtra(EXTRA_URL, url)
+                putExtra(EXTRA_TEST_PARAMETERS, testParameters)
                 if (logParam != null) {
                     putExtra(EXTRA_LOG_PARAM, logParam)
                 }

@@ -22,7 +22,7 @@
 package ru.yoomoney.sdk.kassa.payments.extensions
 
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.equalTo
+import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized

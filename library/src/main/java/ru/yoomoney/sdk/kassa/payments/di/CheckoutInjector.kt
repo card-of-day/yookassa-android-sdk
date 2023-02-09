@@ -42,11 +42,10 @@ import ru.yoomoney.sdk.kassa.payments.model.UnhandledException
 import ru.yoomoney.sdk.kassa.payments.userAuth.MoneyAuthFragment
 import ru.yoomoney.sdk.kassa.payments.paymentOptionList.PaymentOptionListFragment
 import ru.yoomoney.sdk.kassa.payments.tokenize.TokenizeFragment
+import ru.yoomoney.sdk.kassa.payments.ui.ConfirmationActivity
 import ru.yoomoney.sdk.kassa.payments.ui.view.BankCardView
 import ru.yoomoney.sdk.kassa.payments.unbind.UnbindCardFragment
 import ru.yoomoney.sdk.kassa.payments.utils.getAllPaymentMethods
-import ru.yoomoney.sdk.kassa.payments.utils.isBuildDebug
-import ru.yoomoney.sdk.march.Defaults
 
 internal fun setComponent(
     context: Context,
@@ -101,7 +100,6 @@ internal object CheckoutInjector {
             }
 
         shopParameters.customReturnUrl?.let { checkUrl(it) }
-        Defaults.isLoggingEnable = testParameters.showLogs && context.isBuildDebug()
         if (shopParameters.paymentMethodTypes.let { PaymentMethodType.YOO_MONEY in it }
             && shopParameters.authCenterClientId.isNullOrEmpty()) {
             val exception = IllegalStateException(
@@ -166,5 +164,9 @@ internal object CheckoutInjector {
 
     fun inject(bankCardView: BankCardView) {
         component.inject(bankCardView)
+    }
+
+    fun inject(activity: ConfirmationActivity) {
+        component.inject(activity)
     }
 }

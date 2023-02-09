@@ -21,6 +21,7 @@
 
 package ru.yoomoney.sdk.kassa.payments.metrics
 
+import android.content.Context
 import android.util.Log
 import com.yandex.metrica.IReporter
 import ru.yoomoney.sdk.kassa.payments.BuildConfig
@@ -34,6 +35,7 @@ import ru.yoomoney.sdk.kassa.payments.model.ResponseReadingException
 import ru.yoomoney.sdk.kassa.payments.model.SdkException
 import ru.yoomoney.sdk.kassa.payments.model.SelectedOptionNotFoundException
 import ru.yoomoney.sdk.kassa.payments.model.UnhandledException
+import ru.yoomoney.sdk.kassa.payments.utils.isBuildDebug
 
 internal class YandexMetricaReporter(
     private val metrica: IReporter
@@ -60,9 +62,7 @@ internal class YandexMetricaErrorReporter(
     override fun report(e: SdkException) {
         when(e) {
             is SelectedOptionNotFoundException -> metrica.reportError("Selected option not found error", e)
-            is RequestExecutionException -> {
-                metrica.reportError("Request execution error", e.e)
-            }
+            is RequestExecutionException -> metrica.reportError("Request execution error", e.e)
             is NoInternetException ->  metrica.reportError("No internet error", e)
             is ResponseReadingException -> metrica.reportError("Response reading error", e.e)
             is ResponseParsingException -> metrica.reportError("No internet error", e.e)
@@ -92,6 +92,7 @@ internal class YandexMetricaSessionReporter(
 
 internal class YandexMetricaLoggerReporter(
     private val showLogs: Boolean,
+    private val context: Context,
     private val errorReporter: ErrorReporter
 ) : ErrorLoggerReporter {
 
@@ -101,7 +102,7 @@ internal class YandexMetricaLoggerReporter(
 
     override fun report(e: SdkException) {
         errorReporter.report(e)
-        if (showLogs) {
+        if (showLogs && context.isBuildDebug()) {
             Log.d(ERROR_TAG, e.toString())
         }
     }

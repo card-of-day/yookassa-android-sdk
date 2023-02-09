@@ -194,7 +194,6 @@ internal class PaymentOptionListFragment : Fragment(R.layout.ym_fragment_payment
     }
 
     private fun onUnbindingCardResult(panUnbindingCard: String) {
-        viewModel.handleAction(PaymentOptionList.Action.Load)
         view?.showSnackbar(
             message = getString(
                 R.string.ym_unbinding_card_success,
@@ -215,6 +214,7 @@ internal class PaymentOptionListFragment : Fragment(R.layout.ym_fragment_payment
                 is PaymentOptionList.State.Content -> showContentState(state.content)
                 is PaymentOptionList.State.Error -> showErrorState(state)
                 is PaymentOptionList.State.ContentWithUnbindingAlert -> showContentWithUnbindingAlert(state)
+                else -> Unit
             }
         }
     }
@@ -267,7 +267,6 @@ internal class PaymentOptionListFragment : Fragment(R.layout.ym_fragment_payment
         loadingView.updateLayoutParams<ViewGroup.LayoutParams> { height = contentContainer.getViewHeight() }
     }
 
-    //todo
     private fun showPaymentOptions(content: PaymentOptionListSuccessOutputModel) {
         val listItems: List<PaymentOptionListItem> = content.options.map {
             it.getPaymentOptionListItems(requireContext())

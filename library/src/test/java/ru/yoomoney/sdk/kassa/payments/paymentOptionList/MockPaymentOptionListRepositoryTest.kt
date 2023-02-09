@@ -21,8 +21,9 @@
 
 package ru.yoomoney.sdk.kassa.payments.paymentOptionList
 
+import org.hamcrest.CoreMatchers.hasItems
+import kotlinx.coroutines.runBlocking
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.contains
 import org.hamcrest.core.IsInstanceOf.instanceOf
 import org.junit.Test
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.Amount
@@ -41,7 +42,7 @@ import java.math.BigDecimal
 class MockPaymentOptionListRepositoryTest {
 
     @Test
-    fun testNoLinkedCards() {
+    fun testNoLinkedCards() = runBlocking {
         // prepare
         val gateway = MockPaymentOptionListRepository(0, null)
 
@@ -57,7 +58,7 @@ class MockPaymentOptionListRepositoryTest {
         // assert
         assertThat(
             options,
-            contains(
+            hasItems(
                 instanceOf(Wallet::class.java),
                 instanceOf(SberBank::class.java),
                 instanceOf(GooglePay::class.java),
@@ -67,7 +68,7 @@ class MockPaymentOptionListRepositoryTest {
     }
 
     @Test
-    fun testWithLinkedCards() {
+    fun testWithLinkedCards() = runBlocking {
         // prepare
         val gateway = MockPaymentOptionListRepository(3, null)
         // invoke
@@ -83,7 +84,7 @@ class MockPaymentOptionListRepositoryTest {
         // assert
         assertThat(
             options,
-            contains(
+            hasItems(
                 instanceOf(Wallet::class.java),
                 instanceOf(LinkedCard::class.java),
                 instanceOf(LinkedCard::class.java),
@@ -96,7 +97,7 @@ class MockPaymentOptionListRepositoryTest {
     }
 
     @Test
-    fun testAnonymousUser() {
+    fun testAnonymousUser() = runBlocking {
         // prepare
         val gateway = MockPaymentOptionListRepository(3, null)
         // invoke
@@ -111,7 +112,7 @@ class MockPaymentOptionListRepositoryTest {
         // assert
         assertThat(
             options,
-            contains(
+            hasItems(
                 instanceOf(AbstractWallet::class.java),
                 instanceOf(SberBank::class.java),
                 instanceOf(GooglePay::class.java),

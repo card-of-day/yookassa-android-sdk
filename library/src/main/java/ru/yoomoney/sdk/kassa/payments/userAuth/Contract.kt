@@ -21,7 +21,7 @@
 
 package ru.yoomoney.sdk.kassa.payments.userAuth
 
-import ru.yoomoney.sdk.auth.account.model.UserAccount
+import ru.yoomoney.sdk.auth.api.account.model.UserAccount
 import ru.yoomoney.sdk.kassa.payments.metrics.MoneyAuthLoginScheme
 
 internal object MoneyAuth {

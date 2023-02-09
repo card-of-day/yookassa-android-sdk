@@ -23,13 +23,11 @@ package ru.yoomoney.sdk.kassa.payments.config
 
 import android.content.SharedPreferences
 import org.json.JSONObject
-import ru.yoomoney.sdk.kassa.payments.extensions.CheckoutOkHttpClient
-import ru.yoomoney.sdk.kassa.payments.extensions.execute
-import ru.yoomoney.sdk.kassa.payments.methods.ConfigRequest
+import ru.yoomoney.sdk.kassa.payments.api.config.ConfigRequestApi
 import ru.yoomoney.sdk.kassa.payments.metrics.ErrorLoggerReporter
 import ru.yoomoney.sdk.kassa.payments.model.Config
-import ru.yoomoney.sdk.kassa.payments.model.Result
 import ru.yoomoney.sdk.kassa.payments.model.SdkException
+import ru.yoomoney.sdk.kassa.payments.model.mapper.map
 import ru.yoomoney.sdk.kassa.payments.model.toConfig
 import ru.yoomoney.sdk.kassa.payments.model.toJsonObject
 import ru.yoomoney.sdk.kassa.payments.utils.getLanguage
@@ -37,9 +35,8 @@ import ru.yoomoney.sdk.kassa.payments.utils.getLanguage
 private const val CONFIG_FIELD_NAME = "config"
 
 internal class ApiConfigRepository(
-    private val configEndpoint: String,
-    private val httpClient: Lazy<CheckoutOkHttpClient>,
     private val getDefaultConfig: Config,
+    private val configRequestApi: ConfigRequestApi,
     private val sp: SharedPreferences,
     private val errorReporter: ErrorLoggerReporter
 ) : ConfigRepository {
@@ -60,13 +57,10 @@ internal class ApiConfigRepository(
 
     override fun getConfig(): Config = cachedConfig
 
-    override fun loadConfig(): Result<Config> {
-        val configRequest = ConfigRequest(configEndpoint)
-        val response = httpClient.value.execute(configRequest)
-        when (response) {
-            is Result.Success -> cachedConfig = response.value
-            is Result.Fail -> Unit
+    override suspend fun loadConfig(): Result<Config> {
+        configRequestApi.getConfig(getLanguage()).onSuccess {
+            cachedConfig = it.map()
         }
-        return response
+        return Result.success(cachedConfig)
     }
 }

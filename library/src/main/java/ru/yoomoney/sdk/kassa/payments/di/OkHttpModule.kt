@@ -25,13 +25,33 @@ import android.content.Context
 import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient
+import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
+import ru.yoomoney.sdk.kassa.payments.http.newAuthorizedHttpClient
 import ru.yoomoney.sdk.kassa.payments.http.newHttpClient
+import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
 
 @Module
 internal open class OkHttpModule {
     @Provides
     open fun okHttpClient(context: Context, testParameters: TestParameters): OkHttpClient {
         return newHttpClient(context, testParameters.showLogs, testParameters.hostParameters.isDevHost)
+    }
+
+    @Provides
+    @AuthorizedHttpClient
+    open fun authorizedOkHttpClient(
+        context: Context,
+        testParameters: TestParameters,
+        paymentParameters: PaymentParameters,
+        tokensStorage: TokensStorage
+    ): OkHttpClient {
+        return newAuthorizedHttpClient(
+            context = context,
+            showLogs = testParameters.showLogs,
+            isDevHost = testParameters.hostParameters.isDevHost,
+            shopToken = paymentParameters.clientApplicationKey,
+            tokensStorage  = tokensStorage
+        )
     }
 }

@@ -24,14 +24,17 @@ package ru.yoomoney.sdk.kassa.payments.http
 import android.annotation.SuppressLint
 import android.content.Context
 import okhttp3.ConnectionPool
+import okhttp3.Credentials
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
 import ru.yoomoney.sdk.kassa.payments.utils.isBuildDebug
+import ru.yoomoney.sdk.yoopinning.PinningHelper
 import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.HostnameVerifier
 import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
+import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.X509TrustManager
 
 private const val DEFAULT_TIMEOUT: Long = 30
@@ -46,46 +49,102 @@ internal fun newHttpClient(
     .connectionPool(ConnectionPool(4, 10L, TimeUnit.MINUTES))
     .followSslRedirects(false)
     .followRedirects(false)
-    .applySsl(isDevHost)
+    .applySsl(context, isDevHost)
     .addUserAgent(context)
     .applyLogging(context, showLogs)
     .build()
+
+internal fun newAuthorizedHttpClient(
+    context: Context,
+    showLogs: Boolean,
+    isDevHost: Boolean,
+    shopToken: String,
+    tokensStorage: TokensStorage
+) = OkHttpClient.Builder()
+    .readTimeout(DEFAULT_TIMEOUT, TimeUnit.SECONDS)
+    .connectTimeout(DEFAULT_TIMEOUT, TimeUnit.SECONDS)
+    .connectionPool(ConnectionPool(4, 10L, TimeUnit.MINUTES))
+    .followSslRedirects(false)
+    .followRedirects(false)
+    .applySsl(context, isDevHost)
+    .addUserAgent(context)
+    .applyLogging(context, showLogs)
+    .applyAuthorization(shopToken)
+    .applyPassportAuthorization(tokensStorage)
+    .build()
+
+private fun OkHttpClient.Builder.applyAuthorization(shopToken: String) = addInterceptor { chain ->
+    val request = chain.request()
+        .newBuilder()
+        .header("Authorization", Credentials.basic(shopToken, ""))
+        .build()
+    chain.proceed(request)
+}
+
+private fun OkHttpClient.Builder.applyPassportAuthorization(
+    tokensStorage: TokensStorage
+) = addInterceptor { chain ->
+    val userAuthToken: String? =
+        if (!tokensStorage.passportAuthToken.isNullOrEmpty() && !tokensStorage.paymentAuthToken.isNullOrEmpty()) {
+            tokensStorage.passportAuthToken
+        } else {
+            tokensStorage.userAuthToken
+        }
+    if (userAuthToken != null) {
+        val request = chain.request()
+            .newBuilder()
+            .header("Passport-Authorization", userAuthToken)
+            .build()
+        chain.proceed(request)
+    } else {
+        chain.proceed(chain.request())
+    }
+}
 
 internal fun OkHttpClient.Builder.applyLogging(
     context: Context,
     showLogs: Boolean
 ) = if (context.isBuildDebug() && showLogs) {
-    addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+    addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.HEADERS))
 } else {
     addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.NONE))
 }
 
-internal fun OkHttpClient.Builder.applySsl(isDevHost: Boolean) = if (isDevHost) {
-    apply {
-        sslSocketFactory(sslSocketFactory(), debugTrustManager[0] as X509TrustManager)
-        hostnameVerifier(HostnameVerifier { _, _ -> true })
+internal fun OkHttpClient.Builder.applySsl(context: Context, isDevHost: Boolean): OkHttpClient.Builder {
+    val trustManager: X509TrustManager = getTrustManager(context, isDevHost)
+    val sslSocketFactory: SSLSocketFactory = getSSLSocketFactoryAndInit(trustManager)
+    sslSocketFactory(sslSocketFactory, trustManager)
+    if (isDevHost) {
+        hostnameVerifier { _, _ -> true }
     }
-} else {
-    this
+    return this
 }
 
-private fun sslSocketFactory() =
-    SSLContext.getInstance("SSL").apply { init(null, debugTrustManager, SecureRandom()) }.socketFactory
+private fun getSSLSocketFactoryAndInit(trustManager: X509TrustManager) =
+    SSLContext.getInstance("SSL").apply { init(null, arrayOf(trustManager), SecureRandom()) }.socketFactory
 
-private val debugTrustManager = arrayOf<TrustManager>(object : X509TrustManager {
+private val debugTrustManager = (
+    object : X509TrustManager {
 
-    @SuppressLint("TrustAllX509TrustManager")
-    override fun checkClientTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {
-        // does nothing
+        @SuppressLint("TrustAllX509TrustManager")
+        override fun checkClientTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {
+            // does nothing
+        }
+
+        @SuppressLint("TrustAllX509TrustManager")
+        override fun checkServerTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {
+            // does nothing
+        }
+
+        override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> {
+            return arrayOf()
+        }
+
+        // Called reflectively by X509TrustManagerExtensions.
+        fun checkServerTrusted(chain: Array<X509Certificate>, authType: String, host: String) =
+            Unit
     }
+    )
 
-    @SuppressLint("TrustAllX509TrustManager")
-    override fun checkServerTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {
-        // does nothing
-    }
-
-    override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> {
-
-        return arrayOf()
-    }
-})
+internal fun getTrustManager(context: Context, isDebug: Boolean): X509TrustManager =
+    if (isDebug) debugTrustManager else PinningHelper.getInstance(context).trustManager

@@ -21,47 +21,43 @@
 
 package ru.yoomoney.sdk.kassa.payments.paymentOptionList
 
+import ru.yoomoney.sdk.kassa.payments.api.PaymentsApi
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.Amount
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.SavePaymentMethod
 import ru.yoomoney.sdk.kassa.payments.config.ConfigRepository
-import ru.yoomoney.sdk.kassa.payments.extensions.CheckoutOkHttpClient
-import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
-import ru.yoomoney.sdk.kassa.payments.extensions.execute
-import ru.yoomoney.sdk.kassa.payments.http.HostProvider
-import ru.yoomoney.sdk.kassa.payments.methods.PaymentOptionsRequest
 import ru.yoomoney.sdk.kassa.payments.model.CurrentUser
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOptionsResponse
 import ru.yoomoney.sdk.kassa.payments.payment.loadOptionList.PaymentOptionListRepository
 import ru.yoomoney.sdk.kassa.payments.model.Result
+import ru.yoomoney.sdk.kassa.payments.model.mapper.map
 
 internal class ApiV3PaymentOptionListRepository(
-    private val hostProvider: HostProvider,
+    private val paymentsApi: PaymentsApi,
     private val configRepository: ConfigRepository,
-    private val httpClient: Lazy<CheckoutOkHttpClient>,
     private val gatewayId: String?,
-    private val tokensStorage: TokensStorage,
-    private val shopToken: String,
     private val savePaymentMethod: SavePaymentMethod,
     private val merchantCustomerId: String?
 ) : PaymentOptionListRepository {
 
-    override fun getPaymentOptions(amount: Amount, currentUser: CurrentUser): Result<PaymentOptionsResponse> {
-        val userAuthToken: String? = if (!tokensStorage.passportAuthToken.isNullOrEmpty() && !tokensStorage.paymentAuthToken.isNullOrEmpty()) {
-            tokensStorage.passportAuthToken
-        } else {
-            tokensStorage.userAuthToken
+    override suspend fun getPaymentOptions(amount: Amount, currentUser: CurrentUser): Result<PaymentOptionsResponse> {
+        val save = when (savePaymentMethod) {
+            SavePaymentMethod.ON ->  true
+            SavePaymentMethod.OFF -> false
+            SavePaymentMethod.USER_SELECTS -> null
         }
-        val paymentRequest = PaymentOptionsRequest(
-            hostProvider,
-            amount = amount,
-            currentUser = currentUser,
+        return paymentsApi.getPaymentOptions(
             gatewayId = gatewayId,
-            userAuthToken = userAuthToken,
-            shopToken = shopToken,
-            savePaymentMethod = savePaymentMethod,
-            merchantCustomerId = merchantCustomerId,
-            configRepository = configRepository
+            amount = amount.value.toString(),
+            currency = amount.currency.toString(),
+            savePaymentMethod = save,
+            merchantCustomerId = merchantCustomerId
+        ).fold(
+            onSuccess = {
+                Result.Success(it.map(configRepository.getConfig().paymentMethods))
+            },
+            onFailure = {
+                Result.Fail(it)
+            }
         )
-        return httpClient.value.execute(paymentRequest)
     }
 }

@@ -31,24 +31,20 @@ ext {
 }
 
 android {
-    compileSdkVersion target_sdk_version
-    buildToolsVersion "31.0.0"
+    compileSdkVersion rootProject.ext.target_sdk_version
+
+    buildToolsVersion "33.0.0"
 
     resourcePrefix 'ym_'
 
     defaultConfig {
         minSdkVersion 21
-        versionCode project.ext.versionCode
-        versionName project.ext.versionName
 
         multiDexEnabled true
         targetSdkVersion rootProject.ext.target_sdk_version
 
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
 
-        buildConfigField "String", "THREAT_METRIX_ORIG_ID", "${optionalProperty('threatMetrixOrigId')}"
-        buildConfigField "String", "THREAT_METRIX_FP_SERVER", "${optionalProperty('threatMetrixFPServer')}"
-        buildConfigField "String", "THREAT_METRIX_CERTIFICATE_HASHES", "${optionalProperty('threatMetrixCertificateHashes')}"
         buildConfigField "String", "APP_METRICA_KEY", "${optionalProperty('metricaKey')}"
 
         buildConfigField "Integer", "VERSION_CODE", "${project.ext.versionCode}"
@@ -72,8 +68,6 @@ android {
             includeAndroidResources = true
         }
     }
-
-    useLibrary 'org.apache.http.legacy'
 
     libraryVariants.all { variant ->
         variant.outputs.all {

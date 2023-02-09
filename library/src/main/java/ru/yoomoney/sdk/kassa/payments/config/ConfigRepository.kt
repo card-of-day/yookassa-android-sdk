@@ -22,9 +22,8 @@
 package ru.yoomoney.sdk.kassa.payments.config
 
 import ru.yoomoney.sdk.kassa.payments.model.Config
-import ru.yoomoney.sdk.kassa.payments.model.Result
 
 internal interface ConfigRepository {
     fun getConfig(): Config
-    fun loadConfig(): Result<Config>
+    suspend fun loadConfig(): Result<Config>
 }

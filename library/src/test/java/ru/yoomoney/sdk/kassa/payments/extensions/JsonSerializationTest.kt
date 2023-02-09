@@ -21,8 +21,8 @@
 
 package ru.yoomoney.sdk.kassa.payments.extensions
 
+import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.contains
 import org.json.JSONObject
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -59,6 +59,6 @@ class JsonSerializationTest {
             .toList()
 
         // assert
-        assertThat(actuals, contains(*expectedJsons))
+        assertThat(actuals, hasItems(*expectedJsons))
     }
 }

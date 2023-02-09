@@ -33,18 +33,16 @@ import ru.yoomoney.sdk.kassa.payments.model.PaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOptionInfo
 import ru.yoomoney.sdk.kassa.payments.model.Result
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuthTokenRepository
-import ru.yoomoney.sdk.kassa.payments.tmx.TmxSessionIdStorage
-import ru.yoomoney.sdk.kassa.payments.paymentOptionList.ConfigUseCase
-import ru.yoomoney.sdk.tmx.TmxProfiler
+import ru.yoomoney.sdk.kassa.payments.tmx.ProfilingSessionIdStorage
+import ru.yoomoney.sdk.yooprofiler.YooProfiler
 
 internal class ApiV3TokenizeRepository(
     private val hostProvider: HostProvider,
     private val httpClient: Lazy<CheckoutOkHttpClient>,
     private val shopToken: String,
     private val paymentAuthTokenRepository: PaymentAuthTokenRepository,
-    private val tmxSessionIdStorage: TmxSessionIdStorage,
-    private val profiler: TmxProfiler,
-    private val configUseCase: ConfigUseCase,
+    private val profilingSessionIdStorage: ProfilingSessionIdStorage,
+    private val profiler: YooProfiler,
     private val merchantCustomerId: String?
 ) : TokenizeRepository {
 
@@ -55,13 +53,13 @@ internal class ApiV3TokenizeRepository(
         savePaymentInstrument: Boolean,
         confirmation: Confirmation
     ): Result<String> {
-        val currentTmxSessionId = acquireTmxSessionId() ?: return Result.Fail(TmxProfilingFailedException())
+        val currentProfilingSessionId = acquireProfilingSessionId() ?: return Result.Fail(TmxProfilingFailedException())
         val paymentAuthToken = paymentAuthTokenRepository.paymentAuthToken
         val tokenRequest = TokenRequest(
             hostProvider = hostProvider,
             paymentOptionInfo = paymentOptionInfo,
             paymentOption = paymentOption,
-            tmxSessionId = currentTmxSessionId,
+            tmxSessionId = currentProfilingSessionId,
             shopToken = shopToken,
             paymentAuthToken = paymentAuthToken,
             confirmation = confirmation,
@@ -69,7 +67,7 @@ internal class ApiV3TokenizeRepository(
             savePaymentInstrument = savePaymentInstrument,
             merchantCustomerId = merchantCustomerId
         )
-        tmxSessionIdStorage.tmxSessionId = null
+        profilingSessionIdStorage.profilingSessionId = null
         return httpClient.value.execute(tokenRequest)
     }
 
@@ -80,12 +78,12 @@ internal class ApiV3TokenizeRepository(
         csc: String?,
         confirmation: Confirmation
     ): Result<String> {
-        val currentTmxSessionId = acquireTmxSessionId() ?: return Result.Fail(TmxProfilingFailedException())
+        val currentProfilingSessionId = acquireProfilingSessionId() ?: return Result.Fail(TmxProfilingFailedException())
         val paymentAuthToken = paymentAuthTokenRepository.paymentAuthToken
         val tokenRequest = InstrumentTokenRequest(
             hostProvider = hostProvider,
             amount = amount,
-            tmxSessionId = currentTmxSessionId,
+            tmxSessionId = currentProfilingSessionId,
             shopToken = shopToken,
             paymentAuthToken = paymentAuthToken,
             confirmation = confirmation,
@@ -96,15 +94,15 @@ internal class ApiV3TokenizeRepository(
         return httpClient.value.execute(tokenRequest)
     }
 
-    private fun acquireTmxSessionId(): String? {
-        val tmxSessionId = tmxSessionIdStorage.tmxSessionId
-        if (tmxSessionId.isNullOrEmpty()) {
+    private fun acquireProfilingSessionId(): String {
+        val profilingSessionId = profilingSessionIdStorage.profilingSessionId
+        if (profilingSessionId.isNullOrEmpty()) {
             return when (val result = profiler.profile()) {
-                is TmxProfiler.Result.Success -> result.sessionId
-                is TmxProfiler.Result.Fail -> result.description
+                is YooProfiler.Result.Success -> result.sessionId
+                is YooProfiler.Result.Fail -> result.description
             }
         }
-        return tmxSessionId
+        return profilingSessionId
     }
 }
 

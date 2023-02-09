@@ -25,10 +25,17 @@ import android.content.Context
 import android.content.Context.MODE_PRIVATE
 import dagger.Module
 import dagger.Provides
+import okhttp3.OkHttpClient
 import org.json.JSONObject
+import retrofit2.Retrofit
+import ru.yoomoney.sdk.kassa.payments.api.YooKassaJacksonConverterFactory
 import ru.yoomoney.sdk.kassa.payments.R
+import ru.yoomoney.sdk.kassa.payments.api.config.ConfigRequestApi
+import ru.yoomoney.sdk.kassa.payments.api.SuspendResultCallAdapterFactory
+import ru.yoomoney.sdk.kassa.payments.api.config.ConfigApiErrorMapper
+import ru.yoomoney.sdk.kassa.payments.api.failures.ApiErrorMapper
+import ru.yoomoney.sdk.kassa.payments.api.jacksonBaseObjectMapper
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
-import ru.yoomoney.sdk.kassa.payments.extensions.CheckoutOkHttpClient
 import ru.yoomoney.sdk.kassa.payments.metrics.ErrorLoggerReporter
 import ru.yoomoney.sdk.kassa.payments.model.toConfig
 import ru.yoomoney.sdk.kassa.payments.utils.readText
@@ -41,9 +48,10 @@ internal class ConfigModule {
     @Provides
     fun configRepository(
         context: Context,
-        httpClient: CheckoutOkHttpClient,
         errorReporter: ErrorLoggerReporter,
-        testParameters: TestParameters
+        testParameters: TestParameters,
+        okHttpClient: OkHttpClient,
+        apiErrorMapper: ApiErrorMapper
     ): ConfigRepository {
         val defaultConfig = JSONObject(
             context.resources.openRawResource(R.raw.ym_default_config).readText()
@@ -52,12 +60,29 @@ internal class ConfigModule {
             MockConfigRepository(defaultConfig)
         } else {
             ApiConfigRepository(
-                configEndpoint = testParameters.hostParameters.configHost,
-                httpClient = lazy { httpClient },
                 getDefaultConfig = defaultConfig,
                 sp = context.getSharedPreferences("configPrefs", MODE_PRIVATE),
-                errorReporter = errorReporter
+                errorReporter = errorReporter,
+                configRequestApi = createConfigApi(
+                    { testParameters.hostParameters.configHost + "/" },
+                    okHttpClient,
+                    ConfigApiErrorMapper(jacksonBaseObjectMapper, apiErrorMapper)
+                )
             )
         }
+    }
+
+    private fun createConfigApi(
+        hostProvider: () -> String,
+        httpClient: OkHttpClient,
+        apiErrorMapper: ApiErrorMapper
+    ): ConfigRequestApi {
+        return Retrofit.Builder()
+            .client(httpClient)
+            .baseUrl(hostProvider())
+            .addConverterFactory(YooKassaJacksonConverterFactory.create(jacksonBaseObjectMapper))
+            .addCallAdapterFactory(SuspendResultCallAdapterFactory(apiErrorMapper))
+            .build()
+            .create(ConfigRequestApi::class.java)
     }
 }

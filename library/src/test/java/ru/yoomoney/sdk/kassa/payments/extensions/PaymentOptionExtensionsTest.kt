@@ -27,11 +27,11 @@ import android.text.SpannableStringBuilder
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.test.core.app.ApplicationProvider
 import junit.framework.Assert.assertEquals
+import org.hamcrest.CoreMatchers.hasItems
+import org.hamcrest.CoreMatchers.instanceOf
+import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.contains
-import org.hamcrest.Matchers.equalTo
-import org.hamcrest.Matchers.instanceOf
-import org.hamcrest.Matchers.nullValue
+import org.hamcrest.core.IsEqual.equalTo
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.Timeout
@@ -260,7 +260,7 @@ class PaymentOptionExtensionsTest {
         val additionalInfo = paymentOption.getAdditionalInfo(context) as SpannableStringBuilder
 
         // assert
-        assertThat(additionalInfo.toString(), equalTo(paymentOption.balance.format().toString()))
+        assertThat(additionalInfo.toString(), equalTo(paymentOption.balance?.format().toString()))
     }
 
     @Test
@@ -335,7 +335,7 @@ class PaymentOptionExtensionsTest {
         val actualTokenizeSchemes = paymentOptions.map { it.toTokenizeScheme(context, getSberbankPackage(false), null) }
 
         // assert
-        assertThat(actualTokenizeSchemes, contains(*expectedTokenizeSchemes))
+        assertThat(actualTokenizeSchemes, hasItems(*expectedTokenizeSchemes))
     }
 
     @Test
@@ -363,6 +363,6 @@ class PaymentOptionExtensionsTest {
         val actualConfirmations = paymentOptions.map { it.getConfirmation(context, redirectUrl, "exampleApp", getSberbankPackage(false)) }
 
         // assert
-        assertThat(actualConfirmations, contains(*expectedConfirmations))
+        assertThat(actualConfirmations, hasItems(*expectedConfirmations))
     }
 }

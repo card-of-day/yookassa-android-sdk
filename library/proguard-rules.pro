@@ -20,11 +20,7 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
--keep class com.threatmetrix.TrustDefender.** { *; }
-# Required to suppress warning messages about ThreatMetrix SDK
--dontwarn com.threatmetrix.TrustDefender.**
-
-# ThreatMetrix SDK wants OkHttp to be available like this
+# profiling SDK wants OkHttp to be available like this
 -keep class okhttp3.** { *; }
 -keep class okio.** { *; }
 -keep class org.threeten.bp.** { *; }
@@ -39,7 +35,7 @@
 -keeppackagenames ru.yoomoney.sdk.kassa.payments.**
 -keeppackagenames ru.yoomoney.sdk.kassa.payments
 
--keep class ru.yoomoney.sdk.tmx.* { *; }
+-keep class ru.yoomoney.sdk.yooprofiler.* { *; }
 
 -dontwarn javax.annotation.Nullable
 -dontwarn org.conscrypt.OpenSSLProvider
@@ -58,6 +54,12 @@
 # Gson specific classes
 -dontwarn sun.misc.**
 #-keep class com.google.gson.stream.** { *; }
+
+# Kepp API models for Jackson
+-keep class ru.yoomoney.sdk.kassa.payments.api.model.** { *; }
+-keep class retrofit2.converter.jackson.ResultJacksonResponseBodyConverter { *; }
+-keep class ru.yoomoney.sdk.kassa.payments.api.YooKassaJacksonConverterFactory { *; }
+-keep class ru.yoomoney.sdk.kassa.payments.api.JacksonBaseObjectMapperKt { *; }
 
 # Application classes that will be serialized/deserialized over Gson
 -keep class ru.yoomoney.sdk.auth.account.model.** { <fields>; }

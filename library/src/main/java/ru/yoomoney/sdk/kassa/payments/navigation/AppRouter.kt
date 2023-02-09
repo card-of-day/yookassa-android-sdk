@@ -21,16 +21,23 @@
 
 package ru.yoomoney.sdk.kassa.payments.navigation
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import ru.yoomoney.sdk.kassa.payments.utils.isBuildDebug
 
 private val TAG = AppRouter::class.java.simpleName
 
-internal class AppRouter: Router {
+internal class AppRouter(
+    private val context: Context,
+    private val showLogs: Boolean
+): Router {
     override val screensData = MutableLiveData<Screen>()
 
     override fun navigateTo(screen: Screen) {
-        Log.d(TAG, "Navigating to $screen")
+        if (context.isBuildDebug() && showLogs) {
+            Log.d(TAG, "Navigating to $screen")
+        }
         screensData.postValue(screen)
     }
 }

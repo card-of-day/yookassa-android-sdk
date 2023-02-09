@@ -22,12 +22,11 @@
 package ru.yoomoney.sdk.kassa.payments.userAuth
 
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
-import ru.yoomoney.sdk.kassa.payments.metrics.MoneyAuthLoginSchemeAuthSdk
 import ru.yoomoney.sdk.kassa.payments.model.AuthorizedUser
 import ru.yoomoney.sdk.kassa.payments.payment.CurrentUserRepository
 import ru.yoomoney.sdk.kassa.payments.payment.GetLoadedPaymentOptionListRepository
 import ru.yoomoney.sdk.kassa.payments.paymentOptionList.PaymentOptionsListUseCase
-import ru.yoomoney.sdk.kassa.payments.tmx.TmxSessionIdStorage
+import ru.yoomoney.sdk.kassa.payments.tmx.ProfilingSessionIdStorage
 import ru.yoomoney.sdk.march.Logic
 import ru.yoomoney.sdk.march.Out
 import ru.yoomoney.sdk.march.input
@@ -35,7 +34,7 @@ import ru.yoomoney.sdk.march.input
 internal class MoneyAuthBusinessLogic(
     private val showState: suspend (MoneyAuth.State) -> MoneyAuth.Action,
     private val source: suspend () -> MoneyAuth.Action,
-    private val tmxSessionIdStorage: TmxSessionIdStorage,
+    private val profilingSessionIdStorage: ProfilingSessionIdStorage,
     private val currentUserRepository: CurrentUserRepository,
     private val userAuthInfoRepository: UserAuthInfoRepository,
     private val paymentOptionsListUseCase: PaymentOptionsListUseCase,
@@ -104,7 +103,7 @@ internal class MoneyAuthBusinessLogic(
         userAuthInfoRepository.userAuthName = action.userAccount?.displayName?.title
         userAuthInfoRepository.userAvatarUrl = action.userAccount?.avatar?.url
         currentUserRepository.currentUser = AuthorizedUser()
-        tmxSessionIdStorage.tmxSessionId = action.tmxSessionId
+        profilingSessionIdStorage.profilingSessionId = action.tmxSessionId
         loadedPaymentOptionListRepository.isActual = false
         paymentOptionsListUseCase.loadPaymentOptions(paymentParameters.amount)
         return MoneyAuth.Action.AuthSuccessful

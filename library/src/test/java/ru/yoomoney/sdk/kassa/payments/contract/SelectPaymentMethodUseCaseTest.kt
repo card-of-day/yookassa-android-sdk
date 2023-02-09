@@ -26,7 +26,7 @@ import com.nhaarman.mockitokotlin2.whenever
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import org.assertj.core.api.Assertions
-import ru.yoomoney.sdk.auth.account.AccountRepository
+import ru.yoomoney.sdk.auth.api.account.AccountRepository
 import ru.yoomoney.sdk.kassa.payments.createGooglePayPaymentOptionWithFee
 import ru.yoomoney.sdk.kassa.payments.model.GooglePay
 import ru.yoomoney.sdk.kassa.payments.model.SelectedOptionNotFoundException

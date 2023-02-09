@@ -85,7 +85,7 @@ internal fun PaymentOption.getPlaceholderTitle(context: Context): CharSequence =
 
 internal fun PaymentOption.getAdditionalInfo(context: Context): CharSequence? {
     return when (this) {
-        is Wallet -> balance.format()
+        is Wallet -> balance?.format()
         is LinkedCard -> context.getString(R.string.ym_linked_wallet_card)
         else -> null
     }

@@ -1,6 +1,6 @@
 /*
  * The MIT License (MIT)
- * Copyright © 2021 NBCO YooMoney LLC
+ * Copyright © 2022 NBCO YooMoney LLC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the “Software”), to deal in the Software without restriction, including
@@ -19,24 +19,22 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package ru.yoomoney.sdk.kassa.payments.methods
+package ru.yoomoney.sdk.kassa.payments.api.model.packageoptions
 
-import org.json.JSONObject
-import ru.yoomoney.sdk.kassa.payments.extensions.toConfigResponse
-import ru.yoomoney.sdk.kassa.payments.methods.base.GetRequest
-import ru.yoomoney.sdk.kassa.payments.methods.base.acceptLanguageHeader
-import ru.yoomoney.sdk.kassa.payments.model.Config
-import ru.yoomoney.sdk.kassa.payments.model.Result
+import com.fasterxml.jackson.annotation.JsonEnumDefaultValue
+import com.fasterxml.jackson.annotation.JsonProperty
 
-private const val METHOD_PATH = "/remote-config/msdk"
+internal enum class ConfirmationType {
 
-internal data class ConfigRequest(
-    private val host: String
-) : GetRequest<Result<Config>> {
+    @JsonProperty("redirect")
+    REDIRECT,
 
-    override fun getHeaders(): List<Pair<String, String>> = listOf(acceptLanguageHeader())
+    @JsonProperty("external")
+    EXTERNAL,
 
-    override fun getUrl(): String = host + METHOD_PATH
+    @JsonProperty("mobile_application")
+    MOBILE_APPLICATION,
 
-    override fun convertJsonToResponse(jsonObject: JSONObject) = jsonObject.toConfigResponse()
+    @JsonEnumDefaultValue
+    UNKNOWN
 }

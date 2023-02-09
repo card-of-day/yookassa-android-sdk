@@ -21,6 +21,7 @@
 
 package ru.yoomoney.sdk.kassa.payments.di
 
+import android.content.Context
 import com.yandex.metrica.IReporter
 import dagger.Module
 import dagger.Provides
@@ -47,8 +48,12 @@ internal class ReporterModule {
 
     @Provides
     @Singleton
-    fun reporter(metrica: IReporter): Reporter {
-        return ReporterLogger(YandexMetricaReporter(metrica))
+    fun reporter(
+        metrica: IReporter,
+        testParameters: TestParameters,
+        context: Context
+    ): Reporter {
+        return ReporterLogger(YandexMetricaReporter(metrica), testParameters.showLogs, context)
     }
 
     @Provides
@@ -61,9 +66,14 @@ internal class ReporterModule {
     @Singleton
     fun errorLoggerReporter(
         testParameters: TestParameters,
+        context: Context,
         metrica: IReporter
     ): ErrorLoggerReporter {
-        return YandexMetricaLoggerReporter(testParameters.showLogs, YandexMetricaErrorReporter(metrica))
+        return YandexMetricaLoggerReporter(
+            testParameters.showLogs,
+            context,
+            YandexMetricaErrorReporter(metrica)
+        )
     }
 
     @Provides

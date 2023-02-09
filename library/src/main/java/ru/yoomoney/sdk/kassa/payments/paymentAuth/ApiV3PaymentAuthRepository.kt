@@ -24,9 +24,6 @@ package ru.yoomoney.sdk.kassa.payments.paymentAuth
 import android.os.Build
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.Amount
 import ru.yoomoney.sdk.kassa.payments.extensions.CheckoutOkHttpClient
-import ru.yoomoney.sdk.kassa.payments.model.AuthCheckApiMethodException
-import ru.yoomoney.sdk.kassa.payments.tmx.TmxSessionIdStorage
-import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
 import ru.yoomoney.sdk.kassa.payments.extensions.execute
 import ru.yoomoney.sdk.kassa.payments.http.HostProvider
 import ru.yoomoney.sdk.kassa.payments.methods.paymentAuth.CheckoutAuthCheckRequest
@@ -35,22 +32,24 @@ import ru.yoomoney.sdk.kassa.payments.methods.paymentAuth.CheckoutAuthSessionGen
 import ru.yoomoney.sdk.kassa.payments.methods.paymentAuth.CheckoutTokenIssueExecuteRequest
 import ru.yoomoney.sdk.kassa.payments.methods.paymentAuth.CheckoutTokenIssueInitRequest
 import ru.yoomoney.sdk.kassa.payments.methods.paymentAuth.CheckoutTokenIssueInitResponse
+import ru.yoomoney.sdk.kassa.payments.model.AuthCheckApiMethodException
 import ru.yoomoney.sdk.kassa.payments.model.AuthType
 import ru.yoomoney.sdk.kassa.payments.model.AuthTypeState
 import ru.yoomoney.sdk.kassa.payments.model.CurrentUser
 import ru.yoomoney.sdk.kassa.payments.model.ErrorCode
 import ru.yoomoney.sdk.kassa.payments.model.Result
 import ru.yoomoney.sdk.kassa.payments.model.map
-import ru.yoomoney.sdk.tmx.TmxProfiler
-import java.lang.IllegalStateException
+import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
+import ru.yoomoney.sdk.kassa.payments.tmx.ProfilingSessionIdStorage
+import ru.yoomoney.sdk.yooprofiler.YooProfiler
 
 internal class ApiV3PaymentAuthRepository(
     private val hostProvider: HostProvider,
     private val httpClient: Lazy<CheckoutOkHttpClient>,
     private val tokensStorage: TokensStorage,
     private val shopToken: String,
-    private val tmxSessionIdStorage: TmxSessionIdStorage,
-    private val profiler: TmxProfiler,
+    private val profilingSessionIdStorage: ProfilingSessionIdStorage,
+    private val profiler: YooProfiler,
     private val selectAppropriateAuthType: (AuthType, Array<AuthTypeState>) -> AuthTypeState
 ) : PaymentAuthTypeRepository, ProcessPaymentAuthRepository, SmsSessionRetryRepository {
 
@@ -67,7 +66,7 @@ internal class ApiV3PaymentAuthRepository(
 
         return when (val result = authCheck(passphrase, userAuthToken)) {
             is Result.Success -> getPaymentAuthToken(currentProcessId, userAuthToken)
-            is Result.Fail -> when(result.value) {
+            is Result.Fail -> when (result.value) {
                 is AuthCheckApiMethodException -> when (result.value.error.errorCode) {
                     ErrorCode.INVALID_ANSWER -> Result.Success(PaymentAuthWrongAnswer(result.value.authState!!))
                     else -> result
@@ -120,8 +119,8 @@ internal class ApiV3PaymentAuthRepository(
         authType = AuthType.UNKNOWN
 
         val userAuthToken: String = tokensStorage.userAuthToken ?: return Result.Fail(IllegalStateException())
-        return when(val result = tokenIssueInit(userAuthToken, amount, linkWalletToApp)) {
-            is Result.Success -> when(result.value) {
+        return when (val result = tokenIssueInit(userAuthToken, amount, linkWalletToApp)) {
+            is Result.Success -> when (result.value) {
                 is CheckoutTokenIssueInitResponse.Success -> {
                     this.processId = result.value.processId
                     Result.Success(AuthTypeState.NotRequired)
@@ -160,12 +159,12 @@ internal class ApiV3PaymentAuthRepository(
         amount: Amount,
         multipleUsage: Boolean
     ): Result<CheckoutTokenIssueInitResponse> {
-        var tmxSessionId = tmxSessionIdStorage.tmxSessionId
+        var profilingSessionId = profilingSessionIdStorage.profilingSessionId
 
-        if (tmxSessionId.isNullOrEmpty()) {
-            tmxSessionId = when(val result = profiler.profile()) {
-                is TmxProfiler.Result.Success -> result.sessionId
-                is TmxProfiler.Result.Fail -> result.description
+        if (profilingSessionId.isNullOrEmpty()) {
+            profilingSessionId = when (val result = profiler.profile()) {
+                is YooProfiler.Result.Success -> result.sessionId
+                is YooProfiler.Result.Fail -> result.description
             }
         }
 
@@ -173,7 +172,7 @@ internal class ApiV3PaymentAuthRepository(
             instanceName = Build.MANUFACTURER + ", " + Build.MODEL,
             singleAmountMax = amount,
             multipleUsage = multipleUsage,
-            tmxSessionId = checkNotNull(tmxSessionId),
+            tmxSessionId = checkNotNull(profilingSessionId),
             shopToken = shopToken,
             userAuthToken = userAuthToken,
             hostProvider = hostProvider

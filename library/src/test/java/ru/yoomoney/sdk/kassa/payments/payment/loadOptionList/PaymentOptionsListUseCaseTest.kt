@@ -25,8 +25,8 @@ import com.nhaarman.mockitokotlin2.argumentCaptor
 import com.nhaarman.mockitokotlin2.mock
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.instanceOf
-import org.hamcrest.collection.IsIterableContainingInOrder.contains
 import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -193,7 +193,7 @@ internal class PaymentOptionsListUseCaseTest {
     private lateinit var useCase: PaymentOptionsListUseCaseImpl
 
     @Before
-    fun setUp() {
+    fun setUp() = runBlocking {
         on(
             paymentMethodInfoGateway.getPaymentMethodInfo(
                 testPaymentMethodId
@@ -258,7 +258,7 @@ internal class PaymentOptionsListUseCaseTest {
         val options = (action.content as PaymentOptionListSuccessOutputModel).options
 
         // assert
-        assertThat(options, contains(instanceOf(PaymentIdCscConfirmation::class.java)))
+        assertThat(options, hasItems(instanceOf(PaymentIdCscConfirmation::class.java)))
 
         val captor = argumentCaptor<List<PaymentOption>>()
 
@@ -288,7 +288,7 @@ internal class PaymentOptionsListUseCaseTest {
         val options = (action.content as PaymentOptionListSuccessOutputModel).options
 
         // assert
-        assertThat(options, contains(*availableOptions.toTypedArray()))
+        assertThat(options, hasItems(*availableOptions.toTypedArray()))
 
         inOrder(
             paymentOptionListRepository,
@@ -312,7 +312,7 @@ internal class PaymentOptionsListUseCaseTest {
         val options = (action.content as PaymentOptionListSuccessOutputModel).options
 
         // assert
-        assertThat(options, contains(*availableOptions.toTypedArray()))
+        assertThat(options, hasItems(*availableOptions.toTypedArray()))
 
         inOrder(paymentOptionListRepository, currentUserRepository, saveLoadedPaymentOptionsListRepository).apply {
             verify(currentUserRepository).currentUser
@@ -332,7 +332,7 @@ internal class PaymentOptionsListUseCaseTest {
         val options = (action.content as PaymentOptionListSuccessOutputModel).options
 
         // assert
-        assertThat(options, contains(instanceOf(BankCardPaymentOption::class.java)))
+        assertThat(options, hasItems(instanceOf(BankCardPaymentOption::class.java)))
 
         inOrder(paymentOptionListRepository, currentUserRepository).apply {
             verify(currentUserRepository).currentUser
@@ -371,7 +371,7 @@ internal class PaymentOptionsListUseCaseTest {
         val options = (action.content as PaymentOptionListSuccessOutputModel).options
 
         // assert
-        assertThat(options, contains(instanceOf(SberBank::class.java)))
+        assertThat(options, hasItems(instanceOf(SberBank::class.java)))
 
         inOrder(paymentOptionListRepository, currentUserRepository, saveLoadedPaymentOptionsListRepository).apply {
             verify(currentUserRepository).currentUser
@@ -394,7 +394,7 @@ internal class PaymentOptionsListUseCaseTest {
         // assert
         assertThat(
             options,
-            contains(
+            hasItems(
                 instanceOf(Wallet::class.java),
                 instanceOf(AbstractWallet::class.java),
                 instanceOf(LinkedCard::class.java),
@@ -463,7 +463,7 @@ internal class PaymentOptionsListUseCaseTest {
         // assert
         assertThat(
             options,
-            contains(
+            hasItems(
                 instanceOf(BankCardPaymentOption::class.java),
                 instanceOf(Wallet::class.java),
                 instanceOf(AbstractWallet::class.java),
@@ -498,7 +498,7 @@ internal class PaymentOptionsListUseCaseTest {
             useCase.loadPaymentOptions(testInputModel) as PaymentOptionList.Action.LoadPaymentOptionListSuccess
         val fullRestrictionsOption = (fullRestrictionsAction.content as PaymentOptionListSuccessOutputModel).options
         // assert
-        assertThat(noRestrictionsOptions, contains(*fullRestrictionsOption.toTypedArray()))
+        assertThat(noRestrictionsOptions, hasItems(*fullRestrictionsOption.toTypedArray()))
     }
 
     @Test

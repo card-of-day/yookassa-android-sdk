@@ -21,9 +21,9 @@
 
 package ru.yoomoney.sdk.kassa.payments.contract
 
-import ru.yoomoney.sdk.auth.Result
-import ru.yoomoney.sdk.auth.account.AccountRepository
-import ru.yoomoney.sdk.auth.account.model.UserAccount
+import ru.yoomoney.sdk.auth.api.Result
+import ru.yoomoney.sdk.auth.api.account.AccountRepository
+import ru.yoomoney.sdk.auth.api.account.model.UserAccount
 import ru.yoomoney.sdk.kassa.payments.model.BankCardPaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.LinkedCard
 import ru.yoomoney.sdk.kassa.payments.payment.PaymentMethodRepository
@@ -57,6 +57,7 @@ internal class SelectPaymentMethodUseCaseImpl(
         if (token != null && option is Wallet) {
             when(val response = accountRepository.account(token)) {
                 is Result.Success -> updateUserData(response.value)
+                else -> Unit
             }
         }
 

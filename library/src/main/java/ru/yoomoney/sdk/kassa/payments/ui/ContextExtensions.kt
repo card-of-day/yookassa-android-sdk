@@ -36,3 +36,4 @@ internal val Context.isTablet: Boolean
 
 internal val Fragment.isTablet: Boolean
     get() = requireActivity().isTablet
+

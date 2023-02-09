@@ -21,6 +21,7 @@
 
 package ru.yoomoney.sdk.kassa.payments.paymentOptionList
 
+import kotlinx.coroutines.delay
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.Amount
 import ru.yoomoney.sdk.kassa.payments.model.AbstractWallet
 import ru.yoomoney.sdk.kassa.payments.model.AnonymousUser
@@ -40,7 +41,6 @@ import ru.yoomoney.sdk.kassa.payments.model.SberBank
 import ru.yoomoney.sdk.kassa.payments.model.ShopProperties
 import ru.yoomoney.sdk.kassa.payments.model.Wallet
 import ru.yoomoney.sdk.kassa.payments.payment.loadOptionList.PaymentOptionListRepository
-import java.lang.Thread.sleep
 import java.math.BigDecimal
 import java.util.Random
 
@@ -73,8 +73,8 @@ internal class MockPaymentOptionListRepository(
 
     private val random = Random()
 
-    override fun getPaymentOptions(amount: Amount, currentUser: CurrentUser): Result<PaymentOptionsResponse> {
-        sleep(1000L)
+    override suspend fun getPaymentOptions(amount: Amount, currentUser: CurrentUser): Result<PaymentOptionsResponse> {
+        delay(1000L)
         val id = generateSequence(0, 1::plus).iterator()
         val charge = Amount(
             amount.value + (fee?.service?.value ?: BigDecimal.ZERO),

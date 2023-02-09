@@ -21,7 +21,7 @@
 
 package ru.yoomoney.sdk.kassa.payments.userAuth
 
-import ru.yoomoney.sdk.auth.account.model.UserAccount
+import ru.yoomoney.sdk.auth.api.account.model.UserAccount
 import ru.yoomoney.sdk.kassa.payments.userAuth.YooMoneyAuthorizeUserRepository.State.COLLECTING_USER
 import ru.yoomoney.sdk.kassa.payments.userAuth.YooMoneyAuthorizeUserRepository.State.HAS_TO_COLLECT_USER
 import ru.yoomoney.sdk.kassa.payments.userAuth.YooMoneyAuthorizeUserRepository.State.IDLE

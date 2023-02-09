@@ -124,14 +124,16 @@ object Checkout {
     fun create3dsIntent(
         context: Context,
         url: String,
-        colorScheme: ColorScheme = ColorScheme.getDefaultScheme()
+        colorScheme: ColorScheme = ColorScheme.getDefaultScheme(),
+        testParameters: TestParameters = TestParameters()
     ): Intent {
         checkUrl(url)
         InMemoryColorSchemeRepository.colorScheme = colorScheme
         return WebViewActivity.create(
             context = context,
             url = url,
-            logParam = "openScreen3ds"
+            logParam = "openScreen3ds",
+            testParameters = testParameters
         )
     }
 
@@ -218,7 +220,8 @@ object Checkout {
             WebViewActivity.create(
                 context = context,
                 url = confirmationUrl,
-                logParam = "openScreen3ds"
+                logParam = "openScreen3ds",
+                testParameters = testParameters
             )
         }
     }

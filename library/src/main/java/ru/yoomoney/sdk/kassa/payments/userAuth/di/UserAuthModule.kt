@@ -27,7 +27,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
 import ru.yoomoney.sdk.auth.YooMoneyAuth
-import ru.yoomoney.sdk.auth.account.AccountRepository
+import ru.yoomoney.sdk.auth.api.account.AccountRepository
 import ru.yoomoney.sdk.auth.transferData.TransferDataRepository
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentMethodType
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
@@ -44,7 +44,7 @@ import ru.yoomoney.sdk.kassa.payments.payment.CurrentUserRepository
 import ru.yoomoney.sdk.kassa.payments.payment.GetLoadedPaymentOptionListRepository
 import ru.yoomoney.sdk.kassa.payments.paymentOptionList.PaymentOptionsListUseCase
 import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
-import ru.yoomoney.sdk.kassa.payments.tmx.TmxSessionIdStorage
+import ru.yoomoney.sdk.kassa.payments.tmx.ProfilingSessionIdStorage
 import ru.yoomoney.sdk.kassa.payments.userAuth.AuthorizeUserRepository
 import ru.yoomoney.sdk.kassa.payments.userAuth.GetTransferDataUseCase
 import ru.yoomoney.sdk.kassa.payments.userAuth.GetTransferDataUseCaseImpl
@@ -154,7 +154,7 @@ internal class UserAuthModule {
     fun viewModel(
         reporter: Reporter,
         paymentParameters: PaymentParameters,
-        tmxSessionIdStorage: TmxSessionIdStorage,
+        profilingSessionIdStorage: ProfilingSessionIdStorage,
         currentUserRepository: CurrentUserRepository,
         tokensStorage: TokensStorage,
         useCase: PaymentOptionsListUseCase,
@@ -170,7 +170,7 @@ internal class UserAuthModule {
                     businessLogic = MoneyAuthBusinessLogic(
                         showState = showState,
                         source = source,
-                        tmxSessionIdStorage = tmxSessionIdStorage,
+                        profilingSessionIdStorage = profilingSessionIdStorage,
                         currentUserRepository = currentUserRepository,
                         userAuthInfoRepository = tokensStorage,
                         paymentParameters = paymentParameters,

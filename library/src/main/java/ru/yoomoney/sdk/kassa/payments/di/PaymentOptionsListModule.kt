@@ -24,18 +24,16 @@ package ru.yoomoney.sdk.kassa.payments.di
 import android.content.Context
 import dagger.Module
 import dagger.Provides
+import ru.yoomoney.sdk.kassa.payments.api.PaymentsApi
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
 import ru.yoomoney.sdk.kassa.payments.config.ConfigRepository
-import ru.yoomoney.sdk.kassa.payments.extensions.CheckoutOkHttpClient
-import ru.yoomoney.sdk.kassa.payments.http.HostProvider
 import ru.yoomoney.sdk.kassa.payments.metrics.ErrorReporter
 import ru.yoomoney.sdk.kassa.payments.model.Fee
 import ru.yoomoney.sdk.kassa.payments.payment.loadOptionList.PaymentOptionListRepository
 import ru.yoomoney.sdk.kassa.payments.paymentOptionList.ApiV3PaymentOptionListRepository
 import ru.yoomoney.sdk.kassa.payments.paymentOptionList.InternetDependentRepository
 import ru.yoomoney.sdk.kassa.payments.paymentOptionList.MockPaymentOptionListRepository
-import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
 import javax.inject.Singleton
 
 @Module
@@ -45,13 +43,11 @@ internal open class PaymentOptionsListModule {
     @Singleton
     open fun paymentOptionListRepository(
         context: Context,
-        hostProvider: HostProvider,
-        httpClient: CheckoutOkHttpClient,
         paymentParameters: PaymentParameters,
         testParameters: TestParameters,
-        tokensStorage: TokensStorage,
         errorReporter: ErrorReporter,
-        configRepository: ConfigRepository
+        configRepository: ConfigRepository,
+        paymentsApi: PaymentsApi
     ): PaymentOptionListRepository {
         return if (testParameters.mockConfiguration != null) {
             MockPaymentOptionListRepository(
@@ -62,11 +58,8 @@ internal open class PaymentOptionsListModule {
             InternetDependentRepository(
                 context,
                 ApiV3PaymentOptionListRepository(
-                    hostProvider = hostProvider,
-                    httpClient = lazy { httpClient },
+                    paymentsApi = paymentsApi,
                     gatewayId = paymentParameters.gatewayId,
-                    tokensStorage = tokensStorage,
-                    shopToken = paymentParameters.clientApplicationKey,
                     savePaymentMethod = paymentParameters.savePaymentMethod,
                     merchantCustomerId = paymentParameters.customerId,
                     configRepository = configRepository

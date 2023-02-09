@@ -20,7 +20,7 @@ The general payment process in the app is as follows:
 
 The SDK includes ready-made payment interfaces (payment form and everything related to it).
 
-Using the SDK, you can receive tokens for processing payments from a bank card, Google Pay, Sberbank, or a YooMoney wallet.
+Using the SDK, you can receive tokens for processing payments from a bank card, Sberbank, or a YooMoney wallet.
 
 This repository contains the SDK code and a sample app integrating it.
 * [Library code](./library)
@@ -42,8 +42,6 @@ Android Checkout mobile SDK - version $versionName ([changelog](./CHANGELOG.md))
         * [Launching tokenization via YooMoney wallet](#launching-tokenization-via-yoomoney-wallet)
         * [Launching tokenization via SberPay](#launching-tokenization-via-sberpay)
         * [Launching tokenization via a bank card](#launching-tokenization-via-a-bank-card)
-        * [Preparation for launching Google Pay tokenization](#preparation-for-launching-google-pay-tokenization)
-        * [Launching Google Pay tokenization](#launching-google-pay-tokenization)
         * [Launching tokenization for saved bank cards](#launching-tokenization-for-saved-bank-cards)
         * [Getting tokenization results](#getting-tokenization-results)
     * [Payment confirmation](#payment-confirmation)
@@ -97,6 +95,23 @@ plugin {
     id 'kotlin-android'
 }
 
+```
+
+You need to add the network access settings in the application tag in your app's AndroidManifest in order for the library to work correctly.
+There are two possible cases:
+
+1) You're specifying the networkSecurityConfig attribute for the first time for your app. You need to point to the configuration file
+   from the library in your AndroidManifest file in the application tag:
+```
+android:networkSecurityConfig="@xml/ym_network_security_config"
+```
+
+2) The networkSecurityConfig attribute is already specified in AndroidManifest.
+   You need to add the following entry to this specified file:
+```xml
+<domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">certs.yoomoney.ru</domain>
+    </domain-config>
 ```
 
 # <a name="integration-recommendations"></a> Integration recommendations
@@ -154,10 +169,8 @@ Mandatory:
 
 Optional:
 - paymentMethodTypes (Set of PaymentMethodType) - restrictions on payment methods. If you leave the field empty or specify null in it, the library will use all available payment methods, (see [Launching tokenization via all methods](#launching-tokenization-via-all-methods));
-- gatewayId (String) - gatewayId for the store, (see [Launching Google Pay tokenization](#launch-tokenization-Google-Pay));
 - customReturnUrl (String) - url of the page (only https is supported) that the user should be returned to after completing 3ds. Must be used only when own Activity for the 3ds url is used, (see [3DSecure](#3dsecure));
 - userPhoneNumber (String) - user's phone number for payments via SberPay, (see [Launching tokenization via SberPay](#launching-tokenization-via-SberPay));
-- googlePayParameters (GooglePayParameters) - settings for payments via Google Pay, (see [Launching Google Pay tokenization](#launch-tokenization-Google-Pay));
 - authCenterClientId (String) - unique ID of the app for tokenization via YooMoney. (See [Launching tokenization via YooMoney wallet](#launching-tokenization-via-YooMoney-wallet))
 
 `Amount` class fields:
@@ -176,17 +189,6 @@ Optional:
 - SBERBANK - payment was made via Sberbank (text message invoicing or SberPay);
 - GOOGLE_PAY - payment was made via Google Pay.
 
-Fields of the `GooglePayParameters` class:
-- allowedCardNetworks (Set of GooglePayCardNetwork) - payment systems that allow for payments via Google Pay.
-
-`GooglePayCardNetwork` values:
-- AMEX
-- DISCOVER
-- JCB
-- MASTERCARD
-- VISA
-- INTERAC
-- OTHER
 
 
 ### <a name="launching-tokenization-via-all-methods"></a> Launching tokenization via all methods
@@ -233,7 +235,6 @@ class MyActivity extends AppCompatActivity {
             add(PaymentMethodType.SBERBANK); // selected payment method - SberPay
             add(PaymentMethodType.YOO_MONEY); // selected payment method - YooMoney
             add(PaymentMethodType.BANK_CARD); // selected payment method - Bank card
-            add(PaymentMethodType.GOOGLE_PAY); // selected payment method - Google Pay
           }};
         PaymentParameters paymentParameters = new PaymentParameters(
             new Amount(BigDecimal.TEN, Currency.getInstance("RUB")),
@@ -531,185 +532,6 @@ class MyActivity extends AppCompatActivity {
 **Processed results of the tokenization process are contained in the** [Get tokenization results](#get-tokenization-results) **section**
 
 
-### <a name="preparation-for-launching-google-pay-tokenization"></a> Preparation for launching Google Pay tokenization
-
-Before launching Google Pay tokenization, you need to prepare the app and complete integration with the Google Pay API.
-
-#### <a name="preparing-the-google-play-console"></a> Preparing the Google Play Console
-
-For payments via Google Pay to work properly in the production environment, make sure that:
-- You have a developer account in the developer console: https://play.google.com/console
-- An app has been created in the developer console;
-- Your app is signed with a release key and uploaded to the developer console;
-
-#### <a name="preparing-a-profile-in-the-google-pay-business-console"></a> Preparing a profile in the Google Pay Business Console
-
-Once you've completed the steps in the [Preparing the Google Play Console](#preparing-the-hoogle-play-console) section, set up your profile in the Google Pay Business Console:
-- Visit the site: https://pay.google.com/business/console;
-- Fill in all the information required for a company profile;
-- After filling out the company profile, send it for verification by the Google Pay Business Console team;
-- Wait until the company profile is verified by the Google Pay Business Console team.
-
-#### <a name="integrating-the-app-with-the-google-pay-api"></a> Integrating the app with the Google Pay API
-
-If you've completed all of the steps listed above, start integrating the Google Pay API:
-- Visit the Google Pay Business Console website: https://pay.google.com/business/console;
-- Navigate to the Google Pay API tab;
-- Find the "Integration with your Android app" block;
-- Find your app that you want to complete integration for in this block and click "Manage". If your app is not listed, follow the instructions in the [Preparing the Google Play Console](#preparing-the-hoogle-play-console) section;
-- In the following window, select the type of integration through the gateway;
-- Upload screenshots of the purchase process. The process of creating these screenshots is detailed in the [Preparing screenshots of the purchase process for the Google Pay API](#preparing-screenshots-of-the-purchase-process-for-Google-Pay-API) section;
-- Send the form for review.
-- After integration is verified and confirmed, the release-ready app will start working with payments via Google Pay.
-- If integration was rejected, make corrections in accordance with the comments and resubmit the form.
-
-#### <a name="preparing-screenshots-of-the-purchase-process-for-the-google-pay-api"></a> Preparing screenshots of the purchase process for the Google Pay API
-
-To fill out the form in the [Integrating the app with the Google Pay API](#Integrating-the-app-with-the-Google-Pay-API) section, you will need screenshots of the payment process.
-That includes screenshots of several steps, with examples shown below.
-> Sample screenshots below are provided as examples, do not use them when filling out the form. You ill need to create similar screenshots from your app.
-
-| Product screen                               | Screen with payment methods | Screen for payment via Google Pay | Successful payment screen |
-| -------------                              | ----- | ----- | ----- |
-| ![Product screen](assets/images/pay-flow-examples/1_2_item_selection_pre_purchase_screen.png) | ![Product screen](assets/images/pay-flow-examples/3_payment_method_screen.png) | ![Product screen](assets/images/pay-flow-examples/4_google_pay_api_payment_screen.png) | ![Product screen](assets/images/pay-flow-examples/5_post_purchase_screen.png) |
-
-We propose using the sdk mock mode to take screenshots of the entire payment process. This is the mode where the sdk doesn't make any real requests to the server using previously prepared data instead.
-- To do so, launch tokenization with all the payment methods you're planning to use.
-- For the `testParameters` parameter, specify `googlePayTestEnvironment = true` and `mockConfiguration = MockConfiguration()`<br/>
-
-`googlePayTestEnvironment` is responsible for the environment that Google Pay will work in.
-- If you specify `googlePayTestEnvironment = true`, a test environment will be used (you can find out more at https://developers.google.com/pay/api/android/guides/test-and-deploy/integration-checklist)
-- If you specify `googlePayTestEnvironment = false`, or don't specify the parameter at all, the production environment will be used.
-> **Please note** if you specify `googlePayTestEnvironment = true`, then tokenization in the sdk itself will not work.
-
-Below are examples of code with the launch of tokenization for taking screenshots of the payment process via Google Pay
-
-<details open>
-  <summary>Kotlin</summary>
-
-```kotlin
-class MyActivity: Activity() {
-
-    private fun startSberPayTokenize() {
-        val paymentParameters = PaymentParameters(
-            amount = Amount(BigDecimal.valueOf(10.0), Currency.getInstance("RUB")),
-            title = "Product name",
-            subtitle = "Product Description",
-            clientApplicationKey = "live_thisKeyIsNotReal", // key for client apps from the YooMoney Merchant Profile (https://yookassa.ru/my/api-keys-settings)
-            shopId = "12345", // ID of the store in the YooMoney system
-            savePaymentMethod = SavePaymentMethod.OFF, // flag of the disabled option to save payment methods
-            authCenterClientId = "example_authCenterClientId" // ID received upon registering the app on the https://yookassa.ru website
-        )
-        val intent = createTokenizeIntent(
-            context = this,
-            paymentParameters = paymentParameters,
-            testParameters = TestParameters(
-                showLogs = true,// showLogs - enable/disable display of SDK logs
-                googlePayTestEnvironment = true,// googlePayTestEnvironment - what type of environment should be used for Google Pay, test or production. Learn more at https://developers.google.com/pay/api/android/guides/test-and-deploy/integration-checklist
-                mockConfiguration = MockConfiguration()//Enabling mock mode
-            )
-        )
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE)
-    }
-}
-```
-</details>
-
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    private void startTokenize() {
-        TestParameters testParameters = new TestParameters(
-            true, // showLogs - enable/disable display of SDK logs
-            true, // googlePayTestEnvironment - what type of environment should be used for Google Pay, test or production. Learn more at https://developers.google.com/pay/api/android/guides/test-and-deploy/integration-checklist
-            new MockConfiguration() // Enabling mock mode
-        );
-        PaymentParameters paymentParameters = new PaymentParameters(
-            new Amount(BigDecimal.TEN, Currency.getInstance("RUB")),
-            "Product name",
-            "Product Description",
-            "live_thisKeyIsNotReal", // key for client apps from the YooMoney Merchant Profile
-            "12345", // ID of the store in the YooMoney system
-            SavePaymentMethod.OFF, // flag of the disabled option to save payment methods
-            null, // the full list of available payment methods has been provided
-            "gatewayId", // gatewayId of the store for Google Pay payments (required if payment methods include Google Pay)
-            "https://custom.redirect.url", // url of the page (only https is supported) that the user should be returned to after completing 3ds. Must be used only when own Activity for the 3ds url is used.
-            "+79041234567", // user's phone number for autofilling the user phone number field in SberPay. Supported data format: "+7XXXXXXXXXX".
-            null, // settings for tokenization via GooglePay,
-            "example_authCenterClientId" // ID received upon registering the app on the https://yookassa.ru website
-        );
-        Intent intent = Checkout.createTokenizeIntent(this, paymentParameters, testParameters);
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
-    }
-}
-```
-</details>
-
-**Processed results of the tokenization process are contained in the** [Get tokenization results](#get-tokenization-results) **section**
-
-
-### <a name="launching-google-pay-tokenization"></a> Launching Google Pay tokenization
-
->If you're integrating Google Pay for the first time, make sure all the conditions from the [Preparation for launching Google Pay tokenization](#preparation-for-launching-Google-Pay-tokenization)) section are met
-
-To launch tokenization via Google Pay, specify the `PaymentMethodType.GOOGLE_PAY` value in `paymentMethodTypes`
-
-<details open>
-  <summary>Kotlin</summary>
-
-```kotlin
-class MyActivity: Activity() {
-
-    private fun startGooglePayTokenize() {
-        val paymentParameters = PaymentParameters(
-            amount = Amount(BigDecimal.valueOf(10.0), Currency.getInstance("RUB")),
-            title = "Product name",
-            subtitle = "Product description",
-            clientApplicationKey = "live_thisKeyIsNotReal", // key for client apps from the YooMoney Merchant Profile (https://yookassa.ru/my/api-keys-settings)
-            shopId = "12345", // ID of the store in the YooMoney system
-            savePaymentMethod = SavePaymentMethod.OFF, // flag of the disabled option to save payment methods
-            paymentMethodTypes = setOf(PaymentMethodType.GOOGLE_PAY)  // selected payment method: Google Pay
-        )
-        val intent = createTokenizeIntent(context = this, paymentParameters = paymentParameters)
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE)
-    }
-}
-```
-</details>
-
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    void startGooglePayTokenize() {
-        Set<PaymentMethodType> paymentMethodTypes = new HashSet<>();
-        PaymentParameters paymentParameters = new PaymentParameters(
-            new Amount(BigDecimal.TEN, Currency.getInstance("RUB")),
-            "Product name",
-            "Product description",
-            "live_thisKeyIsNotReal", // key for client apps from the YooMoney Merchant Profile (https://yookassa.ru/my/api-keys-settings)
-            "12345", // ID of the store in the YooMoney system
-            SavePaymentMethod.OFF, // flag of the disabled option to save payment methods
-            paymentMethodTypes.add(PaymentMethodType.GOOGLE_PAY) // selected payment method: Google Pay
-        );
-        Intent intent = Checkout.createTokenizeIntent(this, paymentParameters);
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
-    }
-}
-```
-</details>
-
-**Processed results of the tokenization process are contained in the** [Get tokenization results](#get-tokenization-results) **section**
-
-
-> Payments via Google Pay only work with a release-ready app with the release app package, signed with a release key.
-<br>In other cases, tokenization via Google Pay will not work.
-
 ### <a name="launching-tokenization-for-saved-bank-cards"></a> Launching tokenization for saved bank cards
 
 This tokenization method is used when a bank card is linked to the store (see [Linked card](#linked-card)) and you need to re-request its CSC from the user.
@@ -738,7 +560,7 @@ Mandatory:
 - savePaymentMethod (SavePaymentMethod) - settings for saving the payment method. Saved payment methods can be used for recurring payments, (see [Recurring payments](#recurring-payments)).
 
 Optional:
-- gatewayId (String) - gatewayId for the store, (see [Launching Google Pay tokenization](#launch-tokenization-Google-Pay)).
+- gatewayId (String) - gatewayId for the store, Google Pay).
 
 `Amount` class fields:
 * value (BigDecimal) - amount;
@@ -877,7 +699,7 @@ public final class MainActivity extends AppCompatActivity {
 ## <a name="payment-confirmation"></a> Payment confirmation
 
 If necessary, the system may request a payment confirmation process, where the user confirms the transaction via third-party services.
-There are two types of payment confirmation: 3Dsecure (for payments via bank card and Google Pay) and push notifications or App2App script (for payments via SberPay).
+There are two types of payment confirmation: 3Dsecure (for payments via bank card) and push notifications or App2App script (for payments via SberPay).
 
 ### <a name="sberpay"></a> SberPay
 

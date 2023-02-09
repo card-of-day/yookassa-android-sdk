@@ -21,7 +21,7 @@
 
 package ru.yoomoney.sdk.kassa.payments.logout
 
-import ru.yoomoney.sdk.kassa.payments.tmx.TmxSessionIdStorage
+import ru.yoomoney.sdk.kassa.payments.tmx.ProfilingSessionIdStorage
 import ru.yoomoney.sdk.kassa.payments.model.AnonymousUser
 import ru.yoomoney.sdk.kassa.payments.payment.CurrentUserRepository
 import ru.yoomoney.sdk.kassa.payments.payment.GetLoadedPaymentOptionListRepository
@@ -33,7 +33,7 @@ internal class LogoutRepositoryImpl(
     private val userAuthInfoRepository: UserAuthInfoRepository,
     private val paymentAuthTokenRepository: PaymentAuthTokenRepository,
     private val loadedPaymentOptionListRepository: GetLoadedPaymentOptionListRepository,
-    private val tmxSessionIdStorage: TmxSessionIdStorage,
+    private val profilingSessionIdStorage: ProfilingSessionIdStorage,
     private val removeKeys: () -> Unit,
     private val revokeUserAuthToken: (token: String?) -> Unit
 ) : LogoutRepository {
@@ -44,7 +44,7 @@ internal class LogoutRepositoryImpl(
         userAuthInfoRepository.userAuthName = null
         userAuthInfoRepository.passportAuthToken = null
         paymentAuthTokenRepository.paymentAuthToken = null
-        tmxSessionIdStorage.tmxSessionId = null
+        profilingSessionIdStorage.profilingSessionId = null
         currentUserRepository.currentUser = AnonymousUser
         removeKeys()
         loadedPaymentOptionListRepository.isActual = false

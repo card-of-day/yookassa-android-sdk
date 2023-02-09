@@ -76,6 +76,7 @@ import ru.yoomoney.sdk.gui.dialog.YmAlertDialog
 import ru.yoomoney.sdk.gui.utils.extensions.hide
 import ru.yoomoney.sdk.kassa.payments.R
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.SavePaymentMethod
+import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
 import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
 import ru.yoomoney.sdk.kassa.payments.model.ApiMethodException
 import ru.yoomoney.sdk.kassa.payments.contract.Contract.Action
@@ -152,6 +153,9 @@ internal class ContractFragment : Fragment(R.layout.ym_fragment_contract) {
 
     @Inject
     lateinit var googlePayRepository: GooglePayRepository
+
+    @Inject
+    lateinit var testParameters: TestParameters
 
     @Inject
     lateinit var reporter: Reporter
@@ -509,7 +513,7 @@ internal class ContractFragment : Fragment(R.layout.ym_fragment_contract) {
         yooAction.show()
 
         yooTitle.text = contractInfo.walletUserAuthName ?: wallet.walletId
-        yooSubtitle.text = wallet.balance.format()
+        yooSubtitle.text = wallet.balance?.format()
 
         allowWalletLinking.isChecked = contractInfo.allowWalletLinking
 
@@ -647,7 +651,9 @@ internal class ContractFragment : Fragment(R.layout.ym_fragment_contract) {
                 requireContext(),
                 WebViewActivity.create(
                     requireContext(),
-                    it
+                    it,
+                    null,
+                    testParameters
                 ).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                 null
             )

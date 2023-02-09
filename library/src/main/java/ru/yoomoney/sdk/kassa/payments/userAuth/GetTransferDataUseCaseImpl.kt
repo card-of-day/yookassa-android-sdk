@@ -21,7 +21,7 @@
 
 package ru.yoomoney.sdk.kassa.payments.userAuth
 
-import ru.yoomoney.sdk.auth.Result
+import ru.yoomoney.sdk.auth.api.Result
 import ru.yoomoney.sdk.auth.transferData.TransferDataRepository
 import ru.yoomoney.sdk.kassa.payments.metrics.MoneyAuthLoginSchemeYooMoney
 

@@ -22,6 +22,8 @@
 package androidx.lifecycle;
 
 
+import android.annotation.SuppressLint;
+
 import androidx.annotation.NonNull;
 
 /**
@@ -30,6 +32,7 @@ import androidx.annotation.NonNull;
  * This is more advanced version of {@link ViewModelProvider.Factory} that receives a key specified for requested
  * {@link ViewModel}.
  */
+@SuppressLint("RestrictedApi")
 abstract class YooKassaKeyedFactory extends ViewModelProvider.OnRequeryFactory implements ViewModelProvider.Factory {
     /**
      * Creates a new instance of the given {@code Class}.

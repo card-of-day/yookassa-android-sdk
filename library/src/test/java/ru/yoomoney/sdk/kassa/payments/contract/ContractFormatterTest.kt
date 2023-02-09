@@ -146,6 +146,7 @@ internal class GetSavePaymentMethodOptionTest(
                 assertEquals(expectedOption.title, actual.title)
                 assertEquals(expectedOption.subtitle.toString(), actual.subtitle.toString())
             }
+            else -> Unit
         }
     }
 

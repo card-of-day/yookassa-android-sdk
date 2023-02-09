@@ -66,7 +66,7 @@ internal fun PaymentOptionInfo.toJsonObject(paymentOption: PaymentOption): JSONO
         .put("id", (paymentOption as Wallet).walletId)
         .put("type", "yoo_money")
         .put("instrument_type", "wallet")
-        .put("balance", paymentOption.balance.toJsonObject())
+        .put("balance", paymentOption.balance?.toJsonObject())
     is LinkedCardInfo -> JSONObject()
         .put("id", (paymentOption as LinkedCard).cardId)
         .put("type", "yoo_money")

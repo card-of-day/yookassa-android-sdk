@@ -30,20 +30,19 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.ViewModelProvider
-import kotlinx.android.synthetic.main.ym_fragment_payment_auth.rootContainer
 import ru.yoomoney.sdk.auth.Config
 import ru.yoomoney.sdk.auth.RemoteConfig
+import ru.yoomoney.sdk.auth.ThemeScheme
 import ru.yoomoney.sdk.auth.YooMoneyAuth
 import ru.yoomoney.sdk.auth.YooMoneyAuth.KEY_ACCESS_TOKEN
 import ru.yoomoney.sdk.auth.YooMoneyAuth.REQUEST_MONEY_AUTHORIZATION
 import ru.yoomoney.sdk.auth.analytics.AnalyticsEvent
 import ru.yoomoney.sdk.auth.analytics.AnalyticsLogger
-import ru.yoomoney.sdk.auth.auxAuthorization.model.AuxTokenScope
+import ru.yoomoney.sdk.auth.api.auxAuthorization.model.AuxTokenScope
 import ru.yoomoney.sdk.kassa.payments.R
 import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
 import ru.yoomoney.sdk.kassa.payments.http.UserAgent
 import ru.yoomoney.sdk.kassa.payments.metrics.Reporter
-import ru.yoomoney.sdk.kassa.payments.navigation.Router
 import ru.yoomoney.sdk.kassa.payments.navigation.Screen
 import ru.yoomoney.sdk.kassa.payments.userAuth.MoneyAuth.Action.Authorized
 import ru.yoomoney.sdk.kassa.payments.userAuth.MoneyAuth.Action.RequireAuth
@@ -53,9 +52,9 @@ import ru.yoomoney.sdk.march.RuntimeViewModel
 import ru.yoomoney.sdk.march.observe
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
-import ru.yoomoney.sdk.kassa.payments.extensions.hideSoftKeyboard
 import ru.yoomoney.sdk.kassa.payments.http.HostProvider
 import ru.yoomoney.sdk.kassa.payments.metrics.MoneyAuthLoginSchemeAuthSdk
+import ru.yoomoney.sdk.kassa.payments.ui.color.InMemoryColorSchemeRepository
 import ru.yoomoney.sdk.kassa.payments.utils.canResolveIntent
 import javax.inject.Inject
 
@@ -184,6 +183,7 @@ internal class MoneyAuthFragment : Fragment() {
             supportPhone = getString(R.string.ym_support_phone),
             migrationBannerVisible = false,
             applicationUserAgent = UserAgent.getUserAgent(requireContext()),
+            themeScheme = ThemeScheme.byAccentColor(InMemoryColorSchemeRepository.colorScheme.primaryColor),
             remoteConfig = RemoteConfig(
                 restorePasswordEnabled = false,
                 userAgreementTitle = getString(R.string.auth_remote_config_offer_no_email),

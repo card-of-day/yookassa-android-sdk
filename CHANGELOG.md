@@ -5,6 +5,18 @@
 ### NEXT_VERSION_DESCRIPTION_BEGIN
 ### NEXT_VERSION_DESCRIPTION_END
 
+## [6.5.6] (09-02-2023)
+
+- Add new Profiling library
+
+## [6.5.5] (19-01-2023)
+
+- Remove TMX Profiling library
+
+## [6.5.4] (08-12-2022)
+
+- add sonar-project.properties
+
 ## [6.5.3] (04-07-2022)
 
 - Upgrade AppMetrica version

@@ -27,51 +27,49 @@ import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
 import ru.yoomoney.sdk.auth.YooMoneyAuth
-import ru.yoomoney.sdk.auth.account.AccountRepository
+import ru.yoomoney.sdk.auth.api.account.AccountRepository
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentMethodType
-import ru.yoomoney.sdk.kassa.payments.payment.PaymentMethodRepository
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
-import ru.yoomoney.sdk.kassa.payments.di.TokenStorageModule
-import ru.yoomoney.sdk.kassa.payments.di.ViewModelKey
-import ru.yoomoney.sdk.kassa.payments.tmx.TmxSessionIdStorage
-import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
+import ru.yoomoney.sdk.kassa.payments.config.ConfigRepository
 import ru.yoomoney.sdk.kassa.payments.contract.Contract
+import ru.yoomoney.sdk.kassa.payments.contract.ContractAnalytics
+import ru.yoomoney.sdk.kassa.payments.contract.ContractBusinessLogic
 import ru.yoomoney.sdk.kassa.payments.contract.SelectPaymentMethodUseCase
 import ru.yoomoney.sdk.kassa.payments.contract.SelectPaymentMethodUseCaseImpl
+import ru.yoomoney.sdk.kassa.payments.di.TokenStorageModule
+import ru.yoomoney.sdk.kassa.payments.di.ViewModelKey
 import ru.yoomoney.sdk.kassa.payments.extensions.CheckoutOkHttpClient
+import ru.yoomoney.sdk.kassa.payments.extensions.toTokenizeScheme
+import ru.yoomoney.sdk.kassa.payments.http.HostProvider
+import ru.yoomoney.sdk.kassa.payments.logout.LogoutRepository
 import ru.yoomoney.sdk.kassa.payments.logout.LogoutRepositoryImpl
-import ru.yoomoney.sdk.kassa.payments.metrics.ErrorScreenReporter
+import ru.yoomoney.sdk.kassa.payments.logout.LogoutUseCase
+import ru.yoomoney.sdk.kassa.payments.logout.LogoutUseCaseImpl
 import ru.yoomoney.sdk.kassa.payments.metrics.Reporter
+import ru.yoomoney.sdk.kassa.payments.metrics.TokenizeSchemeParamProvider
 import ru.yoomoney.sdk.kassa.payments.metrics.UserAuthTypeParamProvider
+import ru.yoomoney.sdk.kassa.payments.model.GetConfirmation
+import ru.yoomoney.sdk.kassa.payments.payment.CheckPaymentAuthRequiredGateway
+import ru.yoomoney.sdk.kassa.payments.payment.CurrentUserRepository
+import ru.yoomoney.sdk.kassa.payments.payment.GetLoadedPaymentOptionListRepository
+import ru.yoomoney.sdk.kassa.payments.payment.PaymentMethodRepository
 import ru.yoomoney.sdk.kassa.payments.payment.tokenize.ApiV3TokenizeRepository
 import ru.yoomoney.sdk.kassa.payments.payment.tokenize.MockTokenizeRepository
+import ru.yoomoney.sdk.kassa.payments.payment.tokenize.TokenizeRepository
+import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuthTokenRepository
+import ru.yoomoney.sdk.kassa.payments.paymentOptionList.ShopPropertiesRepository
 import ru.yoomoney.sdk.kassa.payments.secure.BcKeyStorage
 import ru.yoomoney.sdk.kassa.payments.secure.Decrypter
 import ru.yoomoney.sdk.kassa.payments.secure.Encrypter
 import ru.yoomoney.sdk.kassa.payments.secure.SharedPreferencesIvStorage
-import ru.yoomoney.sdk.kassa.payments.logout.LogoutRepository
-import ru.yoomoney.sdk.kassa.payments.logout.LogoutUseCase
-import ru.yoomoney.sdk.kassa.payments.logout.LogoutUseCaseImpl
-import ru.yoomoney.sdk.kassa.payments.payment.CheckPaymentAuthRequiredGateway
-import ru.yoomoney.sdk.kassa.payments.payment.CurrentUserRepository
-import ru.yoomoney.sdk.kassa.payments.payment.GetLoadedPaymentOptionListRepository
-import ru.yoomoney.sdk.kassa.payments.payment.tokenize.TokenizeRepository
-import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuthTokenRepository
+import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
+import ru.yoomoney.sdk.kassa.payments.tmx.ProfilingSessionIdStorage
+import ru.yoomoney.sdk.kassa.payments.utils.getSberbankPackage
 import ru.yoomoney.sdk.march.Out
 import ru.yoomoney.sdk.march.RuntimeViewModel
 import ru.yoomoney.sdk.march.input
-import ru.yoomoney.sdk.kassa.payments.config.ConfigRepository
-import ru.yoomoney.sdk.kassa.payments.contract.ContractAnalytics
-import ru.yoomoney.sdk.kassa.payments.contract.ContractBusinessLogic
-import ru.yoomoney.sdk.kassa.payments.extensions.toTokenizeScheme
-import ru.yoomoney.sdk.kassa.payments.http.HostProvider
-import ru.yoomoney.sdk.kassa.payments.metrics.TokenizeSchemeParamProvider
-import ru.yoomoney.sdk.kassa.payments.model.GetConfirmation
-import ru.yoomoney.sdk.kassa.payments.paymentOptionList.ConfigUseCase
-import ru.yoomoney.sdk.kassa.payments.paymentOptionList.ShopPropertiesRepository
-import ru.yoomoney.sdk.kassa.payments.utils.getSberbankPackage
-import ru.yoomoney.sdk.tmx.TmxProfiler
+import ru.yoomoney.sdk.yooprofiler.YooProfiler
 
 @Module
 internal class ContractModule {
@@ -83,9 +81,8 @@ internal class ContractModule {
         httpClient: CheckoutOkHttpClient,
         tokensStorage: TokensStorage,
         paymentParameters: PaymentParameters,
-        profiler: TmxProfiler,
-        tmxSessionIdStorage: TmxSessionIdStorage,
-        configUseCase: ConfigUseCase
+        profiler: YooProfiler,
+        profilingSessionIdStorage: ProfilingSessionIdStorage,
     ): TokenizeRepository {
         val mockConfiguration = testParameters.mockConfiguration
         return if (mockConfiguration != null) {
@@ -97,8 +94,7 @@ internal class ContractModule {
                 shopToken = paymentParameters.clientApplicationKey,
                 paymentAuthTokenRepository = tokensStorage,
                 profiler = profiler,
-                tmxSessionIdStorage = tmxSessionIdStorage,
-                configUseCase = configUseCase,
+                profilingSessionIdStorage = profilingSessionIdStorage,
                 merchantCustomerId = paymentParameters.customerId
             )
         }
@@ -127,7 +123,7 @@ internal class ContractModule {
         currentUserRepository: CurrentUserRepository,
         userAuthInfoRepository: TokensStorage,
         paymentAuthTokenRepository: PaymentAuthTokenRepository,
-        tmxSessionIdStorage: TmxSessionIdStorage,
+        profilingSessionIdStorage: ProfilingSessionIdStorage,
         paymentParameters: PaymentParameters,
         ivStorage: SharedPreferencesIvStorage,
         encrypt: Encrypter,
@@ -139,7 +135,7 @@ internal class ContractModule {
             currentUserRepository = currentUserRepository,
             userAuthInfoRepository = userAuthInfoRepository,
             paymentAuthTokenRepository = paymentAuthTokenRepository,
-            tmxSessionIdStorage = tmxSessionIdStorage,
+            profilingSessionIdStorage = profilingSessionIdStorage,
             removeKeys = {
                 ivStorage.remove(TokenStorageModule.ivKey)
                 keyStorage.remove(TokenStorageModule.keyKey)

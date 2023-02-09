@@ -27,5 +27,5 @@ import ru.yoomoney.sdk.kassa.payments.model.PaymentOptionsResponse
 import ru.yoomoney.sdk.kassa.payments.model.Result
 
 internal interface PaymentOptionListRepository {
-    fun getPaymentOptions(amount: Amount, currentUser: CurrentUser): Result<PaymentOptionsResponse>
+    suspend fun getPaymentOptions(amount: Amount, currentUser: CurrentUser): Result<PaymentOptionsResponse>
 }

@@ -34,7 +34,7 @@ internal data class NewCardInfo(
     val csc: String
 ) : PaymentOptionInfo() {
     override fun toString() =
-        "NewCardInfo(number='$number', expirationMonth='$expirationMonth', expirationYear='$expirationYear', csc='***')"
+        "NewCardInfo(number='**** **** **** ${number.takeLast(4)}', expirationMonth='**', expirationYear='**', csc='***')"
 }
 
 @Parcelize

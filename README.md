@@ -20,7 +20,7 @@
 
 В SDK входят готовые платежные интерфейсы (форма оплаты и всё, что с ней связано).
 
-С помощью SDK можно получать токены для проведения оплаты с банковской карты, Google Pay, Сбербанка или из кошелька в ЮMoney.
+С помощью SDK можно получать токены для проведения оплаты с банковской карты, Сбербанка или из кошелька в ЮMoney.
 
 В этом репозитории лежит код SDK и пример приложения, которое его интегрирует.
 * [Код библиотеки](./library)
@@ -43,8 +43,6 @@ Android Checkout mobile SDK - версия $versionName ([changelog](./CHANGELOG
         * [Запуск токенизации кошельком ЮMoney](#запуск-токенизации-кошельком-ЮMoney)
         * [Запуск токенизации SberPay](#запуск-токенизации-SberPay)
         * [Запуск токенизации банковской картой](#запуск-токенизации-банковской-картой)
-        * [Подготовка к запуску токенизации Google Pay](#подготовка-к-запуску-токенизации-Google-Pay)
-        * [Запуск токенизации Google Pay](#запуск-токенизации-Google-Pay)
         * [Запуск токенизации для сохранённых банковских карт](#запуск-токенизации-для-сохранённых-банковских-карт)
         * [Получить результат токенизации](#получить-результат-токенизации)
     * [Подтверждение платежа](#подтверждение-платежа)
@@ -100,6 +98,22 @@ plugin {
 
 ```
 
+В AndroidManifest'е вашего приложения внутри тэга application необходимо добавить настройки доступа к сети для корректной работы библиотеки. 
+Возможны два случая:
+
+1) Вы указываете атрибут networkSecurityConfig впервые для вашего приложения. Вам необходимо сослаться на файл конфигурации
+   из библиотеки в вашем AndroidManifest файле внутри тэга application следующим образом:
+```
+android:networkSecurityConfig="@xml/ym_network_security_config"
+```
+
+2) У вас уже указан атрибут networkSecurityConfig в AndroidManifest.
+Необходимо добавить в этот указанный файл следующую запись:
+```xml
+<domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">certs.yoomoney.ru</domain>
+</domain-config>
+```
 # <a name="рекомендации-по-интеграции"></a> Рекомендации по интеграции
 
 ## <a name="настройка-приложения-при-продаже-цифровых-товаров"></a> Настройка приложения при продаже цифровых товаров
@@ -152,10 +166,8 @@ plugin {
 
 Необязательные:
 - paymentMethodTypes (Set of PaymentMethodType) - ограничения способов оплаты. Если оставить поле пустым или передать в него null, библиотека будет использовать все доступные способы оплаты, (см. [Запуск токенизации всеми методами](#запуск-токенизации-всеми-методами));
-- gatewayId (String) - gatewayId для магазина, (см. [Запуск токенизации Google Pay](#запуск-токенизации-Google-Pay));
 - customReturnUrl (String) - url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url, (см. [3DSecure](#3dsecure));
 - userPhoneNumber (String) - номер телефона пользователя при оплате через SberPay, (см. [Запуск токенизации SberPay](#запуск-токенизации-SberPay));
-- googlePayParameters (GooglePayParameters) - настройки для оплаты через Google Pay, (см.  [Запуск токенизации Google Pay](#запуск-токенизации-Google-Pay));
 - authCenterClientId (String) - уникальный идентификатор приложения для токенизации через ЮMoney. (см. [Запуск токенизации кошельком ЮMoney](#запуск-токенизации-кошельком-ЮMoney))
 
 Поля класса `Amount`:
@@ -173,18 +185,6 @@ plugin {
 - BANK_CARD - оплата произведена с банковской карты;
 - SBERBANK - оплата произведена через Сбербанк (SMS invoicing или SberPay);
 - GOOGLE_PAY - оплата произведена через Google Pay.
-
-Поля класса `GooglePayParameters`:
-- allowedCardNetworks (Set of GooglePayCardNetwork) - платежные системы, через которые возможна оплата с помощью Google Pay.
-
-Значения `GooglePayCardNetwork`:
-- AMEX
-- DISCOVER
-- JCB
-- MASTERCARD
-- VISA
-- INTERAC
-- OTHER
 
 ### <a name="запуск-токенизации-всеми-методами"></a> Запуск токенизации всеми методами
 
@@ -207,7 +207,6 @@ class MyActivity : AppCompatActivity() {
             shopId = "12345", // идентификатор магазина ЮKassa
             savePaymentMethod = SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода,
             paymentMethodTypes = setOf(PaymentMethodType.YOO_MONEY, PaymentMethodType.BANK_CARD, PaymentMethodType.SBERBANK, PaymentMethodType.GOOGLE_PAY), // передан весь список доступных методов оплаты
-            gatewayId = "gatewayId", // gatewayId магазина для платежей Google Pay (необходим в случае, если в способах оплаты есть Google Pay)
             customReturnUrl = "https://custom.redirect.url", // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. 
             userPhoneNumber = "+79041234567", // номер телефона пользователя для автозаполнения поля номера телефона пользователя в SberPay. Поддерживаемый формат данных: "+7XXXXXXXXXX"
             authCenterClientId = "example_authCenterClientId" // идентификатор, полученный при регистрации приложения на сайте https://yookassa.ru
@@ -230,7 +229,6 @@ class MyActivity extends AppCompatActivity {
             add(PaymentMethodType.SBERBANK); // выбранный способ оплаты - SberPay
             add(PaymentMethodType.YOO_MONEY); // выбранный способ оплаты - ЮMoney
             add(PaymentMethodType.BANK_CARD); // выбранный способ оплаты - Банковская карта
-            add(PaymentMethodType.GOOGLE_PAY); // выбранный способ оплаты - Google Pay
         }};
         PaymentParameters paymentParameters = new PaymentParameters(
                 new Amount(BigDecimal.TEN, Currency.getInstance("RUB")),
@@ -527,187 +525,6 @@ class MyActivity extends AppCompatActivity {
 
 **Обработка результата процесса токенизации находится в разделе** [Получить результат токенизации](#получить-результат-токенизации)
 
-
-### <a name="подготовка-к-запуску-токенизации-google-pay"></a> Подготовка к запуску токенизации Google Pay
-
-Перед тем, как начать запускать токенизацию Google Pay, нужно сначала подготовить приложение и провести интеграцию с Google Pay API.
-
-#### <a name="подготовка-google-play-console"></a> Подготовка Google Play Console
-
-Для того, чтобы заработала оплата через Google Pay на production среде, убедитесь что у вас:
-- Есть аккаунт разработчика в консоли разработчика: https://play.google.com/console
-- Есть созданное приложение в консоли разработчика;
-- Ваше приложение подписано релизным ключом и загружено в консоль разработчика;
-
-#### <a name="подготовка-профиля-в-google-pay-business-console"></a> Подготовка профиля в Google Pay Business Console
-
-После того, как выполнены шаги из раздела: [Подготовка Google Play Console](#подготовка-Google-Play-Console), можно перейти к подготовке профиля компании в Google Pay Business Console. Для этого:
-- Перейдите на сайт: https://pay.google.com/business/console;
-- Заполните всю необходимую информацию для профиля компании;
-- После заполнения профиля, там же на сайте, отправьте профиль компании на проверку сотрудникам Google Pay Business Console;
-- Дождитесь, когда профиль компании будет проверен сотрудниками Google Pay Business Console.
-
-#### <a name="интеграция-приложения-c-google-pay-api"></a> Интеграция приложения c Google Pay API
-
-Если выполнены все условия выше, то можно приступить к интеграции Google Pay API.
-Для этого проделайте следующие шаги:
-- Перейдите на сайт google pay business console: https://pay.google.com/business/console;
-- Перейдите на вкладку Google Pay API;
-- Найдите блок "Интеграция с вашим Android приложением";
-- В этом блоке найдите ваше приложение, для которого вы хотите выполнить интеграцию и нажмите "Управление". Если вашего приложения нет в списке, нужно выполнить инструкции из раздела: [Подготовка Google Play Console](#подготовка-Google-Play-Console);
-- В открывшемся окне выберите тип интеграции через шлюз(gateway);
-- Загрузите скриншоты процесса покупки. Как подготовить скриншоты смотрите раздел: [Подготовка скриншотов процесса покупки для Google Pay API](#подготовка-скриншотов-процесса-покупки-для-Google-Pay-API);
-- Там же на сайте, отправьте форму на ревью.
-- После того как интеграцию проверят и подтвердят, должна заработать оплата через google pay в релизном приложении.
-- Если интеграцию отклонили, нужно исправить замечания и повторно отправить форму.
-
-#### <a name="подготовка-скриншотов-процесса-покупки-для-google-pay-api"></a> Подготовка скриншотов процесса покупки для Google Pay API
-
-Для заполнения формы в разделе: [Интеграция приложения в Google Pay API](#Интеграция-приложения-в-Google-Pay-API), вам нужны будут скриншоты процесса оплаты.
-Для этого вам нужны будут скриншоты нескольких шагов, примеры показаны ниже.
-> Примеры скриншотов ниже предоставлены для ознакомления, использовать их для заполнения формы не нужно. Нужно сделать подобные скриншоты но в вашем приложении.
-
-| Экран товара                               | Экран со способами оплаты | Экран оплаты с помощью Google Pay | Экран успешной оплаты |
-| -------------                              | ----- | ----- | ----- |
-| ![Экран товара](assets/images/pay-flow-examples/1_2_item_selection_pre_purchase_screen.png) | ![Экран товара](assets/images/pay-flow-examples/3_payment_method_screen.png) | ![Экран товара](assets/images/pay-flow-examples/4_google_pay_api_payment_screen.png) | ![Экран товара](assets/images/pay-flow-examples/5_post_purchase_screen.png) |
-
-Для того, чтобы можно было сделать скриншоты всего процесса оплаты, предлагается использовать mock-режим sdk. Это такой режим, где sdk не делает реальных запросов на сервер, а вместо этого использует заранее подготовленные данные.
-- Для этого запустите токенизацию со всеми способами оплаты которые вы планируете использовать.
-- Для параметра `testParameters` передайте `googlePayTestEnvironment = true` и `mockConfiguration = MockConfiguration()`<br/>
-
-`googlePayTestEnvironment` - отвечает за среду на которой будет работать Google Pay.
-- Если передать `googlePayTestEnvironment = true` - будет использоваться тестовая среда, подробнее можно почитать тут: https://developers.google.com/pay/api/android/guides/test-and-deploy/integration-checklist
-- Если передать `googlePayTestEnvironment = false`, или не передать параметр вообще, будет использоваться production среда.
-> **Обратите внимание**, если передать `googlePayTestEnvironment = true` то токенизация в самом sdk работать не будет.
-
-Ниже приведены примеры кода с запуском токенизации для создания скриншотов процесса оплаты с помощью Google Pay
-
-<details open>
-  <summary>Kotlin</summary>
-
-```kotlin
-class MyActivity: Activity() {
-
-    private fun startSberPayTokenize() {
-        val paymentParameters = PaymentParameters(
-            amount = Amount(BigDecimal.valueOf(10.0), Currency.getInstance("RUB")),
-            title = "Название товара",
-            subtitle = "Описание товара",
-            clientApplicationKey = "live_thisKeyIsNotReal", // ключ для клиентских приложений из личного кабинета ЮKassa (https://yookassa.ru/my/api-keys-settings)
-            shopId = "12345", // идентификатор вашего магазина ЮKassa
-            savePaymentMethod = SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
-            authCenterClientId = "example_authCenterClientId" // идентификатор, полученный при регистрации приложения на сайте https://yookassa.ru 
-        )
-        val intent = createTokenizeIntent(
-            context = this,
-            paymentParameters = paymentParameters,
-            testParameters = TestParameters(
-                showLogs = true,// showLogs - включить/выключить отображение логов SDK
-                googlePayTestEnvironment = true,// googlePayTestEnvironment - какую, тестовую или боевую, среду нужно использовать для Google Pay, подробнее можно почитать тут: https://developers.google.com/pay/api/android/guides/test-and-deploy/integration-checklist
-                mockConfiguration = MockConfiguration()//Включение mock-режима
-            )
-        )
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE)
-    }
-}
-```
-</details>
-
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    private void startTokenize() {
-        TestParameters testParameters = new TestParameters(
-                true, // showLogs - включить/выключить отображение логов SDK
-                true, // googlePayTestEnvironment - какую, тестовую или боевую, среду нужно использовать для Google Pay, подробнее можно почитать тут: https://developers.google.com/pay/api/android/guides/test-and-deploy/integration-checklist
-                new MockConfiguration() // Включение mock-режима 
-        );
-        PaymentParameters paymentParameters = new PaymentParameters(
-                new Amount(BigDecimal.TEN, Currency.getInstance("RUB")),
-                "Название товара",
-                "Описание товара",
-                "live_thisKeyIsNotReal", // ключ для клиентских приложений из личного кабинета ЮKassa 
-                "12345", // идентификатор магазина ЮKassa
-                SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
-                null, // передан весь список доступных методов оплаты
-                "gatewayId", // gatewayId магазина для платежей Google Pay (необходим в случае, если в способах оплаты есть Google Pay)
-                "https://custom.redirect.url", // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url. 
-                "+79041234567", // номер телефона пользователя. Используется для автозаполнения поля при оплате через SberPay. Поддерживаемый формат данных: "+7XXXXXXXXXX".
-                null, // настройки для токенизации через GooglePay,
-                "example_authCenterClientId" // идентификатор, полученный при регистрации приложения на сайте https://yookassa.ru
-        );
-        Intent intent = Checkout.createTokenizeIntent(this, paymentParameters, testParameters);
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
-    }
-}
-```
-</details>
-
-**Обработка результата процесса токенизации находится в разделе** [Получить результат токенизации](#получить-результат-токенизации)
-
-
-### <a name="запуск-токенизации-google-pay"></a> Запуск токенизации Google Pay
-
->Если вы интегрируете Google Pay впервые, убедитесь что выполнены все условия по подготовке из раздела: [Подготовка к запуску токенизации Google Pay](#подготовка-к-запуск-токенизации-Google-Pay)
-
-Для запуска токенизации Google Pay, нужно указать среди `paymentMethodTypes`, значение `PaymentMethodType.GOOGLE_PAY`
-
-<details open>
-  <summary>Kotlin</summary>
-
-```kotlin
-class MyActivity: Activity() {
-
-    private fun startGooglePayTokenize() {
-        val paymentParameters = PaymentParameters(
-            amount = Amount(BigDecimal.valueOf(10.0), Currency.getInstance("RUB")),
-            title = "Название товара",
-            subtitle = "Описание товара",
-            clientApplicationKey = "live_thisKeyIsNotReal", // ключ для клиентских приложений из личного кабинета ЮKassa (https://yookassa.ru/my/api-keys-settings)
-            shopId = "12345", // идентификатор вашего магазина ЮKassa
-            savePaymentMethod = SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
-            paymentMethodTypes = setOf(PaymentMethodType.GOOGLE_PAY)  // выбранный способ оплаты - Google Pay
-        )
-        val intent = createTokenizeIntent(context = this, paymentParameters = paymentParameters)
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE)
-    }
-}
-```
-</details>
-
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    void startGooglePayTokenize() {
-        Set<PaymentMethodType> paymentMethodTypes = new HashSet<>();
-        PaymentParameters paymentParameters = new PaymentParameters(
-                new Amount(BigDecimal.TEN, Currency.getInstance("RUB")),
-                "Название товара",
-                "Описание товара",
-                "live_thisKeyIsNotReal", // ключ для клиентских приложений из личного кабинета ЮKassa (https://yookassa.ru/my/api-keys-settings)
-                "12345", // идентификатор магазина юKassa
-                SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
-                paymentMethodTypes.add(PaymentMethodType.GOOGLE_PAY) // выбранный способ оплаты - Google Pay
-        );
-        Intent intent = Checkout.createTokenizeIntent(this, paymentParameters);
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
-    }
-}
-```
-</details>
-
-**Обработка результата процесса токенизации находится в разделе** [Получить результат токенизации](#получить-результат-токенизации)
-
-
-> Оплата через Google Pay работает только с релизным приложением, у которого релизный пакет приложения и которое подписано релизным ключом.
-<br>В остальных случаях токенизация через Google Pay, работать не будет.
-
 ### <a name="запуск-токенизации-для-сохранённых-банковских-карт"></a> Запуск токенизации для сохранённых банковских карт
 
 Данный способ токенизации используется в случае, если есть привязанная к магазину карта (см. [Привязанная карта](#привязанная-карта)) и необходимо заново запросить у пользователя её CSC.
@@ -736,7 +553,7 @@ class MyActivity extends AppCompatActivity {
 - savePaymentMethod (SavePaymentMethod) - настройка сохранения платёжного метода. Сохранённые платёжные методы можно использовать для проведения рекуррентных платежей. (см. [Рекуррентные платежи](#рекуррентные-платежи))
 
 Необязательные:
-- gatewayId (String) - gatewayId для магазина, (см. [Запуск токенизации Google Pay](#запуск-токенизации-Google-Pay)).
+- gatewayId (String) - gatewayId для магазина, Google Pay.
 
 Поля класса `Amount`:
 * value (BigDecimal) - сумма;
@@ -874,7 +691,7 @@ public final class MainActivity extends AppCompatActivity {
 ## <a name="подтверждение-платежа"></a> Подтверждение платежа
 
 При необходимости система может запросить процесс подтверждения платежа, при котором пользователь подтверждает транзакцию с помощью сторонних сервисов.
-Существует два типа подтверждения платежа - 3Dsecure (при оплате банковской картой и Google Pay) и пуш-нотификации или App2App сценарий (при оплате через SberPay).
+Существует два типа подтверждения платежа - 3Dsecure (при оплате банковской картой) и пуш-нотификации или App2App сценарий (при оплате через SberPay).
 
 ### <a name="sberpay"></a> SberPay
 

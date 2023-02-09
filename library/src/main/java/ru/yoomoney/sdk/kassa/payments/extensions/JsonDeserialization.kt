@@ -32,7 +32,6 @@ import ru.yoomoney.sdk.kassa.payments.model.AuthType
 import ru.yoomoney.sdk.kassa.payments.model.AuthTypeState
 import ru.yoomoney.sdk.kassa.payments.model.CardBrand
 import ru.yoomoney.sdk.kassa.payments.model.CardInfo
-import ru.yoomoney.sdk.kassa.payments.model.Config
 import ru.yoomoney.sdk.kassa.payments.model.ConfigPaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.Error
 import ru.yoomoney.sdk.kassa.payments.model.ExtendedStatus
@@ -43,7 +42,6 @@ import ru.yoomoney.sdk.kassa.payments.model.PaymentOptionsResponse
 import ru.yoomoney.sdk.kassa.payments.model.Result
 import ru.yoomoney.sdk.kassa.payments.model.ShopProperties
 import ru.yoomoney.sdk.kassa.payments.model.Status
-import ru.yoomoney.sdk.kassa.payments.model.toConfig
 import ru.yoomoney.sdk.kassa.payments.payment.paymentOptionFactory
 import ru.yoomoney.sdk.kassa.payments.model.SuccessUnbinding
 import java.math.BigDecimal
@@ -130,13 +128,6 @@ internal fun JSONObject.toUnbindingResponse(): Result<SuccessUnbinding> =
         Result.Fail(ApiMethodException(toError()))
     } else {
         Result.Success(SuccessUnbinding)
-    }
-
-internal fun JSONObject.toConfigResponse(): Result<Config> =
-    if (optString("type") == "error") {
-        Result.Fail(ApiMethodException(toError()))
-    } else {
-        Result.Success(getJSONObject("config").toConfig())
     }
 
 internal fun JSONObject.toTokenResponse(): Result<String> =

@@ -22,39 +22,45 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ru.yoomoney.sdk.kassa.payments">
 
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <queries>
-        <package android:name="ru.sberbankmobile" />
+        <package android:name="ru.sberbankmobile"/>
     </queries>
 
     <application>
         <activity
             android:name="ru.yoomoney.sdk.kassa.payments.utils.WebViewActivity"
-            android:theme="@style/ym_Theme"
-            android:exported="false"/>
+            android:exported="false"
+            android:screenOrientation="locked"
+            android:theme="@style/ym_Theme"/>
 
         <activity
             android:name="ru.yoomoney.sdk.kassa.payments.ui.PendingIntentActivity"
-            android:theme="@style/ym_Theme.Translucent"
-            android:exported="false"/>
+            android:exported="false"
+            android:screenOrientation="locked"
+            android:theme="@style/ym_Theme.Translucent"/>
 
         <activity
             android:name="ru.yoomoney.sdk.kassa.payments.ui.CheckoutActivity"
-            android:theme="@style/ym_Theme.Translucent"
-            android:exported="false"/>
+            android:exported="false"
+            android:screenOrientation="locked"
+            android:theme="@style/ym_Theme.Translucent"/>
 
         <activity
             android:name=".ui.ConfirmationActivity"
+            android:exported="true"
             android:launchMode="singleTask"
-            android:theme="@style/ym_Theme.Translucent"
-            android:exported="true">
+            android:screenOrientation="locked"
+            android:theme="@style/ym_Theme.Translucent">
 
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
+                <action android:name="android.intent.action.VIEW"/>
+
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+
                 <data android:scheme="@string/ym_app_scheme"/>
             </intent-filter>
 
@@ -62,11 +68,12 @@
 
         <activity
             android:name="ru.yoomoney.sdk.kassa.payments.contract.SavePaymentMethodInfoActivity"
-            android:theme="@style/ym_Theme"
-            android:exported="false"/>
+            android:exported="false"
+            android:screenOrientation="locked"
+            android:theme="@style/ym_Theme"/>
 
         <meta-data
             android:name="com.google.android.gms.wallet.api.enabled"
-            android:value="true" />
+            android:value="true"/>
     </application>
 </manifest>

@@ -56,24 +56,13 @@ internal class TokenizeAnalytics(
         val nameArgsPairs = when (action) {
             is Tokenize.Action.Tokenize -> {
                 getTokenizeScheme()?.let { tokenizeScheme ->
-                    listOf(
-                        ACTION_TRY_TOKENIZE to listOf(
-                            getUserAuthType(),
-                            tokenizeScheme,
-                            SavePaymentMethodProvider().invoke(paymentParameters),
-                            YooKassaIconProvider().invoke(uiParameters),
-                            ColorMetricsProvider().invoke(uiParameters),
-                            UserAttiributionOnInitProvider(userAuthInfoRepository).invoke(paymentParameters)
-                        )
-                    )
+                    listOf(ACTION_TRY_TOKENIZE to getListParams(tokenizeScheme))
                 } ?: listOf(null to null)
             }
             is Tokenize.Action.TokenizeSuccess -> {
                 val tokenizeScheme = getTokenizeScheme()
                 if (action.content is TokenizeOutputModel && tokenizeScheme != null) {
-                    listOf(
-                        ACTION_TOKENIZE to listOf(tokenizeScheme, getUserAuthType())
-                    )
+                    listOf(ACTION_TOKENIZE to getListParams(tokenizeScheme))
                 } else {
                     listOf(null to null)
                 }
@@ -91,4 +80,13 @@ internal class TokenizeAnalytics(
 
         return businessLogic(state, action)
     }
+
+    private fun getListParams(tokenizeScheme: TokenizeScheme) = listOf(
+        getUserAuthType(),
+        tokenizeScheme,
+        SavePaymentMethodProvider().invoke(paymentParameters),
+        YooKassaIconProvider().invoke(uiParameters),
+        ColorMetricsProvider().invoke(uiParameters),
+        UserAttiributionOnInitProvider(userAuthInfoRepository).invoke(paymentParameters)
+    )
 }

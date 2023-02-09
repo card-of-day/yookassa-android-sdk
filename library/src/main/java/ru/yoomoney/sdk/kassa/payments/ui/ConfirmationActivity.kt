@@ -29,6 +29,7 @@ import com.yandex.metrica.YandexMetrica
 import ru.yoomoney.sdk.kassa.payments.BuildConfig
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentMethodType
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
+import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
 import ru.yoomoney.sdk.kassa.payments.logging.ReporterLogger
 import ru.yoomoney.sdk.kassa.payments.metrics.Reporter
 import ru.yoomoney.sdk.kassa.payments.metrics.SberPayConfirmationStatusSuccess
@@ -37,6 +38,7 @@ import ru.yoomoney.sdk.kassa.payments.utils.INVOICING_AUTHORITY
 import ru.yoomoney.sdk.kassa.payments.utils.SBERPAY_PATH
 import ru.yoomoney.sdk.kassa.payments.utils.createSberbankIntent
 import ru.yoomoney.sdk.kassa.payments.utils.getSberbankPackage
+import javax.inject.Inject
 
 internal const val EXTRA_PAYMENT_METHOD_TYPE = "ru.yoomoney.sdk.kassa.payments.extra.PAYMENT_METHOD_TYPE"
 internal const val EXTRA_CONFIRMATION_URL = "ru.yoomoney.sdk.kassa.payments.extra.EXTRA_SBER_CONFIRMATION_URL"
@@ -44,6 +46,9 @@ internal const val EXTRA_CONFIRMATION_URL = "ru.yoomoney.sdk.kassa.payments.extr
 private const val SBER_PAY_CONFIRMATION_ACTION = "actionSberPayConfirmation"
 
 internal class ConfirmationActivity : AppCompatActivity() {
+
+    @Inject
+    lateinit var testParameters: TestParameters
 
     private var isWaitingForResult = false
 
@@ -55,10 +60,13 @@ internal class ConfirmationActivity : AppCompatActivity() {
     private lateinit var reporter: Reporter
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        CheckoutInjector.inject(this)
         reporter = ReporterLogger(
             YandexMetricaReporter(
                 YandexMetrica.getReporter(applicationContext, BuildConfig.APP_METRICA_KEY)
-            )
+            ),
+            testParameters.showLogs,
+            this
         )
         val confirmationUrl = intent.getStringExtra(EXTRA_CONFIRMATION_URL)
         if (confirmationUrl != null) {

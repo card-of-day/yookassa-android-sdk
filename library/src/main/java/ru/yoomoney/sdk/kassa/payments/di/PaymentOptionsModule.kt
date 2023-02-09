@@ -26,6 +26,13 @@ import androidx.lifecycle.ViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import ru.yoomoney.sdk.kassa.payments.api.PaymentsApi
+import ru.yoomoney.sdk.kassa.payments.api.SuspendResultCallAdapterFactory
+import ru.yoomoney.sdk.kassa.payments.api.YooKassaJacksonConverterFactory
+import ru.yoomoney.sdk.kassa.payments.api.failures.ApiErrorMapper
+import ru.yoomoney.sdk.kassa.payments.api.jacksonBaseObjectMapper
 import ru.yoomoney.sdk.kassa.payments.payment.PaymentMethodRepository
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
@@ -44,6 +51,7 @@ import ru.yoomoney.sdk.kassa.payments.payment.loadOptionList.PaymentOptionListRe
 import ru.yoomoney.sdk.kassa.payments.payment.loadPaymentInfo.PaymentMethodInfoGateway
 import ru.yoomoney.sdk.kassa.payments.errorFormatter.ErrorFormatter
 import ru.yoomoney.sdk.kassa.payments.extensions.toTokenizeScheme
+import ru.yoomoney.sdk.kassa.payments.http.HostProvider
 import ru.yoomoney.sdk.kassa.payments.model.GetConfirmation
 import ru.yoomoney.sdk.kassa.payments.payment.unbindCard.UnbindCardGateway
 import ru.yoomoney.sdk.kassa.payments.paymentOptionList.ConfigUseCase
@@ -65,6 +73,21 @@ import javax.inject.Singleton
 
 @Module
 internal class PaymentOptionsModule {
+
+    @Provides
+    fun paymentsApi(
+        hostProvider: HostProvider,
+        @AuthorizedHttpClient okHttpClient: OkHttpClient,
+        apiErrorMapper: ApiErrorMapper
+    ): PaymentsApi {
+        return Retrofit.Builder()
+            .client(okHttpClient)
+            .baseUrl(hostProvider.host()+ "/" )
+            .addConverterFactory(YooKassaJacksonConverterFactory.create(jacksonBaseObjectMapper))
+            .addCallAdapterFactory(SuspendResultCallAdapterFactory(apiErrorMapper))
+            .build()
+            .create(PaymentsApi::class.java)
+    }
 
     @Provides
     @PaymentOptionsListFormatter
