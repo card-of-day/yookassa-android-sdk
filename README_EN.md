@@ -54,6 +54,7 @@ Android Checkout mobile SDK - version $versionName ([changelog](./CHANGELOG.md))
         * [Mock mode configuration](#mock-mode-configuration)
     * [Interface configuration](#interface-configuration)
     * [Scanning a bank card](#scanning-a-bank-card)
+* [App moderation (Permission usage QUERY_ALL_PACKAGES)](#moderation-question)
 * [Useful links](#useful-links)
 
 # <a name="changelog"></a> Changelog
@@ -1373,6 +1374,21 @@ public class ScanBankCardActivity extends AppCompatActivity {
 }
 ```
 </details>
+
+# <a name="moderation-question"></a> Permission usage QUERY_ALL_PACKAGES for package access (apps)
+
+Payments via the YooKassa Payments SDK are protected with antivirus software which declares the QUERY_ALL_PACKAGES permission for reading packages on your device, it's used to detect: * harmful apps on end users' Android devices,
+• remote control software and fake GPS location apps,
+• devices that were recently wiped (a sign of fraud),
+• devices the usage pattern of which corresponds with behavior of fraudsters,
+• users legitimately switching to a new Android device (for example, when buying a new model) to implement the approach based on Adaptive Authentication of users.
+This permission might concern moderators when your app is checked in the store. If it happens, we recommend adding an attribute that removes the QUERY_ALL_PACKAGES permission to your manifest. This permission isn't necessary for the antivirus software to work normally: payments will still be protected.
+
+```xml
+ <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:node="remove"/>
+```
+
+In case you'd like to leave this permission, you need to fill out the [Permissions Declaration Form](https://support.google.com/googleplay/android-developer/answer/9214102?hl=en).
 
 # <a name="useful-links"></a> Useful links
 * [YooMoney website](https://yookassa.ru)

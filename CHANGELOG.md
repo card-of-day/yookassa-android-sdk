@@ -5,6 +5,10 @@
 ### NEXT_VERSION_DESCRIPTION_BEGIN
 ### NEXT_VERSION_DESCRIPTION_END
 
+## [6.5.7] (01-03-2023)
+
+- update readme
+
 ## [6.5.6] (09-02-2023)
 
 - Add new Profiling library
