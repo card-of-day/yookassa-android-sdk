@@ -5,6 +5,10 @@
 ### NEXT_VERSION_DESCRIPTION_BEGIN
 ### NEXT_VERSION_DESCRIPTION_END
 
+## [6.5.8] (05-04-2023)
+
+- Update readme documentation
+
 ## [6.5.7] (01-03-2023)
 
 - update readme

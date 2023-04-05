@@ -76,10 +76,6 @@ android {
 dependencies {
     implementation "ru.yoomoney.sdk.kassa.payments:yookassa-android-sdk:$msdk_version"
 
-    implementation "ru.yoomoney.sdk:march:$march_lib_version"
-    implementation "ru.yoomoney.sdk.gui:ui-lib:$ui_lib_version"
-    implementation "ru.yoomoney.sdk.yoopinning:yoopinning-android-sdk:$yoopinning"
-
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "androidx.appcompat:appcompat:$appcompat"
     implementation "com.google.android.material:material:$material"

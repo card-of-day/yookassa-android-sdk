@@ -54,7 +54,9 @@ Android Checkout mobile SDK - version $versionName ([changelog](./CHANGELOG.md))
         * [Mock mode configuration](#mock-mode-configuration)
     * [Interface configuration](#interface-configuration)
     * [Scanning a bank card](#scanning-a-bank-card)
-* [App moderation (Permission usage QUERY_ALL_PACKAGES)](#moderation-question)
+* [App moderation (permissions)](#moderation-question)
+  * [QUERY_ALL_PACKAGES](#moderation-question-query-all-packages)
+  * [Usage of location permissions](#usage-of-location-permissions)
 * [Useful links](#useful-links)
 
 # <a name="changelog"></a> Changelog
@@ -1375,7 +1377,9 @@ public class ScanBankCardActivity extends AppCompatActivity {
 ```
 </details>
 
-# <a name="moderation-question"></a> Permission usage QUERY_ALL_PACKAGES for package access (apps)
+# <a name="moderation-question"></a> Permission usage
+
+## <a name="moderation-question-query-all-packages"></a> Permission usage QUERY_ALL_PACKAGES for package access (apps)
 
 Payments via the YooKassa Payments SDK are protected with antivirus software which declares the QUERY_ALL_PACKAGES permission for reading packages on your device, it's used to detect: * harmful apps on end users' Android devices,
 • remote control software and fake GPS location apps,
@@ -1389,6 +1393,11 @@ This permission might concern moderators when your app is checked in the store. 
 ```
 
 In case you'd like to leave this permission, you need to fill out the [Permissions Declaration Form](https://support.google.com/googleplay/android-developer/answer/9214102?hl=en).
+
+## <a name="usage-of-location-permissions"></a> Usage of location permissions
+
+For a similar reason of using antivirus software, the ACCESS_FINE_LOCATION and ACCESS_COARSE_LOCATION permissions are used in the YooMoney for Business Payments SDK to detect:
+remote control software and fake GPS location apps.
 
 # <a name="useful-links"></a> Useful links
 * [YooMoney website](https://yookassa.ru)
