@@ -24,14 +24,15 @@ package ru.yoomoney.sdk.kassa.payments.model.mapper
 import ru.yoomoney.sdk.kassa.payments.api.model.config.GetConfigResponse
 import ru.yoomoney.sdk.kassa.payments.model.Config
 
-internal fun GetConfigResponse.map() = Config(
+internal fun GetConfigResponse.mapToConfigModel() = Config(
     yooMoneyLogoUrlLight = config.yooMoneyLogoUrlLight,
     yooMoneyLogoUrlDark = config.yooMoneyLogoUrlDark,
-    paymentMethods = config.paymentMethods.map { it.map() },
-    savePaymentMethodOptionTexts = config.savePaymentMethodOptionTexts.map(), //TODO
+    paymentMethods = config.paymentMethods.map { it.mapToConfigPaymentOption() },
+    savePaymentMethodOptionTexts = config.savePaymentMethodOptionTexts.mapToSavePaymentMethodOptionTexts(),
     userAgreementUrl = config.userAgreementUrl,
-    gateway = config.googlePayGateway,
+    googlePayGateway = config.googlePayGateway,
     yooMoneyApiEndpoint = config.yooMoneyApiEndpoint,
     yooMoneyPaymentAuthorizationApiEndpoint = config.yooMoneyPaymentAuthorizationApiEndpoint,
-    yooMoneyAuthApiEndpoint = config.yooMoneyAuthApiEndpoint
+    yooMoneyAuthApiEndpoint = config.yooMoneyAuthApiEndpoint,
+    agentSchemeProviderAgreement = config.agentSchemeProviderAgreement
 )

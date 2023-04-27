@@ -21,55 +21,91 @@
 
 package ru.yoomoney.sdk.kassa.payments.payment.tokenize
 
+import kotlinx.coroutines.delay
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.Amount
 import ru.yoomoney.sdk.kassa.payments.model.Confirmation
 import ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOptionInfo
+import ru.yoomoney.sdk.kassa.payments.model.PaymentTokenInfo
 import ru.yoomoney.sdk.kassa.payments.model.Result
 import ru.yoomoney.sdk.kassa.payments.model.SdkException
-import java.lang.Thread.sleep
 
 internal class MockTokenizeRepository(
-    private val completeWithError: Boolean
+    private val completeWithError: Boolean,
 ) : TokenizeRepository {
 
-    override fun getToken(
+    override suspend fun getToken(
+        amount: Amount,
         paymentOption: PaymentOption,
         paymentOptionInfo: PaymentOptionInfo,
         savePaymentMethod: Boolean,
         savePaymentInstrument: Boolean,
-        confirmation: Confirmation
-    ): Result<String> {
-        sleep(1000L)
-        return if (completeWithError) {
-             Result.Fail(SdkException("mock exception"))
-        } else {
-            Result.Success(
-                "THIS IS A TEST TOKEN. \n" +
-                        "To get production token, remove mockConfiguration from your TestParameters object, " +
-                        "that is used in Checkout.createTokenizeIntent()). \n\n" +
-                        "Parameters: $paymentOption, $paymentOptionInfo, $savePaymentMethod, $savePaymentInstrument, $confirmation"
-            )
-        }
-    }
-
-    override fun getToken(
-        instrumentBankCard: PaymentInstrumentBankCard,
-        amount: Amount,
-        savePaymentMethod: Boolean,
-        csc: String?,
-        confirmation: Confirmation
-    ): Result<String> {
-        sleep(1000L)
+        confirmation: Confirmation,
+    ): Result<PaymentTokenInfo> {
+        delay(1000L)
         return if (completeWithError) {
             Result.Fail(SdkException("mock exception"))
         } else {
             Result.Success(
-                "THIS IS A TEST TOKEN. \n" +
-                        "To get production token, remove mockConfiguration from your TestParameters object, " +
-                        "that is used in Checkout.createTokenizeIntent()). \n\n" +
-                        "Parameters: $instrumentBankCard, $amount, $savePaymentMethod, $csc, $confirmation"
+                PaymentTokenInfo(
+                    paymentToken =
+                    "THIS IS A TEST TOKEN. \n" +
+                            "To get production token, remove mockConfiguration from your TestParameters object, " +
+                            "that is used in Checkout.createTokenizeIntent()). \n\n" +
+                            "Parameters: $paymentOption, $paymentOptionInfo, $savePaymentMethod, $savePaymentInstrument, $confirmation",
+                    profilingInfo = null
+                )
+            )
+        }
+    }
+
+    override suspend fun getToken(
+        paymentOption: PaymentOption,
+        instrumentBankCard: PaymentInstrumentBankCard,
+        amount: Amount,
+        savePaymentMethod: Boolean,
+        csc: String?,
+        confirmation: Confirmation,
+    ): Result<PaymentTokenInfo> {
+        delay(1000L)
+        return if (completeWithError) {
+            Result.Fail(SdkException("mock exception"))
+        } else {
+            Result.Success(
+                PaymentTokenInfo(
+                    paymentToken =
+                    "THIS IS A TEST TOKEN. \n" +
+                            "To get production token, remove mockConfiguration from your TestParameters object, " +
+                            "that is used in Checkout.createTokenizeIntent()). \n\n" +
+                            "Parameters: $instrumentBankCard, $amount, $savePaymentMethod, $csc, $confirmation",
+                    profilingInfo = null
+                )
+            )
+        }
+    }
+
+    override suspend fun getToken(
+        amount: Amount,
+        paymentOption: PaymentOption,
+        savePaymentMethod: Boolean,
+        confirmation: Confirmation,
+        paymentMethodId: String,
+        csc: String?,
+    ): Result<PaymentTokenInfo> {
+        delay(1000L)
+        return if (completeWithError) {
+            Result.Fail(SdkException("mock exception"))
+        } else {
+            Result.Success(
+                PaymentTokenInfo(
+                    paymentToken =
+                    "THIS IS A TEST TOKEN. \n" +
+                            "To get production token, remove mockConfiguration from your TestParameters object, " +
+                            "that is used in Checkout.createTokenizeIntent()). \n\n" +
+                            "Parameters: $amount, $savePaymentMethod, $csc, $confirmation",
+                    profilingInfo = null
+                )
             )
         }
     }

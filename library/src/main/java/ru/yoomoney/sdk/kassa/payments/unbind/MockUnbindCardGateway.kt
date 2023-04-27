@@ -26,7 +26,7 @@ import ru.yoomoney.sdk.kassa.payments.model.SuccessUnbinding
 import ru.yoomoney.sdk.kassa.payments.payment.unbindCard.UnbindCardGateway
 
 internal class MockUnbindCardGateway: UnbindCardGateway {
-    override fun unbindCard(bindingId: String): Result<SuccessUnbinding> {
+    override suspend fun unbindCard(bindingId: String): Result<SuccessUnbinding> {
         return Result.Success(SuccessUnbinding)
     }
 }

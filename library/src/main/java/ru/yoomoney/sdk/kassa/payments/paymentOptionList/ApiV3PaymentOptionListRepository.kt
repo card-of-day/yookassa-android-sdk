@@ -29,7 +29,7 @@ import ru.yoomoney.sdk.kassa.payments.model.CurrentUser
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOptionsResponse
 import ru.yoomoney.sdk.kassa.payments.payment.loadOptionList.PaymentOptionListRepository
 import ru.yoomoney.sdk.kassa.payments.model.Result
-import ru.yoomoney.sdk.kassa.payments.model.mapper.map
+import ru.yoomoney.sdk.kassa.payments.model.mapper.mapToPaymentOptionsModel
 
 internal class ApiV3PaymentOptionListRepository(
     private val paymentsApi: PaymentsApi,
@@ -53,7 +53,7 @@ internal class ApiV3PaymentOptionListRepository(
             merchantCustomerId = merchantCustomerId
         ).fold(
             onSuccess = {
-                Result.Success(it.map(configRepository.getConfig().paymentMethods))
+                Result.Success(it.mapToPaymentOptionsModel(configRepository.getConfig().paymentMethods))
             },
             onFailure = {
                 Result.Fail(it)

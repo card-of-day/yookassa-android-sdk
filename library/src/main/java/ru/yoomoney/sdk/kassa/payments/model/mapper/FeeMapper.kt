@@ -44,7 +44,7 @@ package ru.yoomoney.sdk.kassa.payments.model.mapper
 
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.Fee
 
-internal fun Fee.map() = ru.yoomoney.sdk.kassa.payments.model.Fee(
-    service = service?.map(),
-    counterparty = counterparty?.map()
+internal fun Fee.mapToFeeModel() = ru.yoomoney.sdk.kassa.payments.model.Fee(
+    service = service?.mapToAmountModel(),
+    counterparty = counterparty?.mapToAmountModel()
 )

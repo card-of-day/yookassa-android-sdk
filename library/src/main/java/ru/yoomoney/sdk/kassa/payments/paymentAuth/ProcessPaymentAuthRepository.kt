@@ -26,8 +26,8 @@ import ru.yoomoney.sdk.kassa.payments.model.CurrentUser
 import ru.yoomoney.sdk.kassa.payments.model.Result
 
 internal interface ProcessPaymentAuthRepository {
-    fun getPaymentAuthToken(currentUser: CurrentUser, passphrase: String): Result<ProcessPaymentAuthGatewayResponse>
-    fun getPaymentAuthToken(currentUser: CurrentUser): Result<ProcessPaymentAuthGatewayResponse>
+    suspend fun getPaymentAuthToken(currentUser: CurrentUser, passphrase: String): Result<ProcessPaymentAuthGatewayResponse>
+    suspend fun getPaymentAuthToken(currentUser: CurrentUser): Result<ProcessPaymentAuthGatewayResponse>
 }
 
 internal sealed class ProcessPaymentAuthGatewayResponse

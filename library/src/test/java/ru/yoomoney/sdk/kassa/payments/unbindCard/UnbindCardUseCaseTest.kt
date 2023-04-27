@@ -45,27 +45,31 @@ class UnbindCardUseCaseTest {
 
     @Test
     fun `should return UnbindSuccess action for when success load`() {
-        // given
-        whenever(repository.unbindCard(bindingId)).thenReturn(successUnbinding)
-        val expected = UnbindCard.Action.UnbindSuccess
+        runBlocking {
+            // given
+            whenever(repository.unbindCard(bindingId)).thenReturn(successUnbinding)
+            val expected = UnbindCard.Action.UnbindSuccess
 
-        // when
-        val actual = runBlocking { useCase.unbindCard(bindingId) }
+            // when
+            val actual = runBlocking { useCase.unbindCard(bindingId) }
 
-        // then
-        assertThat(actual).isEqualTo(expected)
+            // then
+            assertThat(actual).isEqualTo(expected)
+        }
     }
 
     @Test
     fun `should return UnbindFailed action for when success load`() {
         // given
-        whenever(repository.unbindCard(bindingId)).thenReturn(failedUnbinding)
-        val expected = UnbindCard.Action.UnbindFailed
+        runBlocking {
+            whenever(repository.unbindCard(bindingId)).thenReturn(failedUnbinding)
+            val expected = UnbindCard.Action.UnbindFailed
 
-        // when
-        val actual = runBlocking { useCase.unbindCard(bindingId) }
+            // when
+            val actual = runBlocking { useCase.unbindCard(bindingId) }
 
-        // then
-        assertThat(actual).isEqualTo(expected)
+            // then
+            assertThat(actual).isEqualTo(expected)
+        }
     }
 }

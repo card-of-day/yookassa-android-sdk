@@ -44,8 +44,8 @@ import ru.yoomoney.sdk.kassa.payments.extensions.RUB
 import ru.yoomoney.sdk.kassa.payments.model.CardBrand
 import ru.yoomoney.sdk.kassa.payments.model.Confirmation
 import ru.yoomoney.sdk.kassa.payments.model.GetConfirmation
-import ru.yoomoney.sdk.kassa.payments.model.NoConfirmation
 import ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard
+import ru.yoomoney.sdk.kassa.payments.model.RedirectConfirmation
 import ru.yoomoney.sdk.kassa.payments.model.ShopProperties
 import ru.yoomoney.sdk.kassa.payments.payment.selectOption.SelectedPaymentMethodOutputModel
 import ru.yoomoney.sdk.kassa.payments.payment.tokenize.TokenizeInstrumentInputModel
@@ -64,6 +64,7 @@ internal class ContractBusinessLogicEffectTest {
     private val getConfirmation: GetConfirmation = mock()
     private val shopPropertiesRepository: ShopPropertiesRepository = mock()
     private val configRepository: ConfigRepository = mock()
+    private val confirmation = RedirectConfirmation("redirectUrl")
 
     private val paymentOptionId = 123
 
@@ -342,7 +343,7 @@ internal class ContractBusinessLogicEffectTest {
 
         val changeSavePaymentMethod = Contract.Action.ChangeSavePaymentMethod(savePaymentMethod = true)
 
-        whenever(getConfirmation.invoke(any())).thenReturn(NoConfirmation)
+        whenever(getConfirmation.invoke(any())).thenReturn(confirmation)
 
         val logic = getLogic(
             paymentParameters = getPaymentParameters(
@@ -375,7 +376,7 @@ internal class ContractBusinessLogicEffectTest {
                 paymentOptionId = 1,
                 savePaymentMethod = expectedSavePaymentMethod,
                 savePaymentInstrument = expectedSavePaymentInstrument,
-                confirmation = NoConfirmation,
+                confirmation = confirmation,
                 paymentOptionInfo = null,
                 allowWalletLinking = false
             )
@@ -395,7 +396,7 @@ internal class ContractBusinessLogicEffectTest {
 
     @Test
     fun `check initial shouldSavePaymentMethod and shouldSavePaymentInstrument flags`() {
-        whenever(shopPropertiesRepository.shopProperties).thenReturn(ShopProperties(false, false))
+        whenever(shopPropertiesRepository.shopProperties).thenReturn(ShopProperties(false, false, null))
         whenever(configRepository.getConfig()).thenReturn(config)
         `check content shouldSavePaymentMethod shouldSavePaymentInstrument flags`(
             clientSavePaymentMethod = SavePaymentMethod.ON,
@@ -486,7 +487,7 @@ internal class ContractBusinessLogicEffectTest {
             )
         )
 
-        whenever(getConfirmation.invoke(any())).thenReturn(NoConfirmation)
+        whenever(getConfirmation.invoke(any())).thenReturn(confirmation)
 
         val logic = getLogic(
             paymentParameters = getPaymentParameters(
@@ -509,7 +510,7 @@ internal class ContractBusinessLogicEffectTest {
         shouldSavePaymentInstrument: Boolean = true,
         savePaymentMethod: SavePaymentMethod = SavePaymentMethod.ON,
         contractInfo: ContractInfo = createNewBankCardContractInfo(),
-        confirmation: Confirmation = NoConfirmation,
+        confirmation: Confirmation = RedirectConfirmation("redirectUrl"),
         customerId: String? = "customerId"
     ): Contract.State.Content {
         val paymentParameters = getPaymentParameters()
@@ -525,7 +526,7 @@ internal class ContractBusinessLogicEffectTest {
             isSplitPayment = false,
             customerId = customerId,
             savePaymentMethodOptionTexts = savePaymentMethodOptionTexts,
-            userAgreementUrl = "Нажимая кнопку, вы принимаете <a href='https://yoomoney.ru/page?id=526623'>условия сервиса</>"
+            userAgreementUrl = "Заплатив здесь, вы принимаете <a href='https://yoomoney.ru/page?id=526623'>условия сервиса</>"
         )
     }
 
@@ -542,7 +543,8 @@ internal class ContractBusinessLogicEffectTest {
         loadedPaymentOptionListRepository = mock(),
         shopPropertiesRepository = shopPropertiesRepository,
         userAuthInfoRepository = mock(),
-        configRepository = configRepository
+        configRepository = configRepository,
+        defaultAgentSchemeUserAgreementUrl = "defaultUserAgreementUrl"
     )
 
     private fun getPaymentParameters(

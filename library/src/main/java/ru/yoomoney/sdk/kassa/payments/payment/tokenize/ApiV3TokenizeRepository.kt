@@ -21,89 +21,156 @@
 
 package ru.yoomoney.sdk.kassa.payments.payment.tokenize
 
+import ru.yoomoney.sdk.kassa.payments.api.PaymentsApi
+import ru.yoomoney.sdk.kassa.payments.api.model.tokens.TokensRequestPaymentInstrumentId
+import ru.yoomoney.sdk.kassa.payments.api.model.tokens.TokensRequestPaymentMethodData
+import ru.yoomoney.sdk.kassa.payments.api.model.tokens.TokensRequestPaymentMethodId
+import ru.yoomoney.sdk.kassa.payments.api.model.tokens.TokensResponse
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.Amount
-import ru.yoomoney.sdk.kassa.payments.extensions.CheckoutOkHttpClient
-import ru.yoomoney.sdk.kassa.payments.extensions.execute
-import ru.yoomoney.sdk.kassa.payments.http.HostProvider
-import ru.yoomoney.sdk.kassa.payments.methods.InstrumentTokenRequest
-import ru.yoomoney.sdk.kassa.payments.methods.TokenRequest
+import ru.yoomoney.sdk.kassa.payments.http.createBearerHeader
+import ru.yoomoney.sdk.kassa.payments.model.BankCardPaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.Confirmation
 import ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOptionInfo
+import ru.yoomoney.sdk.kassa.payments.model.PaymentTokenInfo
 import ru.yoomoney.sdk.kassa.payments.model.Result
+import ru.yoomoney.sdk.kassa.payments.model.SberBank
+import ru.yoomoney.sdk.kassa.payments.model.YooMoney
+import ru.yoomoney.sdk.kassa.payments.model.mapper.toPaymentTokenInfo
+import ru.yoomoney.sdk.kassa.payments.model.mapper.toRequest
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuthTokenRepository
 import ru.yoomoney.sdk.kassa.payments.tmx.ProfilingSessionIdStorage
+import ru.yoomoney.sdk.yooprofiler.ProfileEventType
 import ru.yoomoney.sdk.yooprofiler.YooProfiler
 
 internal class ApiV3TokenizeRepository(
-    private val hostProvider: HostProvider,
-    private val httpClient: Lazy<CheckoutOkHttpClient>,
-    private val shopToken: String,
-    private val paymentAuthTokenRepository: PaymentAuthTokenRepository,
     private val profilingSessionIdStorage: ProfilingSessionIdStorage,
     private val profiler: YooProfiler,
-    private val merchantCustomerId: String?
+    private val paymentsApi: PaymentsApi,
+    private val merchantCustomerId: String?,
+    private val paymentAuthTokenRepository: PaymentAuthTokenRepository
 ) : TokenizeRepository {
 
-    override fun getToken(
+    override suspend fun getToken(
+        amount: Amount,
         paymentOption: PaymentOption,
         paymentOptionInfo: PaymentOptionInfo,
         savePaymentMethod: Boolean,
         savePaymentInstrument: Boolean,
-        confirmation: Confirmation
-    ): Result<String> {
-        val currentProfilingSessionId = acquireProfilingSessionId() ?: return Result.Fail(TmxProfilingFailedException())
+        confirmation: Confirmation,
+    ): Result<PaymentTokenInfo> {
+        val currentProfilingSessionId = acquireProfilingSessionId(paymentOption)
         val paymentAuthToken = paymentAuthTokenRepository.paymentAuthToken
-        val tokenRequest = TokenRequest(
-            hostProvider = hostProvider,
-            paymentOptionInfo = paymentOptionInfo,
-            paymentOption = paymentOption,
+        val tokenRequest = TokensRequestPaymentMethodData(
+            amount = amount.toRequest(),
             tmxSessionId = currentProfilingSessionId,
-            shopToken = shopToken,
-            paymentAuthToken = paymentAuthToken,
-            confirmation = confirmation,
+            confirmation = confirmation.toRequest(),
             savePaymentMethod = savePaymentMethod,
-            savePaymentInstrument = savePaymentInstrument,
-            merchantCustomerId = merchantCustomerId
+            paymentMethodData = paymentOptionInfo.toRequest(paymentOption),
+            savePaymentInstrument = if (paymentOption is BankCardPaymentOption) savePaymentInstrument else null,
+            merchantCustomerId = if (paymentOption is BankCardPaymentOption) merchantCustomerId else null
+        )
+        val paymentTokenInfo = paymentsApi.getTokens(
+            walletToken = paymentAuthToken?.createBearerHeader(),
+            tokensRequest = tokenRequest
+        ).fold(
+            onSuccess = { handleSuccessTokensRequest(it) },
+            onFailure = { Result.Fail(it) }
         )
         profilingSessionIdStorage.profilingSessionId = null
-        return httpClient.value.execute(tokenRequest)
+        return paymentTokenInfo
     }
 
-    override fun getToken(
+    override suspend fun getToken(
+        amount: Amount,
+        paymentOption: PaymentOption,
+        savePaymentMethod: Boolean,
+        confirmation: Confirmation,
+        paymentMethodId: String,
+        csc: String?,
+    ): Result<PaymentTokenInfo> {
+        val currentProfilingSessionId = acquireProfilingSessionId(paymentOption)
+        val paymentAuthToken = paymentAuthTokenRepository.paymentAuthToken
+        val tokenRequest = TokensRequestPaymentMethodId(
+            amount = amount.toRequest(),
+            tmxSessionId = currentProfilingSessionId,
+            confirmation = confirmation.toRequest(),
+            savePaymentMethod = savePaymentMethod,
+            paymentMethodId = paymentMethodId,
+            csc = csc
+        )
+        val paymentTokenInfo = paymentsApi.getTokens(
+            walletToken = paymentAuthToken?.createBearerHeader(),
+            tokensRequest = tokenRequest
+        ).fold(
+            onSuccess = { handleSuccessTokensRequest(it) },
+            onFailure = { Result.Fail(it) }
+        )
+        profilingSessionIdStorage.profilingSessionId = null
+        return paymentTokenInfo
+    }
+
+    override suspend fun getToken(
+        paymentOption: PaymentOption,
         instrumentBankCard: PaymentInstrumentBankCard,
         amount: Amount,
         savePaymentMethod: Boolean,
         csc: String?,
-        confirmation: Confirmation
-    ): Result<String> {
-        val currentProfilingSessionId = acquireProfilingSessionId() ?: return Result.Fail(TmxProfilingFailedException())
+        confirmation: Confirmation,
+    ): Result<PaymentTokenInfo> {
+        val currentProfilingSessionId = acquireProfilingSessionId(paymentOption)
         val paymentAuthToken = paymentAuthTokenRepository.paymentAuthToken
-        val tokenRequest = InstrumentTokenRequest(
-            hostProvider = hostProvider,
-            amount = amount,
+        val tokenRequest = TokensRequestPaymentInstrumentId(
+            amount = amount.toRequest(),
             tmxSessionId = currentProfilingSessionId,
-            shopToken = shopToken,
-            paymentAuthToken = paymentAuthToken,
-            confirmation = confirmation,
+            confirmation = confirmation.toRequest(),
             savePaymentMethod = savePaymentMethod,
-            csc = csc,
-            instrumentBankCard = instrumentBankCard
+            paymentInstrumentId = instrumentBankCard.paymentInstrumentId,
+            csc = csc
         )
-        return httpClient.value.execute(tokenRequest)
+        val paymentTokenInfo = paymentsApi.getTokens(
+            walletToken = paymentAuthToken?.createBearerHeader(),
+            tokensRequest = tokenRequest
+        ).fold(
+            onSuccess = { handleSuccessTokensRequest(it) },
+            onFailure = { Result.Fail(it) }
+        )
+        profilingSessionIdStorage.profilingSessionId = null
+        return paymentTokenInfo
     }
 
-    private fun acquireProfilingSessionId(): String {
-        val profilingSessionId = profilingSessionIdStorage.profilingSessionId
+    private fun handleSuccessTokensRequest(
+        tokensResponse: TokensResponse
+    ): Result<PaymentTokenInfo> {
+        return Result.Success(tokensResponse.toPaymentTokenInfo())
+    }
+
+    private fun acquireProfilingSessionId(paymentOption: PaymentOption): String {
+        val profilingSessionId: String?
+        val eventType: ProfileEventType
+        when(paymentOption) {
+            is YooMoney -> {
+                profilingSessionId = profilingSessionIdStorage.profilingSessionId
+                eventType = ProfileEventType.LOGIN
+            }
+            is SberBank -> {
+                return "profilingSessionId"
+            }
+            else -> {
+                profilingSessionId = null
+                eventType = ProfileEventType.PAYMENT
+            }
+        }
         if (profilingSessionId.isNullOrEmpty()) {
-            return when (val result = profiler.profile()) {
-                is YooProfiler.Result.Success -> result.sessionId
+            return when (val result = profiler.profile(eventType)) {
+                is YooProfiler.Result.Success -> {
+                profilingSessionIdStorage.profilingSessionId = result.sessionId
+                result.sessionId
+            }
                 is YooProfiler.Result.Fail -> result.description
             }
         }
         return profilingSessionId
     }
 }
-
-internal class TmxProfilingFailedException : Exception()

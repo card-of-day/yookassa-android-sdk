@@ -45,7 +45,7 @@ package ru.yoomoney.sdk.kassa.payments.model.mapper
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.BankCardType
 import ru.yoomoney.sdk.kassa.payments.model.CardBrand
 
-internal fun BankCardType.map() = when(this) {
+internal fun BankCardType.mapToCardBrand() = when(this) {
     BankCardType.MASTER_CARD -> CardBrand.MASTER_CARD
     BankCardType.VISA -> CardBrand.VISA
     BankCardType.MIR -> CardBrand.MIR

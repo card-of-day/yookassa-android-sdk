@@ -37,9 +37,9 @@ import ru.yoomoney.sdk.kassa.payments.model.BankCardPaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.CardBrand
 import ru.yoomoney.sdk.kassa.payments.model.Fee
 import ru.yoomoney.sdk.kassa.payments.model.GetConfirmation
-import ru.yoomoney.sdk.kassa.payments.model.NoConfirmation
 import ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOption
+import ru.yoomoney.sdk.kassa.payments.model.RedirectConfirmation
 import ru.yoomoney.sdk.kassa.payments.model.ShopProperties
 import ru.yoomoney.sdk.kassa.payments.payment.tokenize.TokenizeInstrumentInputModel
 import ru.yoomoney.sdk.march.Effect
@@ -54,6 +54,7 @@ internal class PaymentOptionsListBusinessLogicEffectTest {
     private val shopPropertiesRepository: ShopPropertiesRepository = mock()
     private val contentState = PaymentOptionList.State.Content(logoUrl, PaymentOptionListSuccessOutputModel(listOf()))
     private val getTokenizeScheme: (PaymentOption, PaymentInstrumentBankCard?) -> TokenizeScheme = mock()
+    private val confirmation = RedirectConfirmation("redirectUrl")
 
     private val logic =
         PaymentOptionsListBusinessLogic(
@@ -117,13 +118,13 @@ internal class PaymentOptionsListBusinessLogicEffectTest {
                 savePaymentMethod = false,
                 instrumentBankCard = paymentInstrument,
                 allowWalletLinking = false,
-                confirmation = NoConfirmation,
+                confirmation = confirmation,
                 csc = null
             )
         )
 
         val getConfirmation: GetConfirmation = mock()
-        whenever(getConfirmation(any())).thenReturn(NoConfirmation)
+        whenever(getConfirmation(any())).thenReturn(confirmation)
 
         whenever(useCase.selectPaymentOption(paymentOptionId, instrumentId)).thenReturn(
             BankCardPaymentOption(
@@ -138,7 +139,7 @@ internal class PaymentOptionsListBusinessLogicEffectTest {
                 title = null
             )
         )
-        whenever(shopPropertiesRepository.shopProperties).thenReturn(ShopProperties(false, false))
+        whenever(shopPropertiesRepository.shopProperties).thenReturn(ShopProperties(false, false, null))
 
         val paymentParameters = cratePaymentParameters(savePaymentMethod = SavePaymentMethod.OFF)
         val out = createLogic(paymentParameters = paymentParameters, getConfirmation = getConfirmation).invoke(
@@ -169,7 +170,7 @@ internal class PaymentOptionsListBusinessLogicEffectTest {
         val expected = PaymentOptionList.Effect.ShowContract
 
         val getConfirmation: GetConfirmation = mock()
-        whenever(getConfirmation(any())).thenReturn(NoConfirmation)
+        whenever(getConfirmation(any())).thenReturn(confirmation)
 
         whenever(useCase.selectPaymentOption(paymentOptionId, instrumentId)).thenReturn(
             BankCardPaymentOption(
@@ -184,7 +185,7 @@ internal class PaymentOptionsListBusinessLogicEffectTest {
                 title = null
             )
         )
-        whenever(shopPropertiesRepository.shopProperties).thenReturn(ShopProperties(false, false))
+        whenever(shopPropertiesRepository.shopProperties).thenReturn(ShopProperties(false, false, null))
 
         val paymentParameters = cratePaymentParameters(savePaymentMethod = SavePaymentMethod.OFF)
         val out = createLogic(paymentParameters = paymentParameters, getConfirmation = getConfirmation).invoke(
@@ -215,7 +216,7 @@ internal class PaymentOptionsListBusinessLogicEffectTest {
         val expected = PaymentOptionList.Effect.ShowContract
 
         val getConfirmation: GetConfirmation = mock()
-        whenever(getConfirmation(any())).thenReturn(NoConfirmation)
+        whenever(getConfirmation(any())).thenReturn(confirmation)
 
         whenever(useCase.selectPaymentOption(paymentOptionId, instrumentId)).thenReturn(
             BankCardPaymentOption(
@@ -230,7 +231,7 @@ internal class PaymentOptionsListBusinessLogicEffectTest {
                 title = null
             )
         )
-        whenever(shopPropertiesRepository.shopProperties).thenReturn(ShopProperties(false, false))
+        whenever(shopPropertiesRepository.shopProperties).thenReturn(ShopProperties(false, false, null))
 
         val paymentParameters = cratePaymentParameters(savePaymentMethod = SavePaymentMethod.ON)
         val out = createLogic(paymentParameters = paymentParameters, getConfirmation = getConfirmation).invoke(
@@ -261,7 +262,7 @@ internal class PaymentOptionsListBusinessLogicEffectTest {
         val expected = PaymentOptionList.Effect.ShowContract
 
         val getConfirmation: GetConfirmation = mock()
-        whenever(getConfirmation(any())).thenReturn(NoConfirmation)
+        whenever(getConfirmation(any())).thenReturn(confirmation)
 
         whenever(useCase.selectPaymentOption(paymentOptionId, instrumentId)).thenReturn(
             BankCardPaymentOption(
@@ -276,7 +277,7 @@ internal class PaymentOptionsListBusinessLogicEffectTest {
                 title = null
             )
         )
-        whenever(shopPropertiesRepository.shopProperties).thenReturn(ShopProperties(false, false))
+        whenever(shopPropertiesRepository.shopProperties).thenReturn(ShopProperties(false, false, null))
 
         val paymentParameters = cratePaymentParameters(savePaymentMethod = SavePaymentMethod.OFF)
         val out = createLogic(paymentParameters = paymentParameters, getConfirmation = getConfirmation).invoke(

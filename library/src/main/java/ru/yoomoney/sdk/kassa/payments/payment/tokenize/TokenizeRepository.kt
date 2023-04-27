@@ -26,23 +26,35 @@ import ru.yoomoney.sdk.kassa.payments.model.Confirmation
 import ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOptionInfo
+import ru.yoomoney.sdk.kassa.payments.model.PaymentTokenInfo
 import ru.yoomoney.sdk.kassa.payments.model.Result
 
 internal interface TokenizeRepository {
 
-    fun getToken(
+    suspend fun getToken(
+        amount: Amount,
         paymentOption: PaymentOption,
         paymentOptionInfo: PaymentOptionInfo,
         savePaymentMethod: Boolean,
         savePaymentInstrument: Boolean,
         confirmation: Confirmation
-    ): Result<String>
+    ): Result<PaymentTokenInfo>
 
-    fun getToken(
+    suspend fun getToken(
+        paymentOption: PaymentOption,
         instrumentBankCard: PaymentInstrumentBankCard,
         amount: Amount,
         savePaymentMethod: Boolean,
         csc: String?,
         confirmation: Confirmation
-    ): Result<String>
+    ): Result<PaymentTokenInfo>
+
+    suspend fun getToken(
+        amount: Amount,
+        paymentOption: PaymentOption,
+        savePaymentMethod: Boolean,
+        confirmation: Confirmation,
+        paymentMethodId: String,
+        csc: String?
+    ): Result<PaymentTokenInfo>
 }

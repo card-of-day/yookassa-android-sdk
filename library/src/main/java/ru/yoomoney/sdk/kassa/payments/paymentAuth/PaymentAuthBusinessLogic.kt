@@ -62,6 +62,7 @@ internal class PaymentAuthBusinessLogic(
             }
             is Action.ProcessAuthSuccess -> Out(this) {
                 output { showEffect(Effect.ShowSuccess) }
+                input(source)
             }
             is Action.ProcessAuthFailed -> Out(State.StartError(action.error)) {
                 input { showState(this.state) }
@@ -95,6 +96,7 @@ internal class PaymentAuthBusinessLogic(
             }
             is Action.ProcessAuthSuccess -> Out(this) {
                 output { showEffect(Effect.ShowSuccess) }
+                input(source)
             }
             is Action.ProcessAuthFailed -> Out(State.ProcessError(this.data, action.error)) {
                 input { showState(this.state) }

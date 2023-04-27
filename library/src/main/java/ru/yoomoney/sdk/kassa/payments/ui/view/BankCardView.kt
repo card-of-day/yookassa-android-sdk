@@ -24,6 +24,8 @@ package ru.yoomoney.sdk.kassa.payments.ui.view
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.os.Build.VERSION_CODES
 import android.text.Editable
 import android.util.AttributeSet
 import android.view.KeyEvent
@@ -45,7 +47,6 @@ import ru.yoomoney.sdk.gui.utils.extensions.getDimensionPixelOffset
 import ru.yoomoney.sdk.gui.utils.extensions.show
 import ru.yoomoney.sdk.kassa.payments.R
 import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
-import ru.yoomoney.sdk.kassa.payments.ui.color.InMemoryColorSchemeRepository
 import ru.yoomoney.sdk.kassa.payments.extensions.clear
 import ru.yoomoney.sdk.kassa.payments.extensions.configureForCardNumberInput
 import ru.yoomoney.sdk.kassa.payments.extensions.findDefaultLocalActivityForIntent
@@ -61,8 +62,9 @@ import ru.yoomoney.sdk.kassa.payments.metrics.bankCard.CardNumberInputError
 import ru.yoomoney.sdk.kassa.payments.metrics.bankCard.CardNumberInputSuccess
 import ru.yoomoney.sdk.kassa.payments.metrics.bankCard.CardNumberReturnToEdit
 import ru.yoomoney.sdk.kassa.payments.metrics.bankCard.ScanBankCardAction
-import ru.yoomoney.sdk.kassa.payments.paymentOptionInfo.isCorrectPan
 import ru.yoomoney.sdk.kassa.payments.model.NewCardInfo
+import ru.yoomoney.sdk.kassa.payments.paymentOptionInfo.isCorrectPan
+import ru.yoomoney.sdk.kassa.payments.ui.color.InMemoryColorSchemeRepository
 import ru.yoomoney.sdk.kassa.payments.utils.PatternInputFilter
 import ru.yoomoney.sdk.kassa.payments.utils.SimpleTextWatcher
 import ru.yoomoney.sdk.kassa.payments.utils.UNKNOWN_CARD_ICON
@@ -175,6 +177,9 @@ internal class BankCardView
         errorColor = getColor(R.color.color_type_alert)
 
         bankCardConstraint = findViewById(R.id.bankCardConstraint)
+        if (Build.VERSION.SDK_INT >= VERSION_CODES.O) {
+            bankCardConstraint.defaultFocusHighlightEnabled = false
+        }
 
         cardView = findViewById(R.id.cardView)
 

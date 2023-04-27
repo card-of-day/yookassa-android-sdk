@@ -28,6 +28,8 @@ import dagger.Provides
 import dagger.multibindings.IntoMap
 import ru.yoomoney.sdk.auth.YooMoneyAuth
 import ru.yoomoney.sdk.auth.api.account.AccountRepository
+import ru.yoomoney.sdk.kassa.payments.R
+import ru.yoomoney.sdk.kassa.payments.api.PaymentsApi
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentMethodType
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
@@ -37,11 +39,10 @@ import ru.yoomoney.sdk.kassa.payments.contract.ContractAnalytics
 import ru.yoomoney.sdk.kassa.payments.contract.ContractBusinessLogic
 import ru.yoomoney.sdk.kassa.payments.contract.SelectPaymentMethodUseCase
 import ru.yoomoney.sdk.kassa.payments.contract.SelectPaymentMethodUseCaseImpl
+import ru.yoomoney.sdk.kassa.payments.contract.getDefaultAgentSchemeUserAgreementUrl
 import ru.yoomoney.sdk.kassa.payments.di.TokenStorageModule
 import ru.yoomoney.sdk.kassa.payments.di.ViewModelKey
-import ru.yoomoney.sdk.kassa.payments.extensions.CheckoutOkHttpClient
 import ru.yoomoney.sdk.kassa.payments.extensions.toTokenizeScheme
-import ru.yoomoney.sdk.kassa.payments.http.HostProvider
 import ru.yoomoney.sdk.kassa.payments.logout.LogoutRepository
 import ru.yoomoney.sdk.kassa.payments.logout.LogoutRepositoryImpl
 import ru.yoomoney.sdk.kassa.payments.logout.LogoutUseCase
@@ -76,26 +77,23 @@ internal class ContractModule {
 
     @Provides
     fun provideTokenizeRepository(
-        hostProvider: HostProvider,
         testParameters: TestParameters,
-        httpClient: CheckoutOkHttpClient,
-        tokensStorage: TokensStorage,
         paymentParameters: PaymentParameters,
         profiler: YooProfiler,
-        profilingSessionIdStorage: ProfilingSessionIdStorage,
+        paymentsApi: PaymentsApi,
+        paymentAuthTokenRepository: PaymentAuthTokenRepository,
+        profilingSessionIdStorage: ProfilingSessionIdStorage
     ): TokenizeRepository {
         val mockConfiguration = testParameters.mockConfiguration
         return if (mockConfiguration != null) {
             MockTokenizeRepository(mockConfiguration.completeWithError)
         } else {
             ApiV3TokenizeRepository(
-                hostProvider = hostProvider,
-                httpClient = lazy { httpClient },
-                shopToken = paymentParameters.clientApplicationKey,
-                paymentAuthTokenRepository = tokensStorage,
+                paymentsApi = paymentsApi,
                 profiler = profiler,
                 profilingSessionIdStorage = profilingSessionIdStorage,
-                merchantCustomerId = paymentParameters.customerId
+                merchantCustomerId = paymentParameters.customerId,
+                paymentAuthTokenRepository = paymentAuthTokenRepository
             )
         }
     }
@@ -197,7 +195,8 @@ internal class ContractModule {
                         loadedPaymentOptionListRepository = loadedPaymentOptionListRepository,
                         shopPropertiesRepository = shopPropertiesRepository,
                         userAuthInfoRepository = userAuthInfoRepository,
-                        configRepository = configRepository
+                        configRepository = configRepository,
+                        defaultAgentSchemeUserAgreementUrl = getDefaultAgentSchemeUserAgreementUrl(context)
                     ),
                     tokenizeSchemeParamProvider = tokenizeSchemeParamProvider,
                     getUserAuthType = userAuthTypeParamProvider,

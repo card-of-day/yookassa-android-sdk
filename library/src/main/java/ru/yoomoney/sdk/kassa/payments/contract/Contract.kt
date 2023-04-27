@@ -103,7 +103,7 @@ internal object Contract {
             val isSplitPayment: Boolean,
             val customerId: String?,
             val savePaymentMethodOptionTexts: SavePaymentMethodOptionTexts,
-            val userAgreementUrl: String
+            val userAgreementUrl: String?
         ) : State()
 
         data class GooglePay(

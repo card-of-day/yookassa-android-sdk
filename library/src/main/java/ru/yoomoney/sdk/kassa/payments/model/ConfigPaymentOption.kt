@@ -21,26 +21,8 @@
 
 package ru.yoomoney.sdk.kassa.payments.model
 
-import org.json.JSONObject
-
-private const val METHOD_FIELD = "method"
-private const val ICON_URL_FIELD = "iconUrl"
-private const val TITLE_FIELD = "title"
-
 internal data class ConfigPaymentOption(
     val method: String,
     val title: String,
     val iconUrl: String
-)
-
-internal fun ConfigPaymentOption.toJsonObject() = JSONObject().apply {
-    put(METHOD_FIELD, method)
-    put(ICON_URL_FIELD, iconUrl)
-    put(TITLE_FIELD, title)
-}
-
-internal fun JSONObject.toConfigPaymentOption() = ConfigPaymentOption(
-    method = getString(METHOD_FIELD),
-    iconUrl = getString(ICON_URL_FIELD),
-    title = getString(TITLE_FIELD)
 )

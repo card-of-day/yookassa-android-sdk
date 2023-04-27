@@ -46,14 +46,17 @@ import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionBank
 import ru.yoomoney.sdk.kassa.payments.model.BankCardPaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.ConfigPaymentOption
 
-internal fun PaymentOptionBankCard.map(id: Int, configPaymentOption: ConfigPaymentOption) = BankCardPaymentOption(
+internal fun PaymentOptionBankCard.mapToBankCardPaymentOptionModel(
+    id: Int,
+    configPaymentOption: ConfigPaymentOption
+) = BankCardPaymentOption(
     id = id,
-    charge = charge.map(),
-    fee = fee?.map(),
+    charge = charge.mapToAmountModel(),
+    fee = fee?.mapToFeeModel(),
     icon = configPaymentOption.iconUrl,
     title = configPaymentOption.title,
     savePaymentMethodAllowed = savePaymentMethod.isAllowed(),
-    confirmationTypes = confirmationTypes?.map { it.map() } ?: emptyList(),
-    paymentInstruments = paymentInstruments?.map { it.map() } ?: emptyList(),
+    confirmationTypes = confirmationTypes?.map { it.mapToConformationModel() } ?: emptyList(),
+    paymentInstruments = paymentInstruments?.map { it.mapToPaymentInstrumentBankCardModel() } ?: emptyList(),
     savePaymentInstrument = savePaymentInstrument
 )

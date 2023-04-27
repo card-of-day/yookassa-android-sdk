@@ -49,5 +49,8 @@ internal data class MobileSdkConfig(
     val yooMoneyLogoUrlLight: String,
 
     @JsonProperty("yooMoneyLogoUrlDark")
-    val yooMoneyLogoUrlDark: String
+    val yooMoneyLogoUrlDark: String,
+
+    @JsonProperty("agentSchemeProviderAgreement")
+    val agentSchemeProviderAgreement: Map<String, String>?
 )

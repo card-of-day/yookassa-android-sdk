@@ -24,7 +24,7 @@ package ru.yoomoney.sdk.kassa.payments.model.mapper
 import ru.yoomoney.sdk.kassa.payments.api.model.config.SavePaymentMethodOptionTextsResponse
 import ru.yoomoney.sdk.kassa.payments.model.SavePaymentMethodOptionTexts
 
-internal fun SavePaymentMethodOptionTextsResponse.map() = SavePaymentMethodOptionTexts(
+internal fun SavePaymentMethodOptionTextsResponse.mapToSavePaymentMethodOptionTexts() = SavePaymentMethodOptionTexts(
     switchRecurrentOnBindOnTitle = switchRecurrentOnBindOnTitle,
     switchRecurrentOnBindOnSubtitle = switchRecurrentOnBindOnSubtitle,
     switchRecurrentOnBindOffTitle = switchRecurrentOnBindOffTitle,

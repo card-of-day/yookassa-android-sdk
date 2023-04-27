@@ -27,10 +27,10 @@ import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonNode
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.InstrumentType
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentInstrumentYooMoney
-import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentMethodType
-import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionResponse
+import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentMethodTypeNetwork
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionBankCard
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionGooglePay
+import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionResponse
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionSberbank
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.Unknown
 
@@ -38,12 +38,12 @@ internal class PaymentOptionDeserializer : JsonDeserializer<PaymentOptionRespons
     override fun deserialize(jsonParser: JsonParser, ctxt: DeserializationContext): PaymentOptionResponse {
         val node: JsonNode = jsonParser.readValueAsTree()
         val codec = jsonParser.codec
-        return when (codec.treeToValue(node.get("payment_method_type"), PaymentMethodType::class.java)) {
-            PaymentMethodType.YOO_MONEY -> parseYooWallet(node, jsonParser)
-            PaymentMethodType.BANK_CARD -> codec.treeToValue(node, PaymentOptionBankCard::class.java)
-            PaymentMethodType.SBERBANK -> codec.treeToValue(node, PaymentOptionSberbank::class.java)
-            PaymentMethodType.GOOGLE_PAY -> codec.treeToValue(node, PaymentOptionGooglePay::class.java)
-            PaymentMethodType.UNKNOWN -> Unknown
+        return when (codec.treeToValue(node.get("payment_method_type"), PaymentMethodTypeNetwork::class.java)) {
+            PaymentMethodTypeNetwork.YOO_MONEY -> parseYooWallet(node, jsonParser)
+            PaymentMethodTypeNetwork.BANK_CARD -> codec.treeToValue(node, PaymentOptionBankCard::class.java)
+            PaymentMethodTypeNetwork.SBERBANK -> codec.treeToValue(node, PaymentOptionSberbank::class.java)
+            PaymentMethodTypeNetwork.GOOGLE_PAY -> codec.treeToValue(node, PaymentOptionGooglePay::class.java)
+            PaymentMethodTypeNetwork.UNKNOWN -> Unknown
             else -> Unknown
         }
     }
@@ -53,10 +53,16 @@ internal class PaymentOptionDeserializer : JsonDeserializer<PaymentOptionRespons
             val instrumentType = jsonParser.codec.treeToValue(node.get("instrument_type"), InstrumentType::class.java)
             when (instrumentType) {
                 InstrumentType.WALLET -> {
-                    jsonParser.codec.treeToValue(node, PaymentInstrumentYooMoney.PaymentInstrumentYooMoneyWallet::class.java)
+                    jsonParser.codec.treeToValue(
+                        node,
+                        PaymentInstrumentYooMoney.PaymentInstrumentYooMoneyWallet::class.java
+                    )
                 }
                 InstrumentType.LINKED_BANK_CARD -> {
-                    jsonParser.codec.treeToValue(node, PaymentInstrumentYooMoney.PaymentInstrumentYooMoneyLinkedBankCard::class.java)
+                    jsonParser.codec.treeToValue(
+                        node,
+                        PaymentInstrumentYooMoney.PaymentInstrumentYooMoneyLinkedBankCard::class.java
+                    )
                 }
             }
         } else {

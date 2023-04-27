@@ -1,6 +1,6 @@
 /*
  * The MIT License (MIT)
- * Copyright © 2022 NBCO YooMoney LLC
+ * Copyright © 2023 NBCO YooMoney LLC
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
  * associated documentation files (the “Software”), to deal in the Software without restriction, including
@@ -21,9 +21,19 @@
 
 package ru.yoomoney.sdk.kassa.payments.api
 
+import retrofit2.http.DELETE
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Path
+import retrofit2.http.POST
 import retrofit2.http.Query
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionsResponse
+import ru.yoomoney.sdk.kassa.payments.api.model.paymentmethod.PaymentMethodResponse
+import ru.yoomoney.sdk.kassa.payments.api.model.tokens.TokensRequestPaymentInstrumentId
+import ru.yoomoney.sdk.kassa.payments.api.model.tokens.TokensRequestPaymentMethodData
+import ru.yoomoney.sdk.kassa.payments.api.model.tokens.TokensRequestPaymentMethodId
+import ru.yoomoney.sdk.kassa.payments.api.model.tokens.TokensResponse
 
 internal interface PaymentsApi {
 
@@ -35,4 +45,32 @@ internal interface PaymentsApi {
         @Query("save_payment_method") savePaymentMethod: Boolean?,
         @Query("merchant_customer_id") merchantCustomerId: String?
     ): Result<PaymentOptionsResponse>
+
+    @GET("/api/frontend/v3/payment_method")
+    suspend fun getPaymentMethod(
+        @Query("payment_method_id") paymentMethodId: String,
+    ): Result<PaymentMethodResponse>
+
+    @POST("/api/frontend/v3/tokens")
+    suspend fun getTokens(
+        @Header("Wallet-Authorization") walletToken: String?,
+        @Body tokensRequest: TokensRequestPaymentMethodData
+    ): Result<TokensResponse>
+
+    @POST("/api/frontend/v3/tokens")
+    suspend fun getTokens(
+        @Header("Wallet-Authorization") walletToken: String?,
+        @Body tokensRequest: TokensRequestPaymentInstrumentId
+    ): Result<TokensResponse>
+
+    @POST("/api/frontend/v3/tokens")
+    suspend fun getTokens(
+        @Header("Wallet-Authorization") walletToken: String?,
+        @Body tokensRequest: TokensRequestPaymentMethodId
+    ): Result<TokensResponse>
+
+    @DELETE("/api/frontend/v3/payment_instruments/{payment_instrument_id}")
+    suspend fun deletePaymentInstrumentId(
+        @Path("payment_instrument_id") instrumentId: String
+    ): Result<Unit>
 }

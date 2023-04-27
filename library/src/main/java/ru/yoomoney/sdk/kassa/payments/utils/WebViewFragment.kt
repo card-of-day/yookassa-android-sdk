@@ -22,34 +22,34 @@
 package ru.yoomoney.sdk.kassa.payments.utils
 
 import android.annotation.SuppressLint
-import android.graphics.Bitmap
-import android.net.http.SslError
-import android.os.Build
 import android.os.Bundle
-import androidx.annotation.Keep
-import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
-import android.webkit.SslErrorHandler
 import android.webkit.WebChromeClient
 import android.webkit.WebView
-import android.webkit.WebViewClient
+import androidx.activity.OnBackPressedCallback
+import androidx.annotation.Keep
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
-import ru.yoomoney.sdk.kassa.payments.BuildConfig
 
 private const val KEY_LOAD_URL = "loadUrl"
 private const val KEY_REDIRECT_URL = "returnUrl"
 
-private val TAG = WebViewFragment::class.java.simpleName
-
 @Keep
 internal class WebViewFragment : Fragment() {
 
-    private var listener: Listener? = null
+    private val listener: Listener by lazy {
+        requireActivity() as Listener
+    }
     private var webView: WebView? = null
 
-    private var loadUrl: String? = null
-    private var redirectUrl: String? = null
+    private val loadUrl: String by lazy {
+        arguments?.getString(KEY_LOAD_URL).orEmpty()
+    }
+    private val redirectUrl: String? by lazy {
+        arguments?.getString(KEY_REDIRECT_URL)
+    }
 
     init {
         retainInstance = true
@@ -59,11 +59,6 @@ internal class WebViewFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        savedInstanceState?.apply {
-            loadUrl = getString(KEY_LOAD_URL)
-            redirectUrl = getString(KEY_REDIRECT_URL)
-        }
-
         val context = checkNotNull(context) { "Context should be present here" }
         val appContext = context.applicationContext
 
@@ -72,22 +67,28 @@ internal class WebViewFragment : Fragment() {
             settings.javaScriptEnabled = true
             @Suppress("DEPRECATION")
             settings.saveFormData = false
-            // set for Samsung Note 2, it asking save pass
-            if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                @Suppress("DEPRECATION")
-                settings.savePassword = false
-            }
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                WebView.setWebContentsDebuggingEnabled(BuildConfig.DEBUG)
-            }
-
-            webViewClient = WebViewClientImpl()
+            webViewClient = WebViewClientImpl(redirectUrl, listener)
             webChromeClient = WebChromeClient()
         }
+        load(loadUrl)
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?) = webView
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (webView?.canGoBack() == true) {
+                        webView?.goBack()
+                    } else {
+                        listener.onCloseActivity()
+                        requireActivity().finish()
+                    }
+                }
+            }
+        )
+        return webView
+    }
 
     override fun onResume() {
         super.onResume()
@@ -118,70 +119,9 @@ internal class WebViewFragment : Fragment() {
         }
     }
 
-    fun attach(listener: Listener?) {
-        this.listener = listener
-    }
-
-    fun onBackPressed(): Boolean {
-        val canGoBack = webView?.canGoBack() == true
-
-        if (canGoBack) {
-            webView?.goBack()
-        }
-
-        return canGoBack
-    }
-
-    fun load(url: String, redirectUrl: String) {
+    fun load(url: String) {
         val webView = checkNotNull(webView) { "load should be called after fragment initialization" }
-
-        if (url != loadUrl || redirectUrl != this.redirectUrl) {
-            loadUrl = url
-            this.redirectUrl = redirectUrl
-            webView.loadUrl(url)
-        }
-    }
-
-    private inner class WebViewClientImpl : WebViewClient() {
-
-        override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
-            listener?.onShowProgress()
-        }
-
-        override fun onPageFinished(view: WebView?, url: String?) {
-            listener?.onHideProgress()
-        }
-
-        @Suppress("OverridingDeprecatedMember")
-        override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
-            val redirectUrl = checkNotNull(redirectUrl) { "returnUrl should be present" }
-
-            if (url.startsWith(redirectUrl) == true) {
-                Log.d(TAG, "success: $url")
-                listener?.onSuccess()
-                view.stopLoading()
-            } else {
-                view.loadUrl(url)
-            }
-            return true
-        }
-
-        override fun onReceivedSslError(view: WebView?, handler: SslErrorHandler?, error: SslError?) {
-            if (BuildConfig.DEBUG && requireContext().isBuildDebug()) {
-                handler?.proceed()
-            } else {
-                super.onReceivedSslError(view, handler, error)
-            }
-        }
-
-        @Suppress("OverridingDeprecatedMember")
-        override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
-            listener?.apply {
-                onHideProgress()
-                takeUnless { errorCode == ERROR_HOST_LOOKUP || errorCode ==  ERROR_CONNECT}
-                    ?.onError(errorCode, description, failingUrl)
-            }
-        }
+        webView.loadUrl(url)
     }
 
     interface Listener {
@@ -189,5 +129,12 @@ internal class WebViewFragment : Fragment() {
         fun onHideProgress()
         fun onError(errorCode: Int, description: String?, failingUrl: String?)
         fun onSuccess()
+        fun onCloseActivity()
+    }
+
+    companion object {
+        fun create(loadUrl: String, redirectUrl: String) = WebViewFragment().apply {
+            arguments = bundleOf(KEY_LOAD_URL to loadUrl, KEY_REDIRECT_URL to redirectUrl)
+        }
     }
 }

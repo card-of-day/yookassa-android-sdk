@@ -26,10 +26,12 @@ import com.fasterxml.jackson.annotation.JsonProperty
 internal sealed class PaymentOptionResponse
 
 internal data class PaymentOptionBankCard(
-    @JsonProperty("payment_method_type")
-    val paymentMethodType: PaymentMethodType,
+    @get:JsonProperty("payment_method_type")
+    @param:JsonProperty("payment_method_type")
+    val paymentMethodType: PaymentMethodTypeNetwork,
 
-    @JsonProperty("confirmation_types")
+    @get:JsonProperty("confirmation_types")
+    @param:JsonProperty("confirmation_types")
     val confirmationTypes: List<ConfirmationType>?,
 
     @JsonProperty("charge")
@@ -38,16 +40,20 @@ internal data class PaymentOptionBankCard(
     @JsonProperty("fee")
     val fee: Fee?,
 
-    @JsonProperty("save_payment_method")
+    @get:JsonProperty("save_payment_method")
+    @param:JsonProperty("save_payment_method")
     val savePaymentMethod: SavePaymentMethod,
 
-    @JsonProperty("save_payment_instrument")
+    @get:JsonProperty("save_payment_instrument")
+    @param:JsonProperty("save_payment_instrument")
     val savePaymentInstrument: Boolean,
 
-    @JsonProperty("identification_requirement")
+    @get:JsonProperty("identification_requirement")
+    @param:JsonProperty("identification_requirement")
     val identificationRequirement: IdentificationRequirement?,
 
-    @JsonProperty("payment_instruments")
+    @get:JsonProperty("payment_instruments")
+    @param:JsonProperty("payment_instruments")
     val paymentInstruments: List<PaymentInstrumentBankCard>?
 
 ) : PaymentOptionResponse()
@@ -56,10 +62,12 @@ internal sealed class PaymentInstrumentYooMoney : PaymentOptionResponse() {
 
     data class PaymentInstrumentYooMoneyWallet(
 
-        @JsonProperty("payment_method_type")
-        val paymentMethodType: PaymentMethodType,
+        @get:JsonProperty("payment_method_type")
+        @param:JsonProperty("payment_method_type")
+        val paymentMethodType: PaymentMethodTypeNetwork,
 
-        @JsonProperty("confirmation_types")
+        @get:JsonProperty("confirmation_types")
+        @param:JsonProperty("confirmation_types")
         val confirmationTypes: List<ConfirmationType>?,
 
         @JsonProperty("charge")
@@ -68,16 +76,20 @@ internal sealed class PaymentInstrumentYooMoney : PaymentOptionResponse() {
         @JsonProperty("fee")
         val fee: Fee?,
 
-        @JsonProperty("save_payment_method")
+        @get:JsonProperty("save_payment_method")
+        @param:JsonProperty("save_payment_method")
         val savePaymentMethod: SavePaymentMethod,
 
-        @JsonProperty("save_payment_instrument")
+        @get:JsonProperty("save_payment_instrument")
+        @param:JsonProperty("save_payment_instrument")
         val savePaymentInstrument: Boolean,
 
-        @JsonProperty("identification_requirement")
+        @get:JsonProperty("identification_requirement")
+        @param:JsonProperty("identification_requirement")
         val identificationRequirement: IdentificationRequirement?,
 
-        @JsonProperty("instrument_type")
+        @get:JsonProperty("instrument_type")
+        @param:JsonProperty("instrument_type")
         val instrumentType: InstrumentType,
 
         @JsonProperty("id")
@@ -89,10 +101,12 @@ internal sealed class PaymentInstrumentYooMoney : PaymentOptionResponse() {
 
     data class PaymentInstrumentYooMoneyLinkedBankCard(
 
-        @JsonProperty("payment_method_type")
-        val paymentMethodType: PaymentMethodType,
+        @get:JsonProperty("payment_method_type")
+        @param:JsonProperty("payment_method_type")
+        val paymentMethodType: PaymentMethodTypeNetwork,
 
-        @JsonProperty("confirmation_types")
+        @get:JsonProperty("confirmation_types")
+        @param:JsonProperty("confirmation_types")
         val confirmationTypes: List<ConfirmationType>?,
 
         @JsonProperty("charge")
@@ -101,36 +115,44 @@ internal sealed class PaymentInstrumentYooMoney : PaymentOptionResponse() {
         @JsonProperty("fee")
         val fee: Fee?,
 
-        @JsonProperty("save_payment_method")
+        @get:JsonProperty("save_payment_method")
+        @param:JsonProperty("save_payment_method")
         val savePaymentMethod: SavePaymentMethod,
 
-        @JsonProperty("save_payment_instrument")
+        @get:JsonProperty("save_payment_instrument")
+        @param:JsonProperty("save_payment_instrument")
         val savePaymentInstrument: Boolean,
 
-        @JsonProperty("identification_requirement")
+        @get:JsonProperty("identification_requirement")
+        @param:JsonProperty("identification_requirement")
         val identificationRequirement: IdentificationRequirement?,
 
-        @JsonProperty("instrument_type")
+        @get:JsonProperty("instrument_type")
+        @param:JsonProperty("instrument_type")
         val instrumentType: InstrumentType,
 
         @JsonProperty("id")
         val id: String,
 
-        @JsonProperty("card_name")
+        @get:JsonProperty("card_name")
+        @param:JsonProperty("card_name")
         val cardName: String?,
 
-        @JsonProperty("card_mask")
+        @get:JsonProperty("card_mask")
+        @param:JsonProperty("card_mask")
         val cardMask: String,
 
-        @JsonProperty("card_type")
+        @get:JsonProperty("card_type")
+        @param:JsonProperty("card_type")
         val cardType: BankCardType
 
-    ): PaymentInstrumentYooMoney()
+    ) : PaymentInstrumentYooMoney()
 
     data class AbstractYooMoneyWallet(
 
-        @JsonProperty("payment_method_type")
-        val paymentMethodType: PaymentMethodType,
+        @get:JsonProperty("payment_method_type")
+        @param:JsonProperty("payment_method_type")
+        val paymentMethodType: PaymentMethodTypeNetwork,
 
         @JsonProperty("charge")
         val charge: Amount,
@@ -138,45 +160,57 @@ internal sealed class PaymentInstrumentYooMoney : PaymentOptionResponse() {
         @JsonProperty("fee")
         val fee: Fee?,
 
-        @JsonProperty("save_payment_method")
+        @get:JsonProperty("save_payment_method")
+        @param:JsonProperty("save_payment_method")
         val savePaymentMethod: SavePaymentMethod,
 
-        @JsonProperty("confirmation_types")
+        @get:JsonProperty("confirmation_types")
+        @param:JsonProperty("confirmation_types")
         val confirmationTypes: List<ConfirmationType>?,
 
-        @JsonProperty("save_payment_instrument")
+        @get:JsonProperty("save_payment_instrument")
+        @param:JsonProperty("save_payment_instrument")
         val savePaymentInstrument: Boolean
-    ): PaymentInstrumentYooMoney()
+    ) : PaymentInstrumentYooMoney()
 }
 
 internal data class PaymentOptionSberbank(
-    @JsonProperty("payment_method_type")
-    val paymentMethodType: PaymentMethodType,
 
-    @JsonProperty("confirmation_types")
+    @get:JsonProperty("payment_method_type")
+    @param:JsonProperty("payment_method_type")
+    val paymentMethodType: PaymentMethodTypeNetwork,
+
+    @get:JsonProperty("confirmation_types")
+    @param:JsonProperty("confirmation_types")
     val confirmationTypes: List<ConfirmationType>?,
 
     @JsonProperty("charge")
     val charge: Amount,
 
-    @JsonProperty("fee")
+    @get:JsonProperty("fee")
+    @param:JsonProperty("fee")
     val fee: Fee?,
 
-    @JsonProperty("save_payment_method")
+    @get:JsonProperty("save_payment_method")
+    @param:JsonProperty("save_payment_method")
     val savePaymentMethod: SavePaymentMethod,
 
-    @JsonProperty("save_payment_instrument")
+    @get:JsonProperty("save_payment_instrument")
+    @param:JsonProperty("save_payment_instrument")
     val savePaymentInstrument: Boolean,
 
-    @JsonProperty("identification_requirement")
+    @get:JsonProperty("identification_requirement")
+    @param:JsonProperty("identification_requirement")
     val identificationRequirement: IdentificationRequirement?,
 ) : PaymentOptionResponse()
 
 internal data class PaymentOptionGooglePay(
-    @JsonProperty("payment_method_type")
-    val paymentMethodType: PaymentMethodType,
+    @get:JsonProperty("payment_method_type")
+    @param:JsonProperty("payment_method_type")
+    val paymentMethodType: PaymentMethodTypeNetwork,
 
-    @JsonProperty("confirmation_types")
+    @get:JsonProperty("confirmation_types")
+    @param:JsonProperty("confirmation_types")
     val confirmationTypes: List<ConfirmationType>?,
 
     @JsonProperty("charge")
@@ -185,16 +219,20 @@ internal data class PaymentOptionGooglePay(
     @JsonProperty("fee")
     val fee: Fee?,
 
-    @JsonProperty("save_payment_method")
+    @get:JsonProperty("save_payment_method")
+    @param:JsonProperty("save_payment_method")
     val savePaymentMethod: SavePaymentMethod,
 
-    @JsonProperty("save_payment_instrument")
+    @get:JsonProperty("save_payment_instrument")
+    @param:JsonProperty("save_payment_instrument")
     val savePaymentInstrument: Boolean,
 
-    @JsonProperty("identification_requirement")
+    @get:JsonProperty("identification_requirement")
+    @param:JsonProperty("identification_requirement")
     val identificationRequirement: IdentificationRequirement?,
 
-    @JsonProperty("payment_systems_allowed")
+    @get:JsonProperty("payment_systems_allowed")
+    @param:JsonProperty("payment_systems_allowed")
     val paymentSystemsAllowed: BankCardType,
 ) : PaymentOptionResponse()
 

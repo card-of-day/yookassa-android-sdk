@@ -25,5 +25,5 @@ import ru.yoomoney.sdk.kassa.payments.model.PaymentMethodBankCard
 import ru.yoomoney.sdk.kassa.payments.model.Result
 
 internal interface PaymentMethodInfoGateway {
-    fun getPaymentMethodInfo(paymentMethodId: String): Result<PaymentMethodBankCard>
+    suspend fun getPaymentMethodInfo(paymentMethodId: String): Result<PaymentMethodBankCard>
 }

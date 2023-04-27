@@ -24,8 +24,8 @@
   <string name='ym_unknown_error'>Похоже, это техническая ошибка</string>
   <string name='ym_sberbank'>SberPay</string>
   <string name='ym_payment_option_google_pay'>Google Pay</string>
-  <string name='ym_license_agreement_part_1'>Нажимая кнопку, вы принимаете</string>
-  <string name='ym_license_agreement_part_2'>условия сервиса</string>
+  <string name='ym_license_agreement_1'>Заплатив здесь, вы принимаете</string>
+  <string name='ym_license_agreement_2'>условия сервиса</string>
   <string name='ym_license_agreement_url'>https://yoomoney.ru/page?id=526623</string>
   <string name='ym_contract_save_payment_method_wallet_title'>Разрешим автосписания</string>
   <string name='ym_save_payment_method_wallet_info_title'>Разрешение списывать деньги без вашего участия</string>
@@ -162,4 +162,6 @@
   <string name='ym_safe_payments_agreement_title'>Почему у платежа несколько получателей</string>
   <!-- Текст безопасной сделки https://jira.yamoney.ru/secure/attachment/602532/Screenshot%202021-07-16%20at%2011.19.52.png-->
   <string name='ym_safe_payments_agreement_message'>Такое может быть, если вы платите на интернет-площадке, которая позволяет покупать одновременно у нескольких продавцов (например, на маркетплейсе). \nУточнить список получателей платежа можно на площадке, на которой вы совершаете платёж. </string>
+  <string name='ym_agent_scheme_default_part_1'>Заплатив здесь, вы принимаете &lt;a href="https://yoomoney.ru/page?id=526623"&gt;условия сервиса,</string>
+  <string name='ym_agent_scheme_default_part_2'>&lt;/a&gt; платеж совершается с участием &lt;a href="https://yoomoney.ru/page?id=530616"&gt;платежного агрегатора&lt;/a&gt;</string>
 </resources>

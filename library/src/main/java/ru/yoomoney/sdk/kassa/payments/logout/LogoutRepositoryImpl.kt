@@ -40,6 +40,7 @@ internal class LogoutRepositoryImpl(
 
     override suspend fun logout() {
         val token = userAuthInfoRepository.userAuthToken
+        userAuthInfoRepository.userUid = null
         userAuthInfoRepository.userAuthToken = null
         userAuthInfoRepository.userAuthName = null
         userAuthInfoRepository.passportAuthToken = null

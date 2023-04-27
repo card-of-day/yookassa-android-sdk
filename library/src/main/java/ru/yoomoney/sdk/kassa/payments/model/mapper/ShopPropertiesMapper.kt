@@ -44,7 +44,8 @@ package ru.yoomoney.sdk.kassa.payments.model.mapper
 
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.ShopProperties
 
-internal fun ShopProperties.map() = ru.yoomoney.sdk.kassa.payments.model.ShopProperties(
+internal fun ShopProperties.mapToShopPropertiesModel() = ru.yoomoney.sdk.kassa.payments.model.ShopProperties(
     isSafeDeal = isSafeDeal,
-    isMarketplace = isMarketplace
+    isMarketplace = isMarketplace,
+    agentSchemeData = agentSchemeData?.providerName
 )

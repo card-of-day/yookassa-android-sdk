@@ -24,13 +24,11 @@ package ru.yoomoney.sdk.kassa.payments.di
 import android.content.Context
 import dagger.Module
 import dagger.Provides
+import ru.yoomoney.sdk.kassa.payments.api.PaymentsApi
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
 import ru.yoomoney.sdk.kassa.payments.config.ConfigRepository
-import ru.yoomoney.sdk.kassa.payments.extensions.CheckoutOkHttpClient
-import ru.yoomoney.sdk.kassa.payments.http.HostProvider
 import ru.yoomoney.sdk.kassa.payments.metrics.ErrorReporter
-import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
 import ru.yoomoney.sdk.kassa.payments.paymentMethodInfo.ApiV3PaymentMethodInfoGateway
 import ru.yoomoney.sdk.kassa.payments.paymentMethodInfo.MockPaymentInfoGateway
 import ru.yoomoney.sdk.kassa.payments.payment.googlePay.GooglePayRepositoryImpl
@@ -44,21 +42,13 @@ internal class PaymentModule {
 
     @Provides
     fun paymentMethodInfoGateway(
-        hostProvider: HostProvider,
-        okHttpClient: CheckoutOkHttpClient,
-        tokensStorage: TokensStorage,
-        paymentParameters: PaymentParameters,
+        paymentsApi: PaymentsApi,
         testParameters: TestParameters
     ): PaymentMethodInfoGateway {
         return if (testParameters.mockConfiguration != null) {
             MockPaymentInfoGateway()
         } else {
-            ApiV3PaymentMethodInfoGateway(
-                hostProvider = hostProvider,
-                httpClient = lazy { okHttpClient },
-                tokensStorage = tokensStorage,
-                shopToken = paymentParameters.clientApplicationKey
-            )
+            ApiV3PaymentMethodInfoGateway(paymentsApi)
         }
     }
 
@@ -79,7 +69,7 @@ internal class PaymentModule {
             loadedPaymentOptionsRepository = getLoadedPaymentOptionListRepository,
             googlePayParameters = paymentParameters.googlePayParameters,
             errorReporter = errorReporter,
-            getGateway = { configRepository.getConfig().gateway }
+            getGateway = { configRepository.getConfig().googlePayGateway }
         )
     }
 }

@@ -25,7 +25,10 @@ import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionResponse
+import ru.yoomoney.sdk.kassa.payments.api.model.paymentmethod.PaymentMethodDeserializer
+import ru.yoomoney.sdk.kassa.payments.api.model.paymentmethod.PaymentMethodResponse
 
 internal val jacksonBaseObjectMapper: ObjectMapper = ObjectMapper().run {
     setSerializationInclusion(JsonInclude.Include.NON_NULL)
@@ -33,5 +36,7 @@ internal val jacksonBaseObjectMapper: ObjectMapper = ObjectMapper().run {
     configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     val module = SimpleModule()
     module.addDeserializer(PaymentOptionResponse::class.java, PaymentOptionDeserializer())
+    module.addDeserializer(PaymentMethodResponse::class.java, PaymentMethodDeserializer())
     registerModule(module)
+    registerKotlinModule()
 }

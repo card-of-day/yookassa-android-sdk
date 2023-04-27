@@ -25,7 +25,7 @@ import ru.yoomoney.sdk.kassa.payments.model.AuthTypeState
 import ru.yoomoney.sdk.kassa.payments.model.Result
 
 internal class MockSmsSessionRetryRepository : SmsSessionRetryRepository {
-    override fun retrySmsSession(): Result<AuthTypeState> {
+    override suspend fun retrySmsSession(): Result<AuthTypeState> {
         return Result.Success(AuthTypeState.SMS(15, 4, 3, 3))
     }
 }

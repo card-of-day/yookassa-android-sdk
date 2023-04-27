@@ -25,12 +25,11 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.core.widget.ContentLoadingProgressBar
-import android.view.Menu
 import android.view.ViewGroup
 import android.webkit.URLUtil
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.widget.ContentLoadingProgressBar
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.yandex.metrica.YandexMetrica
 import ru.yoomoney.sdk.kassa.payments.BuildConfig
@@ -53,7 +52,6 @@ const val EXTRA_LOG_PARAM = "ru.yoomoney.sdk.kassa.payments.extra.LOG_PARAM"
 
 class WebViewActivity : AppCompatActivity(), WebViewFragment.Listener {
 
-    private lateinit var webViewFragment: WebViewFragment
     private lateinit var reporterLogger: ReporterLogger
 
     private var progress: ContentLoadingProgressBar? = null
@@ -62,7 +60,6 @@ class WebViewActivity : AppCompatActivity(), WebViewFragment.Listener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         reporterLogger = ReporterLogger(
             YandexMetricaReporter(YandexMetrica.getReporter(applicationContext, BuildConfig.APP_METRICA_KEY)),
             (requireNotNull(intent.getParcelableExtra(EXTRA_TEST_PARAMETERS)) as TestParameters).showLogs,
@@ -79,10 +76,11 @@ class WebViewActivity : AppCompatActivity(), WebViewFragment.Listener {
 
             setContentView(R.layout.ym_activity_web_view)
             title = null
-
-            webViewFragment = (supportFragmentManager.findFragmentById(R.id.web_view) as WebViewFragment).apply {
-                attach(this@WebViewActivity)
-                load(url, DEFAULT_REDIRECT_URL)
+            if (savedInstanceState == null) {
+                supportFragmentManager
+                    .beginTransaction()
+                    .replace(R.id.container, WebViewFragment.create(url, DEFAULT_REDIRECT_URL))
+                    .commit()
             }
         } else {
             onError(Checkout.ERROR_NOT_HTTPS_URL, "Not https:// url", url)
@@ -109,20 +107,8 @@ class WebViewActivity : AppCompatActivity(), WebViewFragment.Listener {
             }
             toolbar.changeToolbarButtonColor()
         }
-    }
-
-    override fun onDestroy() {
-        if (this::webViewFragment.isInitialized) {
-            webViewFragment.attach(null)
-        }
-        super.onDestroy()
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        val mi = menuInflater
-        mi.inflate(R.menu.ym_menu_activity_webview, menu)
-
-        val actionView = menu.findItem(R.id.progress).actionView
+        toolbar?.inflateMenu(R.menu.ym_menu_activity_webview)
+        val actionView = toolbar?.menu?.findItem(R.id.progress)?.actionView
         progress = ((actionView as ViewGroup).getChildAt(0) as ContentLoadingProgressBar?)?.apply {
             val size = resources.getDimensionPixelSize(R.dimen.ym_checkout_web_view_activity_progress_size)
             with(layoutParams) {
@@ -133,20 +119,15 @@ class WebViewActivity : AppCompatActivity(), WebViewFragment.Listener {
             val padding = resources.getDimensionPixelSize(R.dimen.ym_space_m)
             setPadding(padding, padding, padding, padding)
 
-            post(when (showProgress) {
-                true -> Runnable { onShowProgress() }
-                false -> Runnable { onHideProgress() }
-            })
+            when (showProgress) {
+                true -> onShowProgress()
+                false -> onHideProgress()
+            }
         }
-
-        return super.onCreateOptionsMenu(menu)
     }
 
-    override fun onBackPressed() {
-        if (!(this::webViewFragment.isInitialized && webViewFragment.onBackPressed())) {
-            reporterLogger.report(ACTION_CLOSE_3DS_SCREEN, false)
-            super.onBackPressed()
-        }
+    override fun onCloseActivity() {
+        reporterLogger.report(ACTION_CLOSE_3DS_SCREEN, false)
     }
 
     override fun onShowProgress() {
@@ -189,7 +170,7 @@ class WebViewActivity : AppCompatActivity(), WebViewFragment.Listener {
             context: Context,
             url: String,
             logParam: String? = null,
-            testParameters: TestParameters,
+            testParameters: TestParameters
         ): Intent {
             return Intent(context, WebViewActivity::class.java).apply {
                 putExtra(EXTRA_URL, url)

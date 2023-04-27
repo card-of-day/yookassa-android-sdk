@@ -21,7 +21,7 @@
 
 package ru.yoomoney.sdk.kassa.payments.model
 
-data class SavePaymentMethodOptionTexts(
+internal data class SavePaymentMethodOptionTexts(
     val switchRecurrentOnBindOnTitle: String,
     val switchRecurrentOnBindOnSubtitle: String,
     val switchRecurrentOnBindOffTitle: String,

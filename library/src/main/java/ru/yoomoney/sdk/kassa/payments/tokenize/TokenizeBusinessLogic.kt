@@ -33,47 +33,67 @@ internal class TokenizeBusinessLogic(
     val showState: suspend (State) -> Action,
     val showEffect: suspend (Effect) -> Unit,
     val source: suspend () -> Action,
-    private val tokenizeUseCase: TokenizeUseCase
+    private val tokenizeUseCase: TokenizeUseCase,
 ) : Logic<State, Action> {
 
     override fun invoke(state: State, action: Action): Out<State, Action> {
-        return  when(state) {
-            is State.Start -> when (action) {
-                is Action.Tokenize ->  Out(State.Tokenize(action.tokenizeInputModel)) {
-                    input { showState(this.state) }
-                    input { tokenizeUseCase.tokenize(this.state.tokenizeInputModel) }
-                }
-                else -> Out.skip(state, source)
+        return when (state) {
+            is State.Start -> state.whenState(action)
+            is State.Tokenize -> state.whenState(action)
+            is State.TokenizeError -> state.whenState(action)
+        }
+    }
+
+    private fun State.Start.whenState(action: Action): Out<State, Action> {
+        return when (action) {
+            is Action.Tokenize -> Out(State.Tokenize(action.tokenizeInputModel)) {
+                input { showState(this.state) }
+                input { tokenizeUseCase.tokenize(this.state.tokenizeInputModel) }
             }
-            is State.Tokenize -> when (action) {
-                is Action.PaymentAuthRequired -> Out(state) {
-                    input(source)
-                    output { showEffect(Effect.PaymentAuthRequired(action.charge, state.tokenizeInputModel.allowWalletLinking ?: false)) }
+            else -> Out.skip(this, source)
+        }
+    }
+
+    private fun State.Tokenize.whenState(action: Action): Out<State, Action> {
+        return when (action) {
+            is Action.PaymentAuthRequired -> Out(this) {
+                input(source)
+                output {
+                    showEffect(
+                        Effect.PaymentAuthRequired(
+                            action.charge,
+                            state.tokenizeInputModel.allowWalletLinking
+                        )
+                    )
                 }
-                is Action.PaymentAuthSuccess -> Out(state) {
-                    input(source)
-                    input { tokenizeUseCase.tokenize(this.state.tokenizeInputModel) }
-                }
-                is Action.PaymentAuthCancel -> Out(state) {
-                    input { showState(this.state) }
-                    output { showEffect(Effect.CancelTokenize) }
-                }
-                is Action.TokenizeSuccess -> Out(state) {
-                    val effect = Effect.TokenizeComplete(action.content, state.tokenizeInputModel.allowWalletLinking ?: false)
-                    output { showEffect(effect) }
-                }
-                is Action.TokenizeFailed -> Out(State.TokenizeError(state.tokenizeInputModel, action.error)) {
-                    input { showState(this.state) }
-                }
-                else -> Out.skip(state, source)
             }
-            is State.TokenizeError -> when(action) {
-                is Action.Tokenize -> Out(State.Tokenize(action.tokenizeInputModel)) {
-                    input { showState(this.state) }
-                    input { tokenizeUseCase.tokenize(this.state.tokenizeInputModel) }
-                }
-                else -> Out.skip(state, source)
+            is Action.PaymentAuthSuccess -> Out(this) {
+                input(source)
+                input { tokenizeUseCase.tokenize(this.state.tokenizeInputModel) }
             }
+            is Action.PaymentAuthCancel -> Out(this) {
+                input { showState(this.state) }
+                output { showEffect(Effect.CancelTokenize) }
+            }
+            is Action.TokenizeSuccess -> Out(this) {
+                val effect = Effect.TokenizeComplete(action.content, state.tokenizeInputModel.allowWalletLinking)
+                output { showEffect(effect) }
+                input(source)
+            }
+            is Action.TokenizeFailed -> Out(State.TokenizeError(this.tokenizeInputModel, action.error)) {
+                input { showState(this.state) }
+            }
+            else -> Out.skip(this, source)
+        }
+    }
+
+    private fun State.TokenizeError.whenState(action: Action): Out<State, Action> {
+        return when (action) {
+            is Action.Tokenize -> Out(State.Tokenize(action.tokenizeInputModel)) {
+                input { showState(this.state) }
+                input { tokenizeUseCase.tokenize(this.state.tokenizeInputModel) }
+            }
+            else -> Out.skip(this, source)
         }
     }
 }

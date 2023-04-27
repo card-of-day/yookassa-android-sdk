@@ -26,5 +26,5 @@ import ru.yoomoney.sdk.kassa.payments.model.AuthTypeState
 import ru.yoomoney.sdk.kassa.payments.model.Result
 
 internal interface PaymentAuthTypeRepository {
-    fun getPaymentAuthType(linkWalletToApp: Boolean, amount: Amount): Result<AuthTypeState>
+    suspend fun getPaymentAuthType(linkWalletToApp: Boolean, amount: Amount): Result<AuthTypeState>
 }

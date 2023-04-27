@@ -45,7 +45,9 @@ package ru.yoomoney.sdk.kassa.payments.model.mapper
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionsResponse
 import ru.yoomoney.sdk.kassa.payments.model.ConfigPaymentOption
 
-internal fun PaymentOptionsResponse.map(configPaymentOptions: List<ConfigPaymentOption>) = ru.yoomoney.sdk.kassa.payments.model.PaymentOptionsResponse(
-    paymentOptions = items.mapIndexed { id, item -> item.map(id, configPaymentOptions) }.filterNotNull(),
-    shopProperties = shopProperties.map()
-)
+internal fun PaymentOptionsResponse.mapToPaymentOptionsModel(configPaymentOptions: List<ConfigPaymentOption>) =
+    ru.yoomoney.sdk.kassa.payments.model.PaymentOptionsResponse(
+        paymentOptions = items.mapIndexed { id, item -> item.mapToPaymentOption(id, configPaymentOptions) }
+            .filterNotNull(),
+        shopProperties = shopProperties.mapToShopPropertiesModel()
+    )

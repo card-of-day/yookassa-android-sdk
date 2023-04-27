@@ -21,17 +21,17 @@
 
 package ru.yoomoney.sdk.kassa.payments.paymentAuth
 
+import kotlinx.coroutines.delay
 import ru.yoomoney.sdk.kassa.payments.model.ApiMethodException
 import ru.yoomoney.sdk.kassa.payments.model.AuthTypeState
 import ru.yoomoney.sdk.kassa.payments.model.CurrentUser
 import ru.yoomoney.sdk.kassa.payments.model.ErrorCode
 import ru.yoomoney.sdk.kassa.payments.model.Result
-import java.lang.Thread.sleep
 
 internal class MockProcessPaymentAuthRepository :
     ProcessPaymentAuthRepository {
-    override fun getPaymentAuthToken(currentUser: CurrentUser, passphrase: String): Result<ProcessPaymentAuthGatewayResponse> {
-        sleep(1000L)
+    override suspend fun getPaymentAuthToken(currentUser: CurrentUser, passphrase: String): Result<ProcessPaymentAuthGatewayResponse> {
+        delay(1000L)
         return when (passphrase) {
             "fail" -> Result.Success(PaymentAuthWrongAnswer(AuthTypeState.SMS(60, 4, 3, 3)))
             "tech" -> Result.Fail(ApiMethodException(ErrorCode.TECHNICAL_ERROR))
@@ -39,8 +39,8 @@ internal class MockProcessPaymentAuthRepository :
         }
     }
 
-    override fun getPaymentAuthToken(currentUser: CurrentUser): Result<ProcessPaymentAuthGatewayResponse> {
-        sleep(1000L)
+    override suspend fun getPaymentAuthToken(currentUser: CurrentUser): Result<ProcessPaymentAuthGatewayResponse> {
+        delay(1000L)
         return Result.Success(PaymentAuthToken(currentUser.toString()))
     }
 }

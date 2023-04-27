@@ -21,7 +21,6 @@
 
 package ru.yoomoney.sdk.kassa.payments.paymentOptionList
 
-import android.content.DialogInterface
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
@@ -55,8 +54,8 @@ import ru.yoomoney.sdk.kassa.payments.errorFormatter.ErrorFormatter
 import ru.yoomoney.sdk.kassa.payments.extensions.getAdditionalInfo
 import ru.yoomoney.sdk.kassa.payments.extensions.getPlaceholderIcon
 import ru.yoomoney.sdk.kassa.payments.extensions.getPlaceholderTitle
-import ru.yoomoney.sdk.kassa.payments.model.BankCardPaymentOption
 import ru.yoomoney.sdk.kassa.payments.extensions.showSnackbar
+import ru.yoomoney.sdk.kassa.payments.model.BankCardPaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.LinkedCard
 import ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOption
@@ -81,7 +80,8 @@ import javax.inject.Inject
 
 internal typealias PaymentOptionListViewModel = RuntimeViewModel<PaymentOptionList.State, PaymentOptionList.Action, PaymentOptionList.Effect>
 
-internal class PaymentOptionListFragment : Fragment(R.layout.ym_fragment_payment_options),
+internal class PaymentOptionListFragment :
+    Fragment(R.layout.ym_fragment_payment_options),
     PaymentOptionListRecyclerViewAdapter.PaymentOptionClickListener {
 
     @Inject
@@ -127,7 +127,7 @@ internal class PaymentOptionListFragment : Fragment(R.layout.ym_fragment_payment
         val minLoadingHeight =
             resources.getDimensionPixelSize(R.dimen.ym_payment_options_loading_min_height).takeIf { !isTablet }
 
-            setFragmentResultListener(MoneyAuthFragment.MONEY_AUTH_RESULT_KEY) { _, bundle ->
+        setFragmentResultListener(MoneyAuthFragment.MONEY_AUTH_RESULT_KEY) { _, bundle ->
             val result = bundle.getSerializable(MoneyAuthFragment.MONEY_AUTH_RESULT_EXTRA) as Screen.MoneyAuth.Result
             onAuthResult(result)
         }
@@ -237,19 +237,22 @@ internal class PaymentOptionListFragment : Fragment(R.layout.ym_fragment_payment
         AlertDialog.Builder(context, R.style.ym_DialogStyleColored)
             .setMessage(context.getString(R.string.ym_unbinding_alert_message))
             .setPositiveButton(R.string.ym_unbind_card_action) { dialog, _ ->
+                dialog.dismiss()
                 actionOnDialog(
-                    dialog,
                     PaymentOptionList.Action.ClickOnUnbind(state.optionId, state.instrumentId)
                 )
             }
             .setNegativeButton(R.string.ym_logout_dialog_button_negative) { dialog, _ ->
-                actionOnDialog(dialog, PaymentOptionList.Action.ClickOnCancel)
+                dialog.dismiss()
+                actionOnDialog(PaymentOptionList.Action.ClickOnCancel)
+            }
+            .setOnCancelListener {
+                actionOnDialog(PaymentOptionList.Action.ClickOnCancel)
             }
             .show()
     }
 
-    private fun actionOnDialog(dialog: DialogInterface, action: PaymentOptionList.Action) {
-        dialog.dismiss()
+    private fun actionOnDialog(action: PaymentOptionList.Action) {
         swipeItemHelper.forceCancel()
         viewModel.handleAction(action)
     }
@@ -311,11 +314,13 @@ internal class PaymentOptionListFragment : Fragment(R.layout.ym_fragment_payment
     private fun showError(throwable: Throwable) {
         replaceDynamicView(errorView)
         errorView.setErrorText(errorFormatter.format(throwable))
-        errorView.setErrorButtonListener(View.OnClickListener {
-            viewModel.handleAction(
-                PaymentOptionList.Action.Load
-            )
-        })
+        errorView.setErrorButtonListener(
+            View.OnClickListener {
+                viewModel.handleAction(
+                    PaymentOptionList.Action.Load
+                )
+            }
+        )
     }
 
     private fun showEffect(effect: PaymentOptionList.Effect) {

@@ -33,7 +33,7 @@ internal data class PaymentMethodBankCard(
 )
 
 internal data class CardInfo(
-    val first: String,
+    val first: String?,
     val last: String,
     val expiryYear: String,
     val expiryMonth: String,

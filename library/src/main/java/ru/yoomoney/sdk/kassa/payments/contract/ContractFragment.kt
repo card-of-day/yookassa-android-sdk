@@ -77,63 +77,63 @@ import ru.yoomoney.sdk.gui.utils.extensions.hide
 import ru.yoomoney.sdk.kassa.payments.R
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.SavePaymentMethod
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
-import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
-import ru.yoomoney.sdk.kassa.payments.model.ApiMethodException
 import ru.yoomoney.sdk.kassa.payments.contract.Contract.Action
 import ru.yoomoney.sdk.kassa.payments.contract.Contract.Effect
 import ru.yoomoney.sdk.kassa.payments.contract.Contract.State
 import ru.yoomoney.sdk.kassa.payments.contract.di.ContractModule
+import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
+import ru.yoomoney.sdk.kassa.payments.errorFormatter.ErrorFormatter
 import ru.yoomoney.sdk.kassa.payments.extensions.configureForPhoneInput
 import ru.yoomoney.sdk.kassa.payments.extensions.format
+import ru.yoomoney.sdk.kassa.payments.extensions.getPlaceholderTitle
 import ru.yoomoney.sdk.kassa.payments.extensions.hideSoftKeyboard
 import ru.yoomoney.sdk.kassa.payments.extensions.isPhoneNumber
 import ru.yoomoney.sdk.kassa.payments.extensions.showChild
 import ru.yoomoney.sdk.kassa.payments.extensions.visible
-import ru.yoomoney.sdk.kassa.payments.navigation.Router
-import ru.yoomoney.sdk.kassa.payments.navigation.Screen
-import ru.yoomoney.sdk.kassa.payments.payment.googlePay.GooglePayNotHandled
-import ru.yoomoney.sdk.kassa.payments.payment.googlePay.GooglePayTokenizationCanceled
-import ru.yoomoney.sdk.kassa.payments.payment.googlePay.GooglePayTokenizationSuccess
-import ru.yoomoney.sdk.kassa.payments.ui.view.cropToCircle
-import ru.yoomoney.sdk.kassa.payments.model.ErrorCode
-import ru.yoomoney.sdk.kassa.payments.model.LinkedCard
-import ru.yoomoney.sdk.kassa.payments.model.LinkedCardInfo
-import ru.yoomoney.sdk.kassa.payments.model.BankCardPaymentOption
-import ru.yoomoney.sdk.kassa.payments.model.PaymentIdCscConfirmation
-import ru.yoomoney.sdk.kassa.payments.model.PaymentOption
-import ru.yoomoney.sdk.kassa.payments.model.SbolSmsInvoicingInfo
-import ru.yoomoney.sdk.kassa.payments.model.Wallet
-import ru.yoomoney.sdk.kassa.payments.payment.googlePay.GooglePayRepository
-import ru.yoomoney.sdk.kassa.payments.errorFormatter.ErrorFormatter
-import ru.yoomoney.sdk.kassa.payments.extensions.getPlaceholderTitle
 import ru.yoomoney.sdk.kassa.payments.metrics.Reporter
 import ru.yoomoney.sdk.kassa.payments.metrics.bankCard.BankCardAnalyticsLogger
 import ru.yoomoney.sdk.kassa.payments.metrics.bankCard.BankCardEvent
+import ru.yoomoney.sdk.kassa.payments.model.ApiMethodException
+import ru.yoomoney.sdk.kassa.payments.model.BankCardPaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.CardBrand
+import ru.yoomoney.sdk.kassa.payments.model.ErrorCode
 import ru.yoomoney.sdk.kassa.payments.model.Fee
-import ru.yoomoney.sdk.kassa.payments.ui.changeViewWithAnimation
-import ru.yoomoney.sdk.kassa.payments.ui.onCheckedChangedListener
-import ru.yoomoney.sdk.kassa.payments.ui.resumePostponedTransition
+import ru.yoomoney.sdk.kassa.payments.model.LinkedCard
+import ru.yoomoney.sdk.kassa.payments.model.LinkedCardInfo
+import ru.yoomoney.sdk.kassa.payments.model.MobileApplication
+import ru.yoomoney.sdk.kassa.payments.model.PaymentIdCscConfirmation
+import ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard
+import ru.yoomoney.sdk.kassa.payments.model.PaymentOption
+import ru.yoomoney.sdk.kassa.payments.model.SberPay
+import ru.yoomoney.sdk.kassa.payments.model.SbolSmsInvoicingInfo
+import ru.yoomoney.sdk.kassa.payments.model.Wallet
+import ru.yoomoney.sdk.kassa.payments.model.formatService
+import ru.yoomoney.sdk.kassa.payments.navigation.Router
+import ru.yoomoney.sdk.kassa.payments.navigation.Screen
+import ru.yoomoney.sdk.kassa.payments.payment.googlePay.GooglePayNotHandled
+import ru.yoomoney.sdk.kassa.payments.payment.googlePay.GooglePayRepository
+import ru.yoomoney.sdk.kassa.payments.payment.googlePay.GooglePayTokenizationCanceled
+import ru.yoomoney.sdk.kassa.payments.payment.googlePay.GooglePayTokenizationSuccess
+import ru.yoomoney.sdk.kassa.payments.tokenize.TokenizeFragment
 import ru.yoomoney.sdk.kassa.payments.ui.CheckoutAlertDialog
+import ru.yoomoney.sdk.kassa.payments.ui.changeViewWithAnimation
 import ru.yoomoney.sdk.kassa.payments.ui.getViewHeight
 import ru.yoomoney.sdk.kassa.payments.ui.isTablet
+import ru.yoomoney.sdk.kassa.payments.ui.onCheckedChangedListener
+import ru.yoomoney.sdk.kassa.payments.ui.resumePostponedTransition
 import ru.yoomoney.sdk.kassa.payments.ui.view.EXTRA_CARD_NUMBER
 import ru.yoomoney.sdk.kassa.payments.ui.view.EXTRA_EXPIRY_MONTH
 import ru.yoomoney.sdk.kassa.payments.ui.view.EXTRA_EXPIRY_YEAR
+import ru.yoomoney.sdk.kassa.payments.ui.view.cropToCircle
 import ru.yoomoney.sdk.kassa.payments.utils.SimpleTextWatcher
 import ru.yoomoney.sdk.kassa.payments.utils.WebViewActivity
+import ru.yoomoney.sdk.kassa.payments.utils.formatHtmlWithLinks
+import ru.yoomoney.sdk.kassa.payments.utils.getBankOrBrandLogo
 import ru.yoomoney.sdk.kassa.payments.utils.getMessageWithLink
 import ru.yoomoney.sdk.kassa.payments.utils.show
 import ru.yoomoney.sdk.kassa.payments.utils.viewModel
 import ru.yoomoney.sdk.march.RuntimeViewModel
 import ru.yoomoney.sdk.march.observe
-import ru.yoomoney.sdk.kassa.payments.model.MobileApplication
-import ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard
-import ru.yoomoney.sdk.kassa.payments.model.SberPay
-import ru.yoomoney.sdk.kassa.payments.model.formatService
-import ru.yoomoney.sdk.kassa.payments.tokenize.TokenizeFragment
-import ru.yoomoney.sdk.kassa.payments.utils.formatHtmlWithLinks
-import ru.yoomoney.sdk.kassa.payments.utils.getBankOrBrandLogo
 import javax.inject.Inject
 
 internal typealias ContractViewModel = RuntimeViewModel<State, Action, Effect>
@@ -315,7 +315,8 @@ internal class ContractFragment : Fragment(R.layout.ym_fragment_contract) {
         setUpSavePaymentMethodOption(content, savePaymentMethodOption)
 
         nextButton.isEnabled = isNextButtonEnabled(content.contractInfo.paymentOption)
-        switches.visible = content.confirmation !is MobileApplication || (content.savePaymentMethod != SavePaymentMethod.OFF)
+        switches.visible =
+            content.confirmation !is MobileApplication || (content.savePaymentMethod != SavePaymentMethod.OFF)
         showContractInfo(content, content.contractInfo)
         resumePostponedTransition(rootContainer)
         loadingView.updateLayoutParams<ViewGroup.LayoutParams> { height = rootContainer.getViewHeight() }
@@ -415,7 +416,10 @@ internal class ContractFragment : Fragment(R.layout.ym_fragment_contract) {
         }
     }
 
-    private fun setUpSwitchSavePaymentMethodOption(savePaymentMethodOption: SavePaymentMethodOption.SwitchSavePaymentMethodOption, checked: Boolean) {
+    private fun setUpSwitchSavePaymentMethodOption(
+        savePaymentMethodOption: SavePaymentMethodOption.SwitchSavePaymentMethodOption,
+        checked: Boolean
+    ) {
         savePaymentMethodSelection.apply {
             title = savePaymentMethodOption.title
             with(findViewById<TextView>(R.id.descriptionView)) {
@@ -427,7 +431,8 @@ internal class ContractFragment : Fragment(R.layout.ym_fragment_contract) {
                             requireContext(),
                             savePaymentMethodOption.screenTitle,
                             savePaymentMethodOption.screenText
-                        ).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK), null
+                        ).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                        null
                     )
                 }
             }
@@ -452,7 +457,8 @@ internal class ContractFragment : Fragment(R.layout.ym_fragment_contract) {
                         requireContext(),
                         option.screenTitle,
                         option.screenText
-                    ).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK), null
+                    ).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    null
                 )
             }
             movementMethod = LinkMovementMethod.getInstance()
@@ -485,9 +491,11 @@ internal class ContractFragment : Fragment(R.layout.ym_fragment_contract) {
 
     private fun showError(throwable: Throwable, action: () -> Unit) {
         errorView.setErrorText(errorFormatter.format(throwable))
-        errorView.setErrorButtonListener(View.OnClickListener {
-            action()
-        })
+        errorView.setErrorButtonListener(
+            View.OnClickListener {
+                action()
+            }
+        )
         rootContainer.showChild(errorView)
         loadingView.updateLayoutParams<ViewGroup.LayoutParams> { height = rootContainer.getViewHeight() }
     }
@@ -646,7 +654,9 @@ internal class ContractFragment : Fragment(R.layout.ym_fragment_contract) {
     }
 
     private fun getLicenseAgreementText(content: State.Content): CharSequence {
-        return formatHtmlWithLinks(content.userAgreementUrl) {
+        return formatHtmlWithLinks(
+            content.userAgreementUrl ?: getDefaultAgentSchemeUserAgreementUrl(requireContext())
+        ) {
             ContextCompat.startActivity(
                 requireContext(),
                 WebViewActivity.create(
@@ -682,7 +692,8 @@ internal class ContractFragment : Fragment(R.layout.ym_fragment_contract) {
                 R.string.ym_safe_payments_agreement_title,
                 R.string.ym_safe_payments_agreement_message,
                 null
-            ).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK), null
+            ).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+            null
         )
     }
 

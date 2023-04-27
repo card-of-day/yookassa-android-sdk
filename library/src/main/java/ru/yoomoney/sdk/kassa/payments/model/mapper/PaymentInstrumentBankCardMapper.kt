@@ -44,10 +44,11 @@ package ru.yoomoney.sdk.kassa.payments.model.mapper
 
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentInstrumentBankCard
 
-internal fun PaymentInstrumentBankCard.map() = ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard(
-    paymentInstrumentId = paymentInstrumentId,
-    last4 = last4,
-    first6 = first6.orEmpty(),
-    cscRequired = cscRequired,
-    cardType = cardType.map()
-)
+internal fun PaymentInstrumentBankCard.mapToPaymentInstrumentBankCardModel() =
+    ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard(
+        paymentInstrumentId = paymentInstrumentId,
+        last4 = last4,
+        first6 = first6.orEmpty(),
+        cscRequired = cscRequired,
+        cardType = cardType.mapToCardBrand()
+    )

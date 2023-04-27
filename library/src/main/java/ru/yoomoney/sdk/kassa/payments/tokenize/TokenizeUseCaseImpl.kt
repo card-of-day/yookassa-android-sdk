@@ -22,8 +22,9 @@
 package ru.yoomoney.sdk.kassa.payments.tokenize
 
 import ru.yoomoney.sdk.kassa.payments.model.AbstractWallet
-import ru.yoomoney.sdk.kassa.payments.model.NoConfirmation
+import ru.yoomoney.sdk.kassa.payments.model.PaymentIdCscConfirmation
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOption
+import ru.yoomoney.sdk.kassa.payments.model.PaymentTokenInfo
 import ru.yoomoney.sdk.kassa.payments.model.Result
 import ru.yoomoney.sdk.kassa.payments.model.SelectedOptionNotFoundException
 import ru.yoomoney.sdk.kassa.payments.model.WalletInfo
@@ -43,7 +44,7 @@ internal class TokenizeUseCaseImpl(
     private val getLoadedPaymentOptionListRepository: GetLoadedPaymentOptionListRepository,
     private val tokenizeRepository: TokenizeRepository,
     private val checkPaymentAuthRequiredGateway: CheckPaymentAuthRequiredGateway,
-    private val paymenPaymentAuthTokenRepository: PaymentAuthTokenRepository
+    private val paymenPaymentAuthTokenRepository: PaymentAuthTokenRepository,
 ) : TokenizeUseCase {
 
     override suspend fun tokenize(model: TokenizeInputModel): Tokenize.Action {
@@ -57,48 +58,68 @@ internal class TokenizeUseCaseImpl(
         return when {
             isPaymentAuthRequired(option) -> Tokenize.Action.PaymentAuthRequired(option.charge)
             else -> {
-                val result = when (model) {
-                    is TokenizePaymentOptionInputModel -> {
-                        tokenizeRepository.getToken(
-                            paymentOption = option,
-                            paymentOptionInfo = model.paymentOptionInfo ?: WalletInfo(),
-                            confirmation = model.confirmation,
-                            savePaymentMethod = model.savePaymentMethod,
-                            savePaymentInstrument = model.savePaymentInstrument
-                        )
-                    }
-                    is TokenizeInstrumentInputModel -> {
-                        tokenizeRepository.getToken(
-                            instrumentBankCard = model.instrumentBankCard,
-                            amount = option.charge,
-                            savePaymentMethod = model.savePaymentMethod,
-                            csc = model.csc,
-                            confirmation = model.confirmation
-                        )
-                    }
-                }
-
-                when (result) {
-                    is Result.Success -> Tokenize.Action.TokenizeSuccess(
-                        TokenizeOutputModel(
-                            token = result.value,
-                            option = option,
-                            instrumentBankCard = model.instrumentBankCard
-                        )
-                    )
-                    is Result.Fail -> Tokenize.Action.TokenizeFailed(result.value)
-                }.also {
-                    model.allowWalletLinking.takeUnless { it }?.let {
-                        paymenPaymentAuthTokenRepository.paymentAuthToken = null
-                    }
-                    model.allowWalletLinking?.let {
-                        paymenPaymentAuthTokenRepository.isUserAccountRemember = model.allowWalletLinking
-                    }
-                }
+                val result = getToken(option, model)
+                createModel(option, model, result)
             }
         }
     }
 
+    private suspend fun getToken(option: PaymentOption, model: TokenizeInputModel) = when (model) {
+        is TokenizePaymentOptionInputModel -> {
+            model.getToken(option)
+        }
+        is TokenizeInstrumentInputModel -> {
+            tokenizeRepository.getToken(
+                paymentOption = option,
+                instrumentBankCard = model.instrumentBankCard,
+                amount = option.charge,
+                savePaymentMethod = model.savePaymentMethod,
+                csc = model.csc,
+                confirmation = model.confirmation
+            )
+        }
+    }
+
+    private suspend fun TokenizePaymentOptionInputModel.getToken(
+        option: PaymentOption
+    ) = if (option is PaymentIdCscConfirmation) {
+        tokenizeRepository.getToken(
+            amount = option.charge,
+            paymentOption = option,
+            savePaymentMethod = savePaymentMethod,
+            confirmation = confirmation,
+            paymentMethodId = option.paymentMethodId,
+            csc = csc
+        )
+    } else {
+        tokenizeRepository.getToken(
+            amount = option.charge,
+            paymentOption = option,
+            paymentOptionInfo = paymentOptionInfo ?: WalletInfo(),
+            confirmation = confirmation,
+            savePaymentMethod = savePaymentMethod,
+            savePaymentInstrument = savePaymentInstrument
+        )
+    }
+
+    private fun createModel(option: PaymentOption, model: TokenizeInputModel, result: Result<PaymentTokenInfo>) =
+        when (result) {
+            is Result.Success -> Tokenize.Action.TokenizeSuccess(
+                TokenizeOutputModel(
+                    token = result.value.paymentToken,
+                    option = option,
+                    instrumentBankCard = model.instrumentBankCard
+                )
+            )
+            is Result.Fail -> Tokenize.Action.TokenizeFailed(result.value)
+        }.also {
+            model.allowWalletLinking.takeUnless { it }?.let {
+                paymenPaymentAuthTokenRepository.paymentAuthToken = null
+            }
+            model.allowWalletLinking.let {
+                paymenPaymentAuthTokenRepository.isUserAccountRemember = model.allowWalletLinking
+            }
+        }
 
     private fun isPaymentAuthRequired(option: PaymentOption) =
         option is YooMoney && checkPaymentAuthRequiredGateway.checkPaymentAuthRequired()

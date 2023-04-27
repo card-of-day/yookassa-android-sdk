@@ -44,7 +44,7 @@ package ru.yoomoney.sdk.kassa.payments.model.mapper
 
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.ConfirmationType
 
-internal fun ConfirmationType.map() = when(this) {
+internal fun ConfirmationType.mapToConformationModel() = when(this) {
     ConfirmationType.EXTERNAL -> ru.yoomoney.sdk.kassa.payments.model.ConfirmationType.EXTERNAL
     ConfirmationType.REDIRECT -> ru.yoomoney.sdk.kassa.payments.model.ConfirmationType.REDIRECT
     ConfirmationType.MOBILE_APPLICATION -> ru.yoomoney.sdk.kassa.payments.model.ConfirmationType.MOBILE_APPLICATION

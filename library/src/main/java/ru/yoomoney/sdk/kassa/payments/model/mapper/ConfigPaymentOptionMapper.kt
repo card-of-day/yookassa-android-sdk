@@ -24,7 +24,7 @@ package ru.yoomoney.sdk.kassa.payments.model.mapper
 import ru.yoomoney.sdk.kassa.payments.api.model.config.PaymentMethods
 import ru.yoomoney.sdk.kassa.payments.model.ConfigPaymentOption
 
-internal fun PaymentMethods.map() = ConfigPaymentOption(
+internal fun PaymentMethods.mapToConfigPaymentOption() = ConfigPaymentOption(
     method = method,
     title = title,
     iconUrl = iconUrl

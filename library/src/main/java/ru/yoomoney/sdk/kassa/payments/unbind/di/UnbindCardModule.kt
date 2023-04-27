@@ -25,16 +25,13 @@ import androidx.lifecycle.ViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
-import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
+import ru.yoomoney.sdk.kassa.payments.api.PaymentsApi
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
 import ru.yoomoney.sdk.kassa.payments.di.ViewModelKey
-import ru.yoomoney.sdk.kassa.payments.extensions.CheckoutOkHttpClient
-import ru.yoomoney.sdk.kassa.payments.http.HostProvider
 import ru.yoomoney.sdk.kassa.payments.metrics.Reporter
 import ru.yoomoney.sdk.kassa.payments.payment.GetLoadedPaymentOptionListRepository
 import ru.yoomoney.sdk.kassa.payments.payment.unbindCard.UnbindCardGateway
 import ru.yoomoney.sdk.kassa.payments.paymentMethodInfo.UnbindCardMethodInfoGateway
-import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
 import ru.yoomoney.sdk.kassa.payments.unbind.MockUnbindCardGateway
 import ru.yoomoney.sdk.kassa.payments.unbind.UnbindBusinessLogic
 import ru.yoomoney.sdk.kassa.payments.unbind.UnbindCard
@@ -51,21 +48,13 @@ internal class UnbindCardModule {
     @Provides
     @Singleton
     fun unbindCardMethodInfoGatewayProvider(
-        hostProvider: HostProvider,
-        paymentParameters: PaymentParameters,
-        tokensStorage: TokensStorage,
         testParameters: TestParameters,
-        okHttpClient: CheckoutOkHttpClient
+        paymentsApi: PaymentsApi
     ): UnbindCardGateway {
         return if (testParameters.mockConfiguration != null) {
             MockUnbindCardGateway()
         } else {
-            UnbindCardMethodInfoGateway(
-                hostProvider = hostProvider,
-                httpClient = lazy { okHttpClient },
-                shopToken = paymentParameters.clientApplicationKey,
-                paymentAuthTokenRepository = tokensStorage
-            )
+            UnbindCardMethodInfoGateway(paymentsApi)
         }
     }
 

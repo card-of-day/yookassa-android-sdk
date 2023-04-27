@@ -48,56 +48,66 @@ import ru.yoomoney.sdk.kassa.payments.model.ConfigPaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.LinkedCard
 import ru.yoomoney.sdk.kassa.payments.model.Wallet
 
-internal fun PaymentInstrumentYooMoney.map(id: Int, configPaymentOptions: List<ConfigPaymentOption>) = when (this) {
-    is PaymentInstrumentYooMoney.PaymentInstrumentYooMoneyWallet -> this.map(
-        id,
-        configPaymentOptions.first { it.method == paymentMethodType.value })
-    is PaymentInstrumentYooMoney.PaymentInstrumentYooMoneyLinkedBankCard -> this.map(id)
-    is PaymentInstrumentYooMoney.AbstractYooMoneyWallet -> this.map(
-        id,
-        configPaymentOptions.first { it.method == paymentMethodType.value })
-}
+internal fun PaymentInstrumentYooMoney.mapToYooMoneyModel(id: Int, configPaymentOptions: List<ConfigPaymentOption>) =
+    when (this) {
+        is PaymentInstrumentYooMoney.PaymentInstrumentYooMoneyWallet -> {
+            this.mapToWalletModel(
+                id,
+                configPaymentOptions.first { it.method == paymentMethodType.value })
+        }
+        is PaymentInstrumentYooMoney.PaymentInstrumentYooMoneyLinkedBankCard -> this.mapToLinkedCardModel(id)
+        is PaymentInstrumentYooMoney.AbstractYooMoneyWallet -> {
+            this.mapToAbstractWalletModel(
+                id,
+                configPaymentOptions.first { it.method == paymentMethodType.value }
+            )
+        }
+    }
 
-internal fun PaymentInstrumentYooMoney.PaymentInstrumentYooMoneyWallet.map(
+internal fun PaymentInstrumentYooMoney.PaymentInstrumentYooMoneyWallet.mapToWalletModel(
     id: Int,
-    configPaymentOption: ConfigPaymentOption
+    configPaymentOption: ConfigPaymentOption,
 ) = Wallet(
     id = id,
-    charge = charge.map(),
-    fee = fee?.map(),
+    charge = charge.mapToAmountModel(),
+    fee = fee?.mapToFeeModel(),
     walletId = this.id,
-    balance = balance?.map(),
+    balance = balance?.mapToAmountModel(),
     icon = configPaymentOption.iconUrl,
     title = configPaymentOption.title,
     savePaymentMethodAllowed = savePaymentMethod.isAllowed(),
-    confirmationTypes = confirmationTypes?.map { it.map() } ?: emptyList(),
+    confirmationTypes = confirmationTypes?.map { it.mapToConformationModel() } ?: emptyList(),
     savePaymentInstrument = savePaymentInstrument
 )
 
-internal fun PaymentInstrumentYooMoney.PaymentInstrumentYooMoneyLinkedBankCard.map(id: Int) = LinkedCard(
+internal fun PaymentInstrumentYooMoney.PaymentInstrumentYooMoneyLinkedBankCard.mapToLinkedCardModel(
+    id: Int,
+) = LinkedCard(
     id = id,
-    charge = charge.map(),
-    fee = fee?.map(),
+    charge = charge.mapToAmountModel(),
+    fee = fee?.mapToFeeModel(),
     icon = null,
     title = null,
     cardId = this.id,
-    brand = cardType.map(),
+    brand = cardType.mapToCardBrand(),
     pan = cardMask,
     name = cardName,
     isLinkedToWallet = true,
     savePaymentMethodAllowed = savePaymentMethod.isAllowed(),
-    confirmationTypes = confirmationTypes?.map { it.map() } ?: emptyList(),
+    confirmationTypes = confirmationTypes?.map { it.mapToConformationModel() } ?: emptyList(),
     savePaymentInstrument = savePaymentInstrument
 )
 
-internal fun PaymentInstrumentYooMoney.AbstractYooMoneyWallet.map(id: Int, configPaymentOption: ConfigPaymentOption) =
-    AbstractWallet(
-        id = id,
-        charge = charge.map(),
-        fee = fee?.map(),
-        icon = configPaymentOption.iconUrl,
-        title = configPaymentOption.title,
-        savePaymentMethodAllowed = savePaymentMethod.isAllowed(),
-        confirmationTypes = confirmationTypes?.map { it.map() } ?: emptyList(),
-        savePaymentInstrument = savePaymentInstrument
-    )
+internal fun PaymentInstrumentYooMoney.AbstractYooMoneyWallet.mapToAbstractWalletModel(
+    id: Int,
+    configPaymentOption: ConfigPaymentOption,
+) = AbstractWallet(
+    id = id,
+    charge = charge.mapToAmountModel(),
+    fee = fee?.mapToFeeModel(),
+    icon = configPaymentOption.iconUrl,
+    title = configPaymentOption.title,
+    savePaymentMethodAllowed = savePaymentMethod.isAllowed(),
+    confirmationTypes = confirmationTypes?.map { it.mapToConformationModel() } ?: emptyList(),
+    savePaymentInstrument = savePaymentInstrument
+)

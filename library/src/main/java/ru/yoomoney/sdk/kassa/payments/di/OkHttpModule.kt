@@ -27,6 +27,7 @@ import dagger.Provides
 import okhttp3.OkHttpClient
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
+import ru.yoomoney.sdk.kassa.payments.http.authPaymentsHttpClient
 import ru.yoomoney.sdk.kassa.payments.http.newAuthorizedHttpClient
 import ru.yoomoney.sdk.kassa.payments.http.newHttpClient
 import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
@@ -47,6 +48,23 @@ internal open class OkHttpModule {
         tokensStorage: TokensStorage
     ): OkHttpClient {
         return newAuthorizedHttpClient(
+            context = context,
+            showLogs = testParameters.showLogs,
+            isDevHost = testParameters.hostParameters.isDevHost,
+            shopToken = paymentParameters.clientApplicationKey,
+            tokensStorage  = tokensStorage
+        )
+    }
+
+    @Provides
+    @AuthPaymentsHttpClient
+    open fun authPaymentsOkHttpClient(
+        context: Context,
+        testParameters: TestParameters,
+        paymentParameters: PaymentParameters,
+        tokensStorage: TokensStorage
+    ): OkHttpClient {
+        return authPaymentsHttpClient(
             context = context,
             showLogs = testParameters.showLogs,
             isDevHost = testParameters.hostParameters.isDevHost,

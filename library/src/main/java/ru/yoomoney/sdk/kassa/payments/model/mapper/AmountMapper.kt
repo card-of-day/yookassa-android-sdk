@@ -45,7 +45,7 @@ package ru.yoomoney.sdk.kassa.payments.model.mapper
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.Amount
 import java.math.BigDecimal
 
-internal fun Amount.map() = ru.yoomoney.sdk.kassa.payments.checkoutParameters.Amount(
+internal fun Amount.mapToAmountModel() = ru.yoomoney.sdk.kassa.payments.checkoutParameters.Amount(
     value = BigDecimal(value),
     currency = currency
 )

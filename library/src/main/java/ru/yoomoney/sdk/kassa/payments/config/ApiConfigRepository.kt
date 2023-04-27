@@ -22,12 +22,11 @@
 package ru.yoomoney.sdk.kassa.payments.config
 
 import android.content.SharedPreferences
-import org.json.JSONObject
 import ru.yoomoney.sdk.kassa.payments.api.config.ConfigRequestApi
 import ru.yoomoney.sdk.kassa.payments.metrics.ErrorLoggerReporter
 import ru.yoomoney.sdk.kassa.payments.model.Config
 import ru.yoomoney.sdk.kassa.payments.model.SdkException
-import ru.yoomoney.sdk.kassa.payments.model.mapper.map
+import ru.yoomoney.sdk.kassa.payments.model.mapper.mapToConfigModel
 import ru.yoomoney.sdk.kassa.payments.model.toConfig
 import ru.yoomoney.sdk.kassa.payments.model.toJsonObject
 import ru.yoomoney.sdk.kassa.payments.utils.getLanguage
@@ -43,12 +42,12 @@ internal class ApiConfigRepository(
 
    private var cachedConfig: Config
     set(value) {
-        sp.edit().putString(CONFIG_FIELD_NAME + "_${getLanguage()}", value.toJsonObject().toString()).apply()
+        sp.edit().putString(CONFIG_FIELD_NAME + "_${getLanguage()}", value.toJsonObject()).apply()
     }
 
     get() = sp.getString(CONFIG_FIELD_NAME + "_${getLanguage()}", null)?.let {
         try {
-            JSONObject(it).toConfig()
+            it.toConfig()
         } catch (e: Throwable) {
             errorReporter.report(SdkException(e))
             getDefaultConfig
@@ -59,7 +58,7 @@ internal class ApiConfigRepository(
 
     override suspend fun loadConfig(): Result<Config> {
         configRequestApi.getConfig(getLanguage()).onSuccess {
-            cachedConfig = it.map()
+            cachedConfig = it.mapToConfigModel()
         }
         return Result.success(cachedConfig)
     }

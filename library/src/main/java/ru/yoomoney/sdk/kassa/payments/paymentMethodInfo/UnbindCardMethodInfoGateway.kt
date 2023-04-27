@@ -21,29 +21,23 @@
 
 package ru.yoomoney.sdk.kassa.payments.paymentMethodInfo
 
-import ru.yoomoney.sdk.kassa.payments.extensions.CheckoutOkHttpClient
-import ru.yoomoney.sdk.kassa.payments.extensions.execute
-import ru.yoomoney.sdk.kassa.payments.http.HostProvider
-import ru.yoomoney.sdk.kassa.payments.methods.unbindCard.UnbindCardMethodRequest
+import ru.yoomoney.sdk.kassa.payments.api.PaymentsApi
 import ru.yoomoney.sdk.kassa.payments.model.Result
 import ru.yoomoney.sdk.kassa.payments.model.SuccessUnbinding
 import ru.yoomoney.sdk.kassa.payments.payment.unbindCard.UnbindCardGateway
-import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuthTokenRepository
 
 internal class UnbindCardMethodInfoGateway(
-    private val hostProvider: HostProvider,
-    private val shopToken: String,
-    private val paymentAuthTokenRepository: PaymentAuthTokenRepository,
-    private val httpClient: Lazy<CheckoutOkHttpClient>
+    private val paymentsApi: PaymentsApi
 ) : UnbindCardGateway {
 
-    override fun unbindCard(bindingId: String): Result<SuccessUnbinding> {
-        val unbindCardRequest = UnbindCardMethodRequest(
-            hostProvider = hostProvider,
-            paymentMethodId = bindingId,
-            shopToken = shopToken,
-            paymentAuthToken = paymentAuthTokenRepository.paymentAuthToken
+    override suspend fun unbindCard(bindingId: String): Result<SuccessUnbinding> {
+        return paymentsApi.deletePaymentInstrumentId(bindingId).fold(
+            onSuccess = {
+                Result.Success(SuccessUnbinding)
+            },
+            onFailure = {
+                Result.Fail(it)
+            }
         )
-        return httpClient.value.execute(unbindCardRequest)
     }
 }

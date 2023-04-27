@@ -32,12 +32,16 @@ internal class RequestPaymentAuthUseCaseImpl(
 
     override suspend fun startPaymentAuth(linkWalletToApp: Boolean, amount: Amount): PaymentAuth.Action {
         return when (val result = paymentAuthTypeRepository.getPaymentAuthType(linkWalletToApp, amount)) {
-            is Result.Success -> when (result.value) {
-                AuthTypeState.NotRequired -> PaymentAuth.Action.ProcessAuthNotRequired(linkWalletToApp)
-                is AuthTypeState.SMS -> PaymentAuth.Action.StartSuccess(result.value)
-                else -> PaymentAuth.Action.StartFailed(IllegalStateException("This type ${result.value} not supportedd"))
-            }
+            is Result.Success -> getPaymentAuthAction(result, linkWalletToApp)
             is Result.Fail -> PaymentAuth.Action.StartFailed(result.value)
         }
+    }
+
+    private fun getPaymentAuthAction(
+        result: Result.Success<AuthTypeState>, linkWalletToApp: Boolean
+    ) = when (result.value) {
+        AuthTypeState.NotRequired -> PaymentAuth.Action.ProcessAuthNotRequired(linkWalletToApp)
+        is AuthTypeState.SMS -> PaymentAuth.Action.StartSuccess(result.value)
+        else -> PaymentAuth.Action.StartFailed(IllegalStateException("This type ${result.value} not supported"))
     }
 }

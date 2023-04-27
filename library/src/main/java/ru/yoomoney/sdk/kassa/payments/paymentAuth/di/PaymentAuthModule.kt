@@ -25,10 +25,16 @@ import androidx.lifecycle.ViewModel
 import dagger.Module
 import dagger.Provides
 import dagger.multibindings.IntoMap
-import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import ru.yoomoney.sdk.kassa.payments.api.PaymentsAuthApi
+import ru.yoomoney.sdk.kassa.payments.api.SuspendResultCallAdapterFactory
+import ru.yoomoney.sdk.kassa.payments.api.YooKassaJacksonConverterFactory
+import ru.yoomoney.sdk.kassa.payments.api.failures.ApiErrorMapper
+import ru.yoomoney.sdk.kassa.payments.api.jacksonBaseObjectMapper
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
+import ru.yoomoney.sdk.kassa.payments.di.AuthPaymentsHttpClient
 import ru.yoomoney.sdk.kassa.payments.di.ViewModelKey
-import ru.yoomoney.sdk.kassa.payments.extensions.CheckoutOkHttpClient
 import ru.yoomoney.sdk.kassa.payments.http.HostProvider
 import ru.yoomoney.sdk.kassa.payments.metrics.ErrorReporter
 import ru.yoomoney.sdk.kassa.payments.metrics.Reporter
@@ -61,23 +67,33 @@ import javax.inject.Singleton
 internal class PaymentAuthModule {
 
     @Provides
+    fun paymentsAuthApi(
+        hostProvider: HostProvider,
+        @AuthPaymentsHttpClient okHttpClient: OkHttpClient,
+        apiErrorMapper: ApiErrorMapper
+    ): PaymentsAuthApi {
+        return Retrofit.Builder()
+            .client(okHttpClient)
+            .baseUrl(hostProvider.paymentAuthorizationHost()+ "/" )
+            .addConverterFactory(YooKassaJacksonConverterFactory.create(jacksonBaseObjectMapper))
+            .addCallAdapterFactory(SuspendResultCallAdapterFactory(apiErrorMapper))
+            .build()
+            .create(PaymentsAuthApi::class.java)
+    }
+
+    @Provides
     @Singleton
     fun apiV3PaymentAuthRepository(
-        httpClient: CheckoutOkHttpClient,
-        hostProvider: HostProvider,
-        tokensStorage: TokensStorage,
-        paymentParameters: PaymentParameters,
+        userAuthInfoRepository: TokensStorage,
         profiler: YooProfiler,
-        profilingSessionIdStorage: ProfilingSessionIdStorage
+        profilingSessionIdStorage: ProfilingSessionIdStorage,
+        paymentsAuthApi: PaymentsAuthApi
     ): ApiV3PaymentAuthRepository {
         return ApiV3PaymentAuthRepository(
-            httpClient = lazy { httpClient },
-            tokensStorage = tokensStorage,
-            shopToken = paymentParameters.clientApplicationKey,
             profilingSessionIdStorage = profilingSessionIdStorage,
             profiler = profiler,
             selectAppropriateAuthType = SelectAppropriateAuthType(),
-            hostProvider = hostProvider
+            paymentsAuthApi = paymentsAuthApi
         )
     }
 

@@ -32,10 +32,10 @@ buildscript {
     ext.kotlin_version = '1.7.10'
     ext.dokka_version = '0.9.17'
     ext.okhttp_version = '4.9.2'
-    ext.mockito_version = '4.8.0'
+    ext.mockito_version = '4.9.0'
     ext.espresso_version = '3.0.1'
     ext.gson_version = '2.8.6'
-    ext.yoo_sdk_auth_version = '1.7.15'
+    ext.yoo_sdk_auth_version = '1.8.11'
     ext.ui_lib_version = '2.21.4'
     ext.march_lib_version = "1.1.3"
     ext.junit = '4.13.2'
@@ -51,7 +51,7 @@ buildscript {
     ext.retrofit = '2.9.0'
     ext.jackson = '2.13.3'
     ext.gibsdk = '2.0.b302271022'
-    ext.yooprofiler = '2.0.8'
+    ext.yooprofiler = '3.0.3'
 
     ext.target_sdk_version = 33
 

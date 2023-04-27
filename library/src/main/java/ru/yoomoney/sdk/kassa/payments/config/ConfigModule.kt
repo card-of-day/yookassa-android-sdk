@@ -26,7 +26,6 @@ import android.content.Context.MODE_PRIVATE
 import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient
-import org.json.JSONObject
 import retrofit2.Retrofit
 import ru.yoomoney.sdk.kassa.payments.api.YooKassaJacksonConverterFactory
 import ru.yoomoney.sdk.kassa.payments.R
@@ -53,9 +52,7 @@ internal class ConfigModule {
         okHttpClient: OkHttpClient,
         apiErrorMapper: ApiErrorMapper
     ): ConfigRepository {
-        val defaultConfig = JSONObject(
-            context.resources.openRawResource(R.raw.ym_default_config).readText()
-        ).toConfig()
+        val defaultConfig = context.resources.openRawResource(R.raw.ym_default_config).readText().toConfig()
         return if (testParameters.mockConfiguration != null) {
             MockConfigRepository(defaultConfig)
         } else {

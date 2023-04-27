@@ -25,7 +25,8 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 internal data class PaymentInstrumentBankCard(
 
-    @JsonProperty("payment_instrument_id")
+    @get:JsonProperty("payment_instrument_id")
+    @param:JsonProperty("payment_instrument_id")
     val paymentInstrumentId: String,
 
     @JsonProperty("last4")
@@ -34,9 +35,11 @@ internal data class PaymentInstrumentBankCard(
     @JsonProperty("first6")
     val first6: String?,
 
-    @JsonProperty("csc_required")
+    @get:JsonProperty("csc_required")
+    @param:JsonProperty("csc_required")
     val cscRequired: Boolean,
 
-    @JsonProperty("card_type")
+    @get:JsonProperty("card_type")
+    @param:JsonProperty("card_type")
     val cardType: BankCardType
 )

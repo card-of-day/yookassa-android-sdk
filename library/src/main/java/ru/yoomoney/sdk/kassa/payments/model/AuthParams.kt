@@ -44,7 +44,6 @@ internal sealed class AuthTypeState {
         is SecurePassword -> AuthType.SECURE_PASSWORD
         is OauthToken -> AuthType.OAUTH_TOKEN
         is Emergency -> AuthType.EMERGENCY
-        is NotRequired -> AuthType.NOT_NEEDED
         else -> AuthType.UNKNOWN
     }
 }
@@ -56,7 +55,7 @@ internal enum class AuthType {
     EMERGENCY,
     PUSH,
     OAUTH_TOKEN,
-    NOT_NEEDED,
+    PUSH_CODE,
     UNKNOWN
 }
 

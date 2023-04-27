@@ -50,12 +50,29 @@ import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionSber
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.Unknown
 import ru.yoomoney.sdk.kassa.payments.model.ConfigPaymentOption
 
-internal fun PaymentOptionResponse.map(id: Int, configPaymentOptions: List<ConfigPaymentOption>): ru.yoomoney.sdk.kassa.payments.model.PaymentOption? {
-    return when(this) {
-        is PaymentOptionBankCard -> this.map(id, configPaymentOptions.first { it.method == paymentMethodType.value })
-        is PaymentInstrumentYooMoney -> this.map(id, configPaymentOptions)
-        is PaymentOptionSberbank -> this.map(id, configPaymentOptions.first { it.method == paymentMethodType.value })
-        is PaymentOptionGooglePay -> this.map(id, configPaymentOptions.first { it.method == paymentMethodType.value })
+internal fun PaymentOptionResponse.mapToPaymentOption(
+    id: Int, configPaymentOptions: List<ConfigPaymentOption>,
+): ru.yoomoney.sdk.kassa.payments.model.PaymentOption? {
+    return when (this) {
+        is PaymentOptionBankCard -> {
+            this.mapToBankCardPaymentOptionModel(
+                id,
+                configPaymentOptions.first { it.method == paymentMethodType.value }
+            )
+        }
+        is PaymentInstrumentYooMoney -> this.mapToYooMoneyModel(id, configPaymentOptions)
+        is PaymentOptionSberbank -> {
+            this.mapToSberBankModel(
+                id,
+                configPaymentOptions.first { it.method == paymentMethodType.value }
+            )
+        }
+        is PaymentOptionGooglePay -> {
+            this.mapToGooglePayModel(
+                id,
+                configPaymentOptions.first { it.method == paymentMethodType.value }
+            )
+        }
         is Unknown -> null
     }
 }

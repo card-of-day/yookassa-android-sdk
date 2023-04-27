@@ -172,7 +172,7 @@ internal class MockPaymentOptionListRepository(
             )
         )
     }.toList(),
-            shopProperties = ShopProperties(true, true)
+            shopProperties = ShopProperties(true, true, null)
         )
     )
 
@@ -248,7 +248,7 @@ internal class MockPaymentOptionListRepository(
                 title = null
             )
         ),
-            shopProperties = ShopProperties(true, true)
+            shopProperties = ShopProperties(true, true, null)
     )
     )
 

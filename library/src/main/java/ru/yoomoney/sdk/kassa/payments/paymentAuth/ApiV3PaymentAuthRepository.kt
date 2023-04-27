@@ -22,16 +22,13 @@
 package ru.yoomoney.sdk.kassa.payments.paymentAuth
 
 import android.os.Build
+import ru.yoomoney.sdk.kassa.payments.api.PaymentsAuthApi
+import ru.yoomoney.sdk.kassa.payments.api.model.authpayments.AuthCheckRequest
+import ru.yoomoney.sdk.kassa.payments.api.model.authpayments.AuthContextGetRequest
+import ru.yoomoney.sdk.kassa.payments.api.model.authpayments.AuthSessionGenerateRequest
+import ru.yoomoney.sdk.kassa.payments.api.model.authpayments.TokenIssueExecuteRequest
+import ru.yoomoney.sdk.kassa.payments.api.model.authpayments.TokenIssueInitRequest
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.Amount
-import ru.yoomoney.sdk.kassa.payments.extensions.CheckoutOkHttpClient
-import ru.yoomoney.sdk.kassa.payments.extensions.execute
-import ru.yoomoney.sdk.kassa.payments.http.HostProvider
-import ru.yoomoney.sdk.kassa.payments.methods.paymentAuth.CheckoutAuthCheckRequest
-import ru.yoomoney.sdk.kassa.payments.methods.paymentAuth.CheckoutAuthContextGetRequest
-import ru.yoomoney.sdk.kassa.payments.methods.paymentAuth.CheckoutAuthSessionGenerateRequest
-import ru.yoomoney.sdk.kassa.payments.methods.paymentAuth.CheckoutTokenIssueExecuteRequest
-import ru.yoomoney.sdk.kassa.payments.methods.paymentAuth.CheckoutTokenIssueInitRequest
-import ru.yoomoney.sdk.kassa.payments.methods.paymentAuth.CheckoutTokenIssueInitResponse
 import ru.yoomoney.sdk.kassa.payments.model.AuthCheckApiMethodException
 import ru.yoomoney.sdk.kassa.payments.model.AuthType
 import ru.yoomoney.sdk.kassa.payments.model.AuthTypeState
@@ -39,33 +36,36 @@ import ru.yoomoney.sdk.kassa.payments.model.CurrentUser
 import ru.yoomoney.sdk.kassa.payments.model.ErrorCode
 import ru.yoomoney.sdk.kassa.payments.model.Result
 import ru.yoomoney.sdk.kassa.payments.model.map
-import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
+import ru.yoomoney.sdk.kassa.payments.model.mapper.toAccessTokenModel
+import ru.yoomoney.sdk.kassa.payments.model.mapper.toAuthTypeStateModel
+import ru.yoomoney.sdk.kassa.payments.model.mapper.toCheckoutTokenIssueInitResponse
+import ru.yoomoney.sdk.kassa.payments.model.mapper.toPairAuthTypes
+import ru.yoomoney.sdk.kassa.payments.model.mapper.toPaymentUsageLimit
+import ru.yoomoney.sdk.kassa.payments.model.mapper.toProcessPaymentAuthModel
+import ru.yoomoney.sdk.kassa.payments.model.mapper.toRequest
 import ru.yoomoney.sdk.kassa.payments.tmx.ProfilingSessionIdStorage
+import ru.yoomoney.sdk.yooprofiler.ProfileEventType
 import ru.yoomoney.sdk.yooprofiler.YooProfiler
 
 internal class ApiV3PaymentAuthRepository(
-    private val hostProvider: HostProvider,
-    private val httpClient: Lazy<CheckoutOkHttpClient>,
-    private val tokensStorage: TokensStorage,
-    private val shopToken: String,
     private val profilingSessionIdStorage: ProfilingSessionIdStorage,
     private val profiler: YooProfiler,
-    private val selectAppropriateAuthType: (AuthType, Array<AuthTypeState>) -> AuthTypeState
+    private val selectAppropriateAuthType: (AuthType, Array<AuthTypeState>) -> AuthTypeState,
+    private val paymentsAuthApi: PaymentsAuthApi
 ) : PaymentAuthTypeRepository, ProcessPaymentAuthRepository, SmsSessionRetryRepository {
 
     private var processId: String? = null
     private var authContextId: String? = null
     private var authType: AuthType = AuthType.UNKNOWN
 
-    override fun getPaymentAuthToken(
+    override suspend fun getPaymentAuthToken(
         currentUser: CurrentUser,
-        passphrase: String
+        passphrase: String,
     ): Result<ProcessPaymentAuthGatewayResponse> {
-        val userAuthToken: String = tokensStorage.userAuthToken ?: return Result.Fail(IllegalStateException())
         val currentProcessId: String = processId ?: return Result.Fail(IllegalStateException())
 
-        return when (val result = authCheck(passphrase, userAuthToken)) {
-            is Result.Success -> getPaymentAuthToken(currentProcessId, userAuthToken)
+        return when (val result = authCheck(passphrase)) {
+            is Result.Success -> getPaymentAuthToken(currentProcessId)
             is Result.Fail -> when (result.value) {
                 is AuthCheckApiMethodException -> when (result.value.error.errorCode) {
                     ErrorCode.INVALID_ANSWER -> Result.Success(PaymentAuthWrongAnswer(result.value.authState!!))
@@ -76,76 +76,79 @@ internal class ApiV3PaymentAuthRepository(
         }
     }
 
-    override fun getPaymentAuthToken(currentUser: CurrentUser): Result<ProcessPaymentAuthGatewayResponse> {
-        val userAuthToken: String = tokensStorage.userAuthToken ?: return Result.Fail(IllegalStateException())
+    override suspend fun getPaymentAuthToken(currentUser: CurrentUser): Result<ProcessPaymentAuthGatewayResponse> {
         val currentProcessId: String = processId ?: return Result.Fail(IllegalStateException())
-        return getPaymentAuthToken(currentProcessId, userAuthToken)
+        return getPaymentAuthToken(currentProcessId)
     }
 
-    private fun authCheck(passphrase: String, userAuthToken: String): Result<Unit> {
+    private suspend fun authCheck(passphrase: String): Result<Unit> {
         val currentAuthType = authType.also {
             check(authType != AuthType.UNKNOWN)
         }
 
         val currentAuthContextId = authContextId ?: return Result.Fail(IllegalStateException())
 
-        val request = CheckoutAuthCheckRequest(
-            userAuthToken = userAuthToken,
-            shopToken = shopToken,
+        val request = AuthCheckRequest(
             answer = passphrase,
-            authType = currentAuthType,
+            authType = currentAuthType.toRequest(),
             authContextId = currentAuthContextId,
-            hostProvider = hostProvider
         )
 
-        return httpClient.value.execute(request)
+        return paymentsAuthApi.getAuthCheck(request).fold(
+            onSuccess = { response -> response.toProcessPaymentAuthModel() },
+            onFailure = { Result.Fail(it) }
+        )
     }
 
-    private fun tokenIssueExecute(currentProcessId: String, userAuthToken: String): Result<String> {
-        val request = CheckoutTokenIssueExecuteRequest(currentProcessId, userAuthToken, shopToken, hostProvider)
-        return httpClient.value.execute(request)
+    private suspend fun tokenIssueExecute(currentProcessId: String): Result<String> {
+        val request = TokenIssueExecuteRequest(currentProcessId)
+        return paymentsAuthApi.getTokenIssueExecute(request).fold(
+            onSuccess = { response -> response.toAccessTokenModel() },
+            onFailure = { Result.Fail(it) }
+        )
     }
 
-    private fun getPaymentAuthToken(currentProcessId: String, userAuthToken: String): Result<PaymentAuthToken> {
-        return when (val result = tokenIssueExecute(currentProcessId, userAuthToken)) {
+    private suspend fun getPaymentAuthToken(currentProcessId: String): Result<PaymentAuthToken> {
+        return when (val result = tokenIssueExecute(currentProcessId)) {
             is Result.Success -> Result.Success(PaymentAuthToken(result.value))
             is Result.Fail -> result
         }
     }
 
-    override fun getPaymentAuthType(linkWalletToApp: Boolean, amount: Amount): Result<AuthTypeState> {
+    override suspend fun getPaymentAuthType(linkWalletToApp: Boolean, amount: Amount): Result<AuthTypeState> {
         processId = null
         authContextId = null
         authType = AuthType.UNKNOWN
 
-        val userAuthToken: String = tokensStorage.userAuthToken ?: return Result.Fail(IllegalStateException())
-        return when (val result = tokenIssueInit(userAuthToken, amount, linkWalletToApp)) {
-            is Result.Success -> when (result.value) {
-                is CheckoutTokenIssueInitResponse.Success -> {
-                    this.processId = result.value.processId
-                    Result.Success(AuthTypeState.NotRequired)
-                }
-                is CheckoutTokenIssueInitResponse.AuthRequired -> handleAuthRequired(userAuthToken, result.value)
-            }
+        return when (val result = tokenIssueInit(amount, linkWalletToApp)) {
+            is Result.Success -> parseSuccessToAuthTypeState(result)
             is Result.Fail -> result
         }
     }
 
-    private fun handleAuthRequired(
-        userAuthToken: String,
-        tokenIssueInitResponse: CheckoutTokenIssueInitResponse.AuthRequired
+    private suspend fun parseSuccessToAuthTypeState(result: Result.Success<CheckoutTokenIssueInitResponse>) =
+        when (result.value) {
+            is CheckoutTokenIssueInitResponse.Success -> {
+                this.processId = result.value.processId
+                Result.Success(AuthTypeState.NotRequired)
+            }
+            is CheckoutTokenIssueInitResponse.AuthRequired -> handleAuthRequired(result.value)
+        }
+
+    private suspend fun handleAuthRequired(
+        tokenIssueInitResponse: CheckoutTokenIssueInitResponse.AuthRequired,
     ): Result<AuthTypeState> {
         this.processId = tokenIssueInitResponse.processId
         this.authContextId = tokenIssueInitResponse.authContextId
 
         val localAuthContextId: String = authContextId ?: return Result.Fail(IllegalStateException())
-        val authTypeState = when (val result = authContextGet(localAuthContextId, userAuthToken)) {
+        val authTypeState = when (val result = getAuthContextGet(localAuthContextId)) {
             is Result.Success -> result.value
             is Result.Fail -> return result
         }
         authType = authTypeState.type
 
-        val updatedAuthTypeState = when (val result = authSessionGenerate(userAuthToken)) {
+        val updatedAuthTypeState = when (val result = authSessionGenerate()) {
             is Result.Success -> result.value
             else -> return result
         }
@@ -154,54 +157,60 @@ internal class ApiV3PaymentAuthRepository(
         return Result.Success(updatedAuthTypeState)
     }
 
-    private fun tokenIssueInit(
-        userAuthToken: String,
+    private suspend fun tokenIssueInit(
         amount: Amount,
-        multipleUsage: Boolean
+        multipleUsage: Boolean,
     ): Result<CheckoutTokenIssueInitResponse> {
-        var profilingSessionId = profilingSessionIdStorage.profilingSessionId
-
-        if (profilingSessionId.isNullOrEmpty()) {
-            profilingSessionId = when (val result = profiler.profile()) {
-                is YooProfiler.Result.Success -> result.sessionId
-                is YooProfiler.Result.Fail -> result.description
-            }
-        }
-
-        val request = CheckoutTokenIssueInitRequest(
+        val request = TokenIssueInitRequest(
             instanceName = Build.MANUFACTURER + ", " + Build.MODEL,
-            singleAmountMax = amount,
-            multipleUsage = multipleUsage,
-            tmxSessionId = checkNotNull(profilingSessionId),
-            shopToken = shopToken,
-            userAuthToken = userAuthToken,
-            hostProvider = hostProvider
+            singleAmountMax = if (multipleUsage.not()) amount.toRequest() else null,
+            paymentUsageLimit = multipleUsage.toPaymentUsageLimit(),
+            tmxSessionId = loadProfilingSession(),
         )
-        return httpClient.value.execute(request)
+        return paymentsAuthApi.getTokenIssueInit(request).fold(
+            onSuccess = { response -> response.toCheckoutTokenIssueInitResponse() },
+            onFailure = { Result.Fail(it) }
+        )
     }
 
-    private fun authContextGet(localAuthContextId: String, userAuthToken: String): Result<AuthTypeState> {
-        val request = CheckoutAuthContextGetRequest(localAuthContextId, userAuthToken, shopToken, hostProvider)
-        return httpClient.value.execute(request).map {
-            selectAppropriateAuthType(it.defaultAuthType, it.authTypeStates)
+    private fun loadProfilingSession(): String {
+        var profilingSessionId = profilingSessionIdStorage.profilingSessionId
+        if (profilingSessionId.isNullOrEmpty()) {
+            profilingSessionId =
+                when (val result = profiler.profile(ProfileEventType.LOGIN)) {
+                    is YooProfiler.Result.Success -> result.sessionId
+                    is YooProfiler.Result.Fail -> result.description
+                }
         }
+        return profilingSessionId
     }
 
-    private fun authSessionGenerate(userAuthToken: String): Result<AuthTypeState> {
+    private suspend fun getAuthContextGet(localAuthContextId: String): Result<AuthTypeState> {
+        val request = AuthContextGetRequest(localAuthContextId)
+        return paymentsAuthApi.getAuthContext(request).fold(
+            onSuccess = { response ->
+                response.toPairAuthTypes().map {
+                    selectAppropriateAuthType(it.defaultAuthType, it.authTypeStates)
+                }
+            },
+            onFailure = { Result.Fail(it) }
+        )
+    }
+
+    private suspend fun authSessionGenerate(): Result<AuthTypeState> {
         val currentAuthType = authType.takeIf { it != AuthType.UNKNOWN } ?: return Result.Fail(IllegalStateException())
         val currentAuthContextId = authContextId ?: return Result.Fail(IllegalStateException())
-        val request = CheckoutAuthSessionGenerateRequest(
-            authType = currentAuthType,
+        val request = AuthSessionGenerateRequest(
             authContextId = currentAuthContextId,
-            shopToken = shopToken,
-            userAuthToken = userAuthToken,
-            hostProvider = hostProvider
+            authType = currentAuthType.toRequest(),
         )
-        return httpClient.value.execute(request)
+        return paymentsAuthApi.getAuthSessionGenerate(request).fold(
+            onSuccess = { response -> response.toAuthTypeStateModel() },
+            onFailure = { Result.Fail(it) }
+        )
     }
 
-    override fun retrySmsSession(): Result<AuthTypeState> {
-        val userAuthToken: String = tokensStorage.userAuthToken ?: return Result.Fail(IllegalStateException())
-        return authSessionGenerate(userAuthToken)
+    override suspend fun retrySmsSession(): Result<AuthTypeState> {
+        return authSessionGenerate()
     }
 }

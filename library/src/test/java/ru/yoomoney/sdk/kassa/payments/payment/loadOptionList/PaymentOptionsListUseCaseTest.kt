@@ -208,7 +208,7 @@ internal class PaymentOptionsListUseCaseTest {
         ).thenReturn(Result.Success(
             PaymentOptionsResponse(
                 paymentOptions = availableOptions,
-                shopProperties = ShopProperties(isSafeDeal = true, isMarketplace = false)
+                shopProperties = ShopProperties(isSafeDeal = true, isMarketplace = false, agentSchemeData = null)
             )
         )
         )
@@ -511,7 +511,7 @@ internal class PaymentOptionsListUseCaseTest {
             )
         ).thenReturn(Result.Success(PaymentOptionsResponse(
             paymentOptions = emptyList(),
-            shopProperties = ShopProperties(isSafeDeal = true, isMarketplace = false)
+            shopProperties = ShopProperties(isSafeDeal = true, isMarketplace = false, agentSchemeData = null)
         )))
 
         // invoke

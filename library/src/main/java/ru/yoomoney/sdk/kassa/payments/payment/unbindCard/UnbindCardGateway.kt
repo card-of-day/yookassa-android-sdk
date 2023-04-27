@@ -25,5 +25,5 @@ import ru.yoomoney.sdk.kassa.payments.model.Result
 import ru.yoomoney.sdk.kassa.payments.model.SuccessUnbinding
 
 internal interface UnbindCardGateway {
-    fun unbindCard(bindingId: String): Result<SuccessUnbinding>
+    suspend fun unbindCard(bindingId: String): Result<SuccessUnbinding>
 }

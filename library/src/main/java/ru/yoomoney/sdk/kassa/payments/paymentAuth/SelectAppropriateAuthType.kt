@@ -24,6 +24,33 @@ package ru.yoomoney.sdk.kassa.payments.paymentAuth
 import ru.yoomoney.sdk.kassa.payments.model.AuthType
 import ru.yoomoney.sdk.kassa.payments.model.AuthTypeState
 
+internal data class CheckoutAuthContextGetResponse(
+    val authTypeStates: Array<AuthTypeState>,
+    val defaultAuthType: AuthType
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as CheckoutAuthContextGetResponse
+
+        if (!authTypeStates.contentEquals(other.authTypeStates)) return false
+        if (defaultAuthType != other.defaultAuthType) return false
+
+        return true
+    }
+
+    override fun toString(): String {
+        return super.toString()
+    }
+
+    override fun hashCode(): Int {
+        var result = authTypeStates.contentHashCode()
+        result = 31 * result + defaultAuthType.hashCode()
+        return result
+    }
+}
+
 internal class SelectAppropriateAuthType : (AuthType, Array<AuthTypeState>) -> AuthTypeState {
 
     private val comparator = AllowedAuthTypesComparator()
@@ -34,6 +61,6 @@ internal class SelectAppropriateAuthType : (AuthType, Array<AuthTypeState>) -> A
                     ?.find { it.type == defaultAuthType }
                     ?: authTypeStates.asSequence()
                             .filter { comparator.isAllowed(it.type) }
-                            .sortedWith(Comparator { o1, o2 -> comparator.compare(o1.type, o2.type) })
-                            .first()
+                            .sortedWith { o1, o2 -> comparator.compare(o1.type, o2.type) }
+                        .first()
 }

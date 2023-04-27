@@ -245,11 +245,12 @@ internal val config = Config(
     yooMoneyLogoUrlDark = "todo",
     paymentMethods = emptyList(),
     savePaymentMethodOptionTexts = savePaymentMethodOptionTexts,
-    userAgreementUrl = "Нажимая кнопку, вы принимаете <a href='https://yoomoney.ru/page?id=526623'>условия сервиса</>",
-    gateway = "yoomoney",
+    userAgreementUrl = "Заплатив здесь, вы принимаете <a href='https://yoomoney.ru/page?id=526623'>условия сервиса</>",
+    googlePayGateway = "yoomoney",
     yooMoneyApiEndpoint = "https://sdk.yookassa.ru/api/frontend/v3",
     yooMoneyPaymentAuthorizationApiEndpoint = "https://yoomoney.ru/api/wallet-auth/v1",
-    yooMoneyAuthApiEndpoint = null
+    yooMoneyAuthApiEndpoint = null,
+    agentSchemeProviderAgreement = null
 )
 
 // from https://gist.github.com/XinyueZ/3cca89416a1e443f914ed37f80ed59f2

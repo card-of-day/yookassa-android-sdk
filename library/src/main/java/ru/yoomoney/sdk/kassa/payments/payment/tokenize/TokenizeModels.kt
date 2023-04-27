@@ -42,7 +42,8 @@ internal data class TokenizePaymentOptionInputModel(
     val confirmation: Confirmation,
     val paymentOptionInfo: PaymentOptionInfo? = null,
     override val allowWalletLinking: Boolean,
-    override val instrumentBankCard: PaymentInstrumentBankCard? = null
+    override val instrumentBankCard: PaymentInstrumentBankCard? = null,
+    val csc: String? = null
 ): TokenizeInputModel(), Parcelable
 
 @Parcelize

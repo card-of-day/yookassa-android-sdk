@@ -44,7 +44,7 @@ import ru.yoomoney.sdk.kassa.payments.logout.LogoutUseCase
 import ru.yoomoney.sdk.kassa.payments.model.Fee
 import ru.yoomoney.sdk.kassa.payments.model.GetConfirmation
 import ru.yoomoney.sdk.kassa.payments.model.GooglePay
-import ru.yoomoney.sdk.kassa.payments.model.NoConfirmation
+import ru.yoomoney.sdk.kassa.payments.model.RedirectConfirmation
 import ru.yoomoney.sdk.kassa.payments.payment.selectOption.SelectedPaymentMethodOutputModel
 import ru.yoomoney.sdk.kassa.payments.model.ShopProperties
 import ru.yoomoney.sdk.kassa.payments.paymentOptionList.ShopPropertiesRepository
@@ -73,6 +73,7 @@ internal class GpayContractBusinessLogicEffectTest(
     private val getConfirmation: GetConfirmation = mock()
     private val shopPropertiesRepository: ShopPropertiesRepository = mock()
     private val configRepository: ConfigRepository = mock()
+    private val confirmation = RedirectConfirmation("redirectUrl")
 
     private val paymentParameters = PaymentParameters(
         amount = Amount(BigDecimal.TEN, RUB),
@@ -97,7 +98,8 @@ internal class GpayContractBusinessLogicEffectTest(
             selectPaymentMethodUseCase = mock(),
             userAuthInfoRepository = mock(),
             shopPropertiesRepository = shopPropertiesRepository,
-            configRepository = configRepository
+            configRepository = configRepository,
+            defaultAgentSchemeUserAgreementUrl = "defaultUserAgreementUrl"
         )
     }
     @Test
@@ -109,7 +111,7 @@ internal class GpayContractBusinessLogicEffectTest(
             savePaymentMethod = merchantSavePaymentMethod,
             shouldSavePaymentMethod = shouldSavePaymentMethod,
             shouldSavePaymentInstrument = false,
-            confirmation = NoConfirmation,
+            confirmation = confirmation,
             contractInfo = createGPayContractInfo(backendSavePaymentMethod, createGooglePayPaymentOption(1, fee, backendSavePaymentMethod) as GooglePay),
             customerId = null,
             isSinglePaymentMethod = false,
@@ -122,8 +124,8 @@ internal class GpayContractBusinessLogicEffectTest(
             Contract.State.GooglePay::class -> Contract.State.GooglePay(content, 1)
             else -> throw IllegalStateException("Work only with Contract.State.Content and Contract.State.GooglePay")
         }
-        Mockito.`when`(getConfirmation.invoke(anyOrNull())).thenReturn(NoConfirmation)
-        Mockito.`when`(shopPropertiesRepository.shopProperties).thenReturn(ShopProperties(isSafeDeal = isSafeDeal, isMarketplace = isMarketplace))
+        Mockito.`when`(getConfirmation.invoke(anyOrNull())).thenReturn(confirmation)
+        Mockito.`when`(shopPropertiesRepository.shopProperties).thenReturn(ShopProperties(isSafeDeal = isSafeDeal, isMarketplace = isMarketplace, agentSchemeData = null))
         Mockito.`when`(configRepository.getConfig()).thenReturn(config)
         val out =
             createLogic(paymentParameters = paymentParameters.copy(savePaymentMethod = merchantSavePaymentMethod)).invoke(

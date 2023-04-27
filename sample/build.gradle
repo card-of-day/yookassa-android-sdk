@@ -76,8 +76,6 @@ android {
 dependencies {
     implementation "ru.yoomoney.sdk.kassa.payments:yookassa-android-sdk:$msdk_version"
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation "androidx.appcompat:appcompat:$appcompat"
     implementation "com.google.android.material:material:$material"
     implementation "androidx.recyclerview:recyclerview:$recyclerview"
     implementation "androidx.constraintlayout:constraintlayout:$constraintlayout"

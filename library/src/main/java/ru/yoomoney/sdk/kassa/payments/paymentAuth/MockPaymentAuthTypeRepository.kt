@@ -26,7 +26,7 @@ import ru.yoomoney.sdk.kassa.payments.model.AuthTypeState
 import ru.yoomoney.sdk.kassa.payments.model.Result
 
 internal class MockPaymentAuthTypeRepository : PaymentAuthTypeRepository {
-    override fun getPaymentAuthType(linkWalletToApp: Boolean, amount: Amount): Result<AuthTypeState> {
+    override suspend fun getPaymentAuthType(linkWalletToApp: Boolean, amount: Amount): Result<AuthTypeState> {
         return Result.Success(AuthTypeState.SMS(15, 4, 3, 3))
     }
 }

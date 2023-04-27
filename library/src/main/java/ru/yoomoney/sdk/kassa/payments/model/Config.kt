@@ -21,19 +21,7 @@
 
 package ru.yoomoney.sdk.kassa.payments.model
 
-import org.json.JSONArray
-import org.json.JSONObject
-import ru.yoomoney.sdk.kassa.payments.extensions.mapIndexed
-
-private const val YOO_MONEY_LOGO_URL_LIGHT_FIELD = "yooMoneyLogoUrlLight"
-private const val YOO_MONEY_LOGO_URL_DARK_FIELD = "yooMoneyLogoUrlDark"
-private const val USER_AGREEMENT_URL_FIELD = "userAgreementUrl"
-private const val GATEWAY_FIELD = "googlePayGateway"
-private const val YOO_MONEY_API_ENDPOINT_FIELD = "yooMoneyApiEndpoint"
-private const val YOO_MONEY_PAYMENT_AUTHORIZATION_ENDPOINT_FIELD = "yooMoneyPaymentAuthorizationApiEndpoint"
-private const val YOO_MONEY_AUTH_API_ENDPOINT_FIELD = "yooMoneyAuthApiEndpoint"
-private const val PAYMENT_METHODS_FIELD = "paymentMethods"
-private const val SAVE_PAYMENT_OPTION_TEXTS_FIELD = "savePaymentMethodOptionTexts"
+import ru.yoomoney.sdk.kassa.payments.api.jacksonBaseObjectMapper
 
 internal data class Config(
     val yooMoneyLogoUrlLight: String,
@@ -41,82 +29,15 @@ internal data class Config(
     val paymentMethods: List<ConfigPaymentOption>,
     val savePaymentMethodOptionTexts: SavePaymentMethodOptionTexts,
     val userAgreementUrl: String,
-    val gateway: String,
+    val googlePayGateway: String,
     val yooMoneyApiEndpoint: String,
     val yooMoneyPaymentAuthorizationApiEndpoint: String,
-    val yooMoneyAuthApiEndpoint: String?
+    val yooMoneyAuthApiEndpoint: String?,
+    val agentSchemeProviderAgreement: Map<String, String>?
 )
 
-internal fun Config.toJsonObject() = JSONObject().apply {
-    put(YOO_MONEY_LOGO_URL_LIGHT_FIELD, yooMoneyLogoUrlLight)
-    put(YOO_MONEY_LOGO_URL_DARK_FIELD, yooMoneyLogoUrlDark)
-    put(USER_AGREEMENT_URL_FIELD, userAgreementUrl)
-    put(GATEWAY_FIELD, gateway)
-    put(YOO_MONEY_API_ENDPOINT_FIELD, yooMoneyApiEndpoint)
-    put(PAYMENT_METHODS_FIELD, JSONArray().apply {
-        paymentMethods.forEach {
-            put(it.toJsonObject())
-        }
-    })
-    put(SAVE_PAYMENT_OPTION_TEXTS_FIELD, JSONObject().apply {
-        put("switchRecurrentOnBindOnTitle", savePaymentMethodOptionTexts.switchRecurrentOnBindOnTitle)
-        put("switchRecurrentOnBindOnSubtitle", savePaymentMethodOptionTexts.switchRecurrentOnBindOnSubtitle)
-        put("switchRecurrentOnBindOffTitle", savePaymentMethodOptionTexts.switchRecurrentOnBindOffTitle)
-        put("switchRecurrentOnBindOffSubtitle", savePaymentMethodOptionTexts.switchRecurrentOnBindOffSubtitle)
-        put("switchRecurrentOffBindOnTitle", savePaymentMethodOptionTexts.switchRecurrentOffBindOnTitle)
-        put("switchRecurrentOffBindOnSubtitle", savePaymentMethodOptionTexts.switchRecurrentOffBindOnSubtitle)
-        put("messageRecurrentOnBindOnTitle", savePaymentMethodOptionTexts.messageRecurrentOnBindOnTitle)
-        put("messageRecurrentOnBindOnSubtitle", savePaymentMethodOptionTexts.messageRecurrentOnBindOnSubtitle)
-        put("messageRecurrentOnBindOffTitle", savePaymentMethodOptionTexts.messageRecurrentOnBindOffTitle)
-        put("messageRecurrentOnBindOffSubtitle", savePaymentMethodOptionTexts.messageRecurrentOnBindOffSubtitle)
-        put("messageRecurrentOffBindOnTitle", savePaymentMethodOptionTexts.messageRecurrentOffBindOnTitle)
-        put("messageRecurrentOffBindOnSubtitle", savePaymentMethodOptionTexts.messageRecurrentOffBindOnSubtitle)
-        put("screenRecurrentOnBindOnTitle", savePaymentMethodOptionTexts.screenRecurrentOnBindOnTitle)
-        put("screenRecurrentOnBindOnText", savePaymentMethodOptionTexts.screenRecurrentOnBindOnText)
-        put("screenRecurrentOnBindOffTitle", savePaymentMethodOptionTexts.screenRecurrentOnBindOffTitle)
-        put("screenRecurrentOnBindOffText", savePaymentMethodOptionTexts.screenRecurrentOnBindOffText)
-        put("screenRecurrentOffBindOnTitle", savePaymentMethodOptionTexts.screenRecurrentOffBindOnTitle)
-        put("screenRecurrentOffBindOnText", savePaymentMethodOptionTexts.screenRecurrentOffBindOnText)
-        put("screenRecurrentOnSberpayTitle", savePaymentMethodOptionTexts.screenRecurrentOnSberpayTitle)
-        put("screenRecurrentOnSberpayText", savePaymentMethodOptionTexts.screenRecurrentOnSberpayText)
-    })
-    put(YOO_MONEY_PAYMENT_AUTHORIZATION_ENDPOINT_FIELD, yooMoneyPaymentAuthorizationApiEndpoint)
-    put(YOO_MONEY_AUTH_API_ENDPOINT_FIELD, yooMoneyAuthApiEndpoint)
-}
+internal fun String.toConfig(): Config =
+    jacksonBaseObjectMapper.readValue(this, Config::class.java)
 
-internal fun JSONObject.toConfig(): Config = Config(
-    yooMoneyLogoUrlLight = getString(YOO_MONEY_LOGO_URL_LIGHT_FIELD),
-    yooMoneyLogoUrlDark = getString(YOO_MONEY_LOGO_URL_DARK_FIELD),
-    userAgreementUrl = getString(USER_AGREEMENT_URL_FIELD),
-    gateway = getString(GATEWAY_FIELD),
-    yooMoneyApiEndpoint = getString(YOO_MONEY_API_ENDPOINT_FIELD),
-    yooMoneyPaymentAuthorizationApiEndpoint = getString(YOO_MONEY_PAYMENT_AUTHORIZATION_ENDPOINT_FIELD),
-    yooMoneyAuthApiEndpoint = getString(YOO_MONEY_AUTH_API_ENDPOINT_FIELD),
-    paymentMethods = getJSONArray(PAYMENT_METHODS_FIELD).mapIndexed { i, jsonObject ->
-        jsonObject.toConfigPaymentOption()
-    },
-    savePaymentMethodOptionTexts = getJSONObject("savePaymentMethodOptionTexts").let {
-        SavePaymentMethodOptionTexts(
-            switchRecurrentOnBindOnTitle = it.getString("switchRecurrentOnBindOnTitle"),
-            switchRecurrentOnBindOnSubtitle = it.getString("switchRecurrentOnBindOnSubtitle"),
-            switchRecurrentOnBindOffTitle = it.getString("switchRecurrentOnBindOffTitle"),
-            switchRecurrentOnBindOffSubtitle = it.getString("switchRecurrentOnBindOffSubtitle"),
-            switchRecurrentOffBindOnTitle = it.getString("switchRecurrentOffBindOnTitle"),
-            switchRecurrentOffBindOnSubtitle = it.getString("switchRecurrentOffBindOnSubtitle"),
-            messageRecurrentOnBindOnTitle = it.getString("messageRecurrentOnBindOnTitle"),
-            messageRecurrentOnBindOnSubtitle = it.getString("messageRecurrentOnBindOnSubtitle"),
-            messageRecurrentOnBindOffTitle = it.getString("messageRecurrentOnBindOffTitle"),
-            messageRecurrentOnBindOffSubtitle = it.getString("messageRecurrentOnBindOffSubtitle"),
-            messageRecurrentOffBindOnTitle = it.getString("messageRecurrentOffBindOnTitle"),
-            messageRecurrentOffBindOnSubtitle = it.getString("messageRecurrentOffBindOnSubtitle"),
-            screenRecurrentOnBindOnTitle = it.getString("screenRecurrentOnBindOnTitle"),
-            screenRecurrentOnBindOnText = it.getString("screenRecurrentOnBindOnText"),
-            screenRecurrentOnBindOffTitle = it.getString("screenRecurrentOnBindOffTitle"),
-            screenRecurrentOnBindOffText = it.getString("screenRecurrentOnBindOffText"),
-            screenRecurrentOffBindOnTitle = it.getString("screenRecurrentOffBindOnTitle"),
-            screenRecurrentOffBindOnText = it.getString("screenRecurrentOffBindOnText"),
-            screenRecurrentOnSberpayTitle = it.getString("screenRecurrentOnSberpayTitle"),
-            screenRecurrentOnSberpayText = it.getString("screenRecurrentOnSberpayText")
-        )
-    }
-)
+internal fun Config.toJsonObject(): String =
+    jacksonBaseObjectMapper.writeValueAsString(this)

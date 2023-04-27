@@ -34,11 +34,13 @@ import ru.yoomoney.sdk.kassa.payments.model.BankCardPaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.GetConfirmation
 import ru.yoomoney.sdk.kassa.payments.model.GooglePay
 import ru.yoomoney.sdk.kassa.payments.model.LinkedCard
+import ru.yoomoney.sdk.kassa.payments.model.LinkedCardInfo
 import ru.yoomoney.sdk.kassa.payments.model.PaymentIdCscConfirmation
 import ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOptionInfo
 import ru.yoomoney.sdk.kassa.payments.model.SberBank
 import ru.yoomoney.sdk.kassa.payments.model.Wallet
+import ru.yoomoney.sdk.kassa.payments.model.getUserAgreementAgentSchemeUrl
 import ru.yoomoney.sdk.kassa.payments.payment.GetLoadedPaymentOptionListRepository
 import ru.yoomoney.sdk.kassa.payments.payment.selectOption.SelectedPaymentMethodOutputModel
 import ru.yoomoney.sdk.kassa.payments.payment.tokenize.TokenizeInputModel
@@ -63,7 +65,8 @@ internal class ContractBusinessLogic(
     private val loadedPaymentOptionListRepository: GetLoadedPaymentOptionListRepository,
     private val userAuthInfoRepository: UserAuthInfoRepository,
     private val shopPropertiesRepository: ShopPropertiesRepository,
-    private val configRepository: ConfigRepository
+    private val configRepository: ConfigRepository,
+    private val defaultAgentSchemeUserAgreementUrl: String
 ) : Logic<State, Action> {
 
     override fun invoke(state: State, action: Action): Out<State, Action> = when (state) {
@@ -220,7 +223,7 @@ internal class ContractBusinessLogic(
             isSplitPayment = isSplitPayment,
             customerId = paymentParameters.customerId,
             savePaymentMethodOptionTexts = configRepository.getConfig().savePaymentMethodOptionTexts,
-            userAgreementUrl = configRepository.getConfig().userAgreementUrl
+            userAgreementUrl = getUserAgreementUrl()
         )
         return when (outputModel.paymentOption) {
             is GooglePay -> {
@@ -273,22 +276,39 @@ internal class ContractBusinessLogic(
             is AbstractWallet -> ContractInfo.AbstractWalletContractInfo(paymentOption)
         }
     }
+
+    private fun getUserAgreementUrl(): String {
+        val agentSchemeProviderAgreement = configRepository.getConfig().agentSchemeProviderAgreement
+        return when {
+            agentSchemeProviderAgreement != null -> {
+                shopPropertiesRepository.shopProperties.getUserAgreementAgentSchemeUrl(
+                    agentSchemeProviderAgreement,
+                    defaultAgentSchemeUserAgreementUrl,
+                    configRepository.getConfig().userAgreementUrl
+                )
+            }
+            else -> configRepository.getConfig().userAgreementUrl
+        }
+    }
 }
 
-private fun State.Content.getTokenizeInputModel(paymentOptionInfo: PaymentOptionInfo?): TokenizeInputModel {
+private fun State.Content.getTokenizeInputModel(
+    paymentOptionInfo: PaymentOptionInfo?,
+): TokenizeInputModel {
     return TokenizePaymentOptionInputModel(
         paymentOptionId = contractInfo.paymentOption.id,
         savePaymentMethod = shouldSavePaymentMethod,
         savePaymentInstrument = shouldSavePaymentInstrument,
         confirmation = confirmation,
         paymentOptionInfo = paymentOptionInfo,
-        allowWalletLinking = (contractInfo as? ContractInfo.WalletContractInfo)?.allowWalletLinking ?: false
+        allowWalletLinking = (contractInfo as? ContractInfo.WalletContractInfo)?.allowWalletLinking ?: false,
+        csc = if (paymentOptionInfo is LinkedCardInfo) paymentOptionInfo.csc else null,
     )
 }
 
 private fun State.Content.getTokenizeInputModel(
     instrumentBankCard: PaymentInstrumentBankCard,
-    csc: String?
+    csc: String?,
 ): TokenizeInputModel {
     return TokenizeInstrumentInputModel(
         paymentOptionId = contractInfo.paymentOption.id,

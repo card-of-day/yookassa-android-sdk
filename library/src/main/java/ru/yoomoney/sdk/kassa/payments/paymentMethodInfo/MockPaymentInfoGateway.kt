@@ -21,6 +21,7 @@
 
 package ru.yoomoney.sdk.kassa.payments.paymentMethodInfo
 
+import kotlinx.coroutines.delay
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentMethodType
 import ru.yoomoney.sdk.kassa.payments.model.CardBrand
 import ru.yoomoney.sdk.kassa.payments.model.CardInfo
@@ -29,8 +30,8 @@ import ru.yoomoney.sdk.kassa.payments.model.Result
 import ru.yoomoney.sdk.kassa.payments.payment.loadPaymentInfo.PaymentMethodInfoGateway
 
 internal class MockPaymentInfoGateway() : PaymentMethodInfoGateway {
-    override fun getPaymentMethodInfo(paymentMethodId: String): Result<PaymentMethodBankCard> {
-        Thread.sleep(1000L)
+    override suspend fun getPaymentMethodInfo(paymentMethodId: String): Result<PaymentMethodBankCard> {
+        delay(1000L)
         return Result.Success(PaymentMethodBankCard(
             type = PaymentMethodType.BANK_CARD,
             id = "11234567887654321",

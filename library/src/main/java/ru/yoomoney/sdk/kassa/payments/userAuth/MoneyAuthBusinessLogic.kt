@@ -100,6 +100,7 @@ internal class MoneyAuthBusinessLogic(
 
     private suspend fun authorized(action: MoneyAuth.Action.Authorized): MoneyAuth.Action {
         userAuthInfoRepository.userAuthToken = action.token
+        userAuthInfoRepository.userUid = action.userAccount?.uid
         userAuthInfoRepository.userAuthName = action.userAccount?.displayName?.title
         userAuthInfoRepository.userAvatarUrl = action.userAccount?.avatar?.url
         currentUserRepository.currentUser = AuthorizedUser()

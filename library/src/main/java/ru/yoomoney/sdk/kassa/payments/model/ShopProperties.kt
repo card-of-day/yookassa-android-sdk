@@ -23,7 +23,18 @@ package ru.yoomoney.sdk.kassa.payments.model
 
 internal data class ShopProperties(
     val isSafeDeal: Boolean,
-    val isMarketplace: Boolean
+    val isMarketplace: Boolean,
+    val agentSchemeData: String?,
 )
 
 internal val ShopProperties.isSplitPayment get() = isSafeDeal || isMarketplace
+
+internal fun ShopProperties.getUserAgreementAgentSchemeUrl(
+    configUserAgreementUrl: Map<String, String>,
+    defaultAgentSchemeProviderAgreement: String,
+    defaultUserAgreementUrl: String
+): String = if (agentSchemeData != null) {
+    configUserAgreementUrl[agentSchemeData] ?: defaultAgentSchemeProviderAgreement
+} else {
+    defaultUserAgreementUrl
+}

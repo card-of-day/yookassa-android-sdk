@@ -22,6 +22,7 @@
 package ru.yoomoney.sdk.kassa.payments.userAuth
 
 internal interface UserAuthInfoRepository {
+    var userUid: String?
     var userAuthToken: String?
     var userAuthName: String?
     var userAvatarUrl: String?

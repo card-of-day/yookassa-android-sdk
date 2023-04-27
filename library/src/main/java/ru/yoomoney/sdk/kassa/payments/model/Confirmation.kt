@@ -28,9 +28,6 @@ import kotlinx.android.parcel.Parcelize
 internal sealed class Confirmation: Parcelable
 
 @Parcelize
-internal object NoConfirmation : Confirmation()
-
-@Parcelize
 internal object ExternalConfirmation : Confirmation()
 
 @Parcelize

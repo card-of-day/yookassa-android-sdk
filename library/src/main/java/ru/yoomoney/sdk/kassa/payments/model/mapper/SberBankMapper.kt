@@ -46,13 +46,13 @@ import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionSber
 import ru.yoomoney.sdk.kassa.payments.model.ConfigPaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.SberBank
 
-internal fun PaymentOptionSberbank.map(id: Int, configPaymentOption: ConfigPaymentOption) = SberBank(
+internal fun PaymentOptionSberbank.mapToSberBankModel(id: Int, configPaymentOption: ConfigPaymentOption) = SberBank(
     id = id,
-    charge = charge.map(),
-    fee = fee?.map(),
+    charge = charge.mapToAmountModel(),
+    fee = fee?.mapToFeeModel(),
     icon = configPaymentOption.iconUrl,
     title = configPaymentOption.title,
     savePaymentMethodAllowed = savePaymentMethod.isAllowed(),
-    confirmationTypes = confirmationTypes?.map { it.map() } ?: emptyList(),
+    confirmationTypes = confirmationTypes?.map { it.mapToConformationModel() } ?: emptyList(),
     savePaymentInstrument = savePaymentInstrument
 )

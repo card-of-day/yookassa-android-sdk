@@ -39,11 +39,11 @@ import javax.net.ssl.X509TrustManager
 
 private const val DEFAULT_TIMEOUT: Long = 30
 
-internal fun newHttpClient(
+private fun baseHttpClientBuilder(
     context: Context,
     showLogs: Boolean,
     isDevHost: Boolean
-): OkHttpClient = OkHttpClient.Builder()
+): OkHttpClient.Builder = OkHttpClient.Builder()
     .readTimeout(DEFAULT_TIMEOUT, TimeUnit.SECONDS)
     .connectTimeout(DEFAULT_TIMEOUT, TimeUnit.SECONDS)
     .connectionPool(ConnectionPool(4, 10L, TimeUnit.MINUTES))
@@ -52,26 +52,75 @@ internal fun newHttpClient(
     .applySsl(context, isDevHost)
     .addUserAgent(context)
     .applyLogging(context, showLogs)
-    .build()
+
+internal fun newHttpClient(
+    context: Context,
+    showLogs: Boolean,
+    isDevHost: Boolean
+): OkHttpClient = baseHttpClientBuilder(context, showLogs, isDevHost).build()
 
 internal fun newAuthorizedHttpClient(
     context: Context,
     showLogs: Boolean,
     isDevHost: Boolean,
     shopToken: String,
-    tokensStorage: TokensStorage
-) = OkHttpClient.Builder()
-    .readTimeout(DEFAULT_TIMEOUT, TimeUnit.SECONDS)
-    .connectTimeout(DEFAULT_TIMEOUT, TimeUnit.SECONDS)
-    .connectionPool(ConnectionPool(4, 10L, TimeUnit.MINUTES))
-    .followSslRedirects(false)
-    .followRedirects(false)
-    .applySsl(context, isDevHost)
-    .addUserAgent(context)
-    .applyLogging(context, showLogs)
+    tokensStorage: TokensStorage,
+): OkHttpClient = baseHttpClientBuilder(context, showLogs, isDevHost)
     .applyAuthorization(shopToken)
     .applyPassportAuthorization(tokensStorage)
     .build()
+
+internal fun authPaymentsHttpClient(
+    context: Context,
+    showLogs: Boolean,
+    isDevHost: Boolean,
+    shopToken: String,
+    tokensStorage: TokensStorage,
+):  OkHttpClient = baseHttpClientBuilder(context, showLogs, isDevHost)
+    .addUserAgent(context)
+    .applyRequestType()
+    .applyXForwardedFor()
+    .applyMerchantClientAuthorization(shopToken)
+    .applyPaymentsAuthorization(tokensStorage)
+    .build()
+
+private fun OkHttpClient.Builder.applyRequestType() =
+    addInterceptor { chain ->
+        val request = chain.request()
+            .newBuilder()
+            .header("Content-Type", "application/json")
+            .build()
+        chain.proceed(request)
+
+    }
+
+private fun OkHttpClient.Builder.applyXForwardedFor() =
+    addInterceptor { chain ->
+        val request = chain.request()
+            .newBuilder()
+            .header("X-Forwarded-For", "127.0.0.1")
+            .build()
+        chain.proceed(request)
+
+    }
+
+private fun OkHttpClient.Builder.applyMerchantClientAuthorization(shopToken: String) =
+    addInterceptor { chain ->
+        val request = chain.request()
+            .newBuilder()
+            .header("Merchant-Client-Authorization", Credentials.basic(shopToken, ""))
+            .build()
+        chain.proceed(request)
+
+    }
+
+private fun OkHttpClient.Builder.applyPaymentsAuthorization(tokensStorage: TokensStorage) = addInterceptor { chain ->
+    val request = chain.request()
+        .newBuilder()
+        .header("Authorization", tokensStorage.userAuthToken?.createBearerHeader() ?: "")
+        .build()
+    chain.proceed(request)
+}
 
 private fun OkHttpClient.Builder.applyAuthorization(shopToken: String) = addInterceptor { chain ->
     val request = chain.request()
@@ -82,7 +131,7 @@ private fun OkHttpClient.Builder.applyAuthorization(shopToken: String) = addInte
 }
 
 private fun OkHttpClient.Builder.applyPassportAuthorization(
-    tokensStorage: TokensStorage
+    tokensStorage: TokensStorage,
 ) = addInterceptor { chain ->
     val userAuthToken: String? =
         if (!tokensStorage.passportAuthToken.isNullOrEmpty() && !tokensStorage.paymentAuthToken.isNullOrEmpty()) {
@@ -124,27 +173,27 @@ private fun getSSLSocketFactoryAndInit(trustManager: X509TrustManager) =
     SSLContext.getInstance("SSL").apply { init(null, arrayOf(trustManager), SecureRandom()) }.socketFactory
 
 private val debugTrustManager = (
-    object : X509TrustManager {
+        object : X509TrustManager {
 
-        @SuppressLint("TrustAllX509TrustManager")
-        override fun checkClientTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {
-            // does nothing
+            @SuppressLint("TrustAllX509TrustManager")
+            override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) {
+                // does nothing
+            }
+
+            @SuppressLint("TrustAllX509TrustManager")
+            override fun checkServerTrusted(chain: Array<X509Certificate>, authType: String) {
+                // does nothing
+            }
+
+            override fun getAcceptedIssuers(): Array<X509Certificate> {
+                return arrayOf()
+            }
+
+            // Called reflectively by X509TrustManagerExtensions.
+            fun checkServerTrusted(chain: Array<X509Certificate>, authType: String, host: String) =
+                Unit
         }
-
-        @SuppressLint("TrustAllX509TrustManager")
-        override fun checkServerTrusted(chain: Array<java.security.cert.X509Certificate>, authType: String) {
-            // does nothing
-        }
-
-        override fun getAcceptedIssuers(): Array<java.security.cert.X509Certificate> {
-            return arrayOf()
-        }
-
-        // Called reflectively by X509TrustManagerExtensions.
-        fun checkServerTrusted(chain: Array<X509Certificate>, authType: String, host: String) =
-            Unit
-    }
-    )
+        )
 
 internal fun getTrustManager(context: Context, isDebug: Boolean): X509TrustManager =
     if (isDebug) debugTrustManager else PinningHelper.getInstance(context).trustManager

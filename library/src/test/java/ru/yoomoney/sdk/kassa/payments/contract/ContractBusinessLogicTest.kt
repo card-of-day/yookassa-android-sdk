@@ -197,10 +197,15 @@ internal class ContractBusinessLogicTest(
         },
         loadedPaymentOptionListRepository = mock(),
         shopPropertiesRepository = object: ShopPropertiesRepository{
-            override var shopProperties: ShopProperties = ShopProperties(isSafeDeal = true, isMarketplace = true)
+            override var shopProperties: ShopProperties = ShopProperties(
+                isSafeDeal = true,
+                isMarketplace = true,
+                null
+            )
         },
         userAuthInfoRepository = mock(),
-        configRepository = configRepository
+        configRepository = configRepository,
+        defaultAgentSchemeUserAgreementUrl = "defaultUserAgreementUrl"
     )
 
     @Test

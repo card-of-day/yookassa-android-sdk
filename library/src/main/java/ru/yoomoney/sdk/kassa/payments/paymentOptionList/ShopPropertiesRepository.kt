@@ -28,5 +28,5 @@ internal interface ShopPropertiesRepository {
 }
 
 internal class ShopPropertiesRepositoryImpl : ShopPropertiesRepository {
-    override var shopProperties: ShopProperties = ShopProperties(false, false)
+    override var shopProperties: ShopProperties = ShopProperties(false, false, null)
 }

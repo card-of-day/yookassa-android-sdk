@@ -25,5 +25,5 @@ import ru.yoomoney.sdk.kassa.payments.model.AuthTypeState
 import ru.yoomoney.sdk.kassa.payments.model.Result
 
 internal interface SmsSessionRetryRepository {
-    fun retrySmsSession(): Result<AuthTypeState>
+    suspend fun retrySmsSession(): Result<AuthTypeState>
 }

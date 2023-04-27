@@ -31,9 +31,12 @@
 -keep class androidx.lifecycle.YooKassaKeyedFactory { *; }
 -keep class androidx.lifecycle.ViewModelKeyedFactory { *; }
 -keep class androidx.lifecycle.YooKassaViewModelProvider { *; }
+-keep class ru.yoomoney.sdk.kassa.payments.utils.WebTrustManagerImpl { *; }
+-keep class ru.yoomoney.sdk.kassa.payments.utils.WebTrustManager { *; }
 
 -keeppackagenames ru.yoomoney.sdk.kassa.payments.**
 -keeppackagenames ru.yoomoney.sdk.kassa.payments
+-keeppackagenames com.group_ib.sdk
 
 -keep class ru.yoomoney.sdk.yooprofiler.* { *; }
 
@@ -55,8 +58,11 @@
 -dontwarn sun.misc.**
 #-keep class com.google.gson.stream.** { *; }
 
-# Kepp API models for Jackson
+# Keep API models for Jackson
 -keep class ru.yoomoney.sdk.kassa.payments.api.model.** { *; }
+-keep class ru.yoomoney.sdk.kassa.payments.model.Config { *; }
+-keep class ru.yoomoney.sdk.kassa.payments.model.ConfigPaymentOption { *; }
+-keep class ru.yoomoney.sdk.kassa.payments.model.SavePaymentMethodOptionTexts { *; }
 -keep class retrofit2.converter.jackson.ResultJacksonResponseBodyConverter { *; }
 -keep class ru.yoomoney.sdk.kassa.payments.api.YooKassaJacksonConverterFactory { *; }
 -keep class ru.yoomoney.sdk.kassa.payments.api.JacksonBaseObjectMapperKt { *; }

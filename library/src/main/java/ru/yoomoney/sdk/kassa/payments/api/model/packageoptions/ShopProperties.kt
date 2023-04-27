@@ -29,5 +29,13 @@ data class ShopProperties(
     val isSafeDeal: Boolean,
 
     @JsonProperty("is_marketplace")
-    val isMarketplace: Boolean
+    val isMarketplace: Boolean,
+
+    @JsonProperty("agent_scheme_data")
+    val agentSchemeData: AgentSchemeData?
+)
+
+data class AgentSchemeData(
+    @JsonProperty("provider_name")
+    val providerName: String
 )

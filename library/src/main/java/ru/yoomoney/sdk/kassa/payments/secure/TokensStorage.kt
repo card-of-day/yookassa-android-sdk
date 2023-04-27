@@ -32,6 +32,7 @@ private const val KEY_YOO_USER_AUTH_TOKEN = "yooUserAuthToken"
 private const val KEY_YOO_USER_AUTH_NAME = "yooUserAuthName"
 private const val KEY_YOO_USER_AVATAR_URL = "yooUserAvatarUrl"
 private const val KEY_YOO_USER_IS_REMEMBER = "isYooUserRemember"
+private const val KEY_YOO_USER_UID = "yooUserUID"
 private const val KEY_PAYMENT_AUTH_TOKEN = "paymentAuthToken"
 
 internal class TokensStorage(
@@ -89,6 +90,12 @@ internal class TokensStorage(
         get() = preferences.getBoolean(KEY_YOO_USER_IS_REMEMBER, false)
         set(value) {
             preferences[KEY_YOO_USER_IS_REMEMBER] = value
+        }
+
+    override var userUid: String?
+        get() = preferences.getString(KEY_YOO_USER_UID, null)
+        set(value) {
+            preferences[KEY_YOO_USER_UID] = value
         }
 
     override val isPaymentAuthPersisted: Boolean
