@@ -5,6 +5,10 @@
 ### NEXT_VERSION_DESCRIPTION_BEGIN
 ### NEXT_VERSION_DESCRIPTION_END
 
+## [6.6.1] (12-05-2023)
+
+- Fix crash at the start of the library on Android 8
+
 ## [6.6.0] (27-04-2023)
 
 - add payment agent information

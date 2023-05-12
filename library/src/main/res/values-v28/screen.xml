@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   ~ The MIT License (MIT)
-  ~ Copyright © 2020 NBCO YooMoney LLC
+  ~ Copyright © 2023 NBCO YooMoney LLC
   ~
   ~ Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
   ~ associated documentation files (the “Software”), to deal in the Software without restriction, including
@@ -21,16 +21,6 @@
   -->
 
 <resources>
-    <bool name="ym_isTablet">false</bool>
-    <!-- -1px == match_parent -->
-    <dimen name="ym_dialogWidth">-1px</dimen>
-    <!-- -2px == wrap_content -->
-    <dimen name="ym_dialogHeight">-2px</dimen>
-    <!-- -2px == wrap_content -->
-    <dimen name="ym_payment_options_container_height">-2px</dimen>
-    <dimen name="ym_bottomDialog_contract_view_height">400dp</dimen>
-    <dimen name="ym_informer_linked_card_height">150dp</dimen>
-    <dimen name="ym_informer_wallet_linked_card_height">106dp</dimen>
-    <bool name="ym_windowIsFloating">false</bool>
-    <bool name="ym_windowIsTranslucent">false</bool>
+    <bool name="ym_windowIsFloating">true</bool>
+    <bool name="ym_windowIsTranslucent">true</bool>
 </resources>
