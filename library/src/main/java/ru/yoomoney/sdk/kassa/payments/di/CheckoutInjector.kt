@@ -42,7 +42,6 @@ import ru.yoomoney.sdk.kassa.payments.model.UnhandledException
 import ru.yoomoney.sdk.kassa.payments.userAuth.MoneyAuthFragment
 import ru.yoomoney.sdk.kassa.payments.paymentOptionList.PaymentOptionListFragment
 import ru.yoomoney.sdk.kassa.payments.tokenize.TokenizeFragment
-import ru.yoomoney.sdk.kassa.payments.ui.ConfirmationActivity
 import ru.yoomoney.sdk.kassa.payments.ui.view.BankCardView
 import ru.yoomoney.sdk.kassa.payments.unbind.UnbindCardFragment
 import ru.yoomoney.sdk.kassa.payments.utils.getAllPaymentMethods
@@ -164,9 +163,5 @@ internal object CheckoutInjector {
 
     fun inject(bankCardView: BankCardView) {
         component.inject(bankCardView)
-    }
-
-    fun inject(activity: ConfirmationActivity) {
-        component.inject(activity)
     }
 }

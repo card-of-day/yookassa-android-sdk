@@ -86,8 +86,6 @@ internal interface CheckoutActivityComponent {
 
     fun inject(moneyAuthFragment: MoneyAuthFragment)
 
-    fun inject(activity: ConfirmationActivity)
-
     fun inject(bankCardView: BankCardView)
 
     @Component.Builder

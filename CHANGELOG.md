@@ -5,6 +5,10 @@
 ### NEXT_VERSION_DESCRIPTION_BEGIN
 ### NEXT_VERSION_DESCRIPTION_END
 
+## [6.6.2] (05-06-2023)
+
+- Fix crash at the start of the confirmation process
+
 ## [6.6.1] (12-05-2023)
 
 - Fix crash at the start of the library on Android 8
@@ -132,7 +136,7 @@
 ### 4.0.0
 2020-10-20
 - Replace appcompat libraries with androidx
-- Replace YandexAuthSdk with YooMoney auth-sdk 
+- Replace YandexAuthSdk with YooMoney auth-sdk
 
 ### 3.0.4
 2020-07-24
