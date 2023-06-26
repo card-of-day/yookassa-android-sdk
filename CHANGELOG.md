@@ -5,6 +5,10 @@
 ### NEXT_VERSION_DESCRIPTION_BEGIN
 ### NEXT_VERSION_DESCRIPTION_END
 
+## [6.6.3] (26-06-2023)
+
+- Update UI and Auth libraries
+
 ## [6.6.2] (05-06-2023)
 
 - Fix crash at the start of the confirmation process
