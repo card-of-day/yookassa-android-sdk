@@ -44,3 +44,20 @@ internal fun Fragment.changeViewWithAnimation(view: ViewGroup, changeView: () ->
     }
     view.animateHeightChange(changeView).start()
 }
+
+internal fun Fragment.changeViewWithMobileAnimation(view: ViewGroup, changeView: () -> Unit) {
+    if (!isResumed) {
+        changeView()
+        return
+    }
+    if (isTablet) return
+    view.animateHeightChange(changeView).start()
+}
+
+internal fun Fragment.changeHeightWithMobileAnimation(view: ViewGroup, heightBefore: Int, heightAfter: Int) {
+    if (!isResumed) {
+        return
+    }
+    if (isTablet) return
+    view.getHeightValueAnimator(heightBefore, heightAfter).start()
+}

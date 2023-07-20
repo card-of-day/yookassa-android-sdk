@@ -25,6 +25,7 @@ package ru.yoomoney.sdk.kassa.payments.extensions
 
 import android.content.Context
 import android.graphics.drawable.InsetDrawable
+import android.util.Log
 import androidx.appcompat.content.res.AppCompatResources
 import ru.yoomoney.sdk.kassa.payments.R
 import ru.yoomoney.sdk.kassa.payments.metrics.TokenizeSchemeBankCard
@@ -33,27 +34,31 @@ import ru.yoomoney.sdk.kassa.payments.metrics.TokenizeSchemeLinkedCard
 import ru.yoomoney.sdk.kassa.payments.metrics.TokenizeSchemeLinkedToShopCard
 import ru.yoomoney.sdk.kassa.payments.metrics.TokenizeSchemeLinkedToShopCardWithCvc
 import ru.yoomoney.sdk.kassa.payments.metrics.TokenizeSchemeRecurring
+import ru.yoomoney.sdk.kassa.payments.metrics.TokenizeSchemeSBP
 import ru.yoomoney.sdk.kassa.payments.metrics.TokenizeSchemeSberPay
 import ru.yoomoney.sdk.kassa.payments.metrics.TokenizeSchemeSbolSms
 import ru.yoomoney.sdk.kassa.payments.metrics.TokenizeSchemeWallet
 import ru.yoomoney.sdk.kassa.payments.model.AbstractWallet
+import ru.yoomoney.sdk.kassa.payments.model.BankCardPaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.Confirmation
 import ru.yoomoney.sdk.kassa.payments.model.ExternalConfirmation
 import ru.yoomoney.sdk.kassa.payments.model.GooglePay
 import ru.yoomoney.sdk.kassa.payments.model.LinkedCard
 import ru.yoomoney.sdk.kassa.payments.model.MobileApplication
-import ru.yoomoney.sdk.kassa.payments.model.BankCardPaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.PaymentIdCscConfirmation
 import ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.RedirectConfirmation
+import ru.yoomoney.sdk.kassa.payments.model.SBP
 import ru.yoomoney.sdk.kassa.payments.model.SberBank
 import ru.yoomoney.sdk.kassa.payments.model.Wallet
 import ru.yoomoney.sdk.kassa.payments.model.YooMoney
-import ru.yoomoney.sdk.kassa.payments.ui.view.cropToCircle
 import ru.yoomoney.sdk.kassa.payments.utils.INVOICING_AUTHORITY
 import ru.yoomoney.sdk.kassa.payments.utils.SBERPAY_PATH
+import ru.yoomoney.sdk.kassa.payments.utils.SBP_PATH
 import ru.yoomoney.sdk.kassa.payments.utils.getBankOrBrandLogo
+
+private val TAG = PaymentOption::class.java.simpleName
 
 internal fun PaymentOption.getPlaceholderIcon(context: Context) = checkNotNull(
     when (this) {
@@ -70,6 +75,7 @@ internal fun PaymentOption.getPlaceholderIcon(context: Context) = checkNotNull(
         }
         is SberBank -> AppCompatResources.getDrawable(context, R.drawable.ym_ic_sberbank)
         is GooglePay -> AppCompatResources.getDrawable(context, R.drawable.ym_ic_google_pay)
+        is SBP -> AppCompatResources.getDrawable(context, R.drawable.ym_ic_sbp)
     }
 ) { "icon not found for $this" }
 
@@ -81,6 +87,7 @@ internal fun PaymentOption.getPlaceholderTitle(context: Context): CharSequence =
     is SberBank -> context.getText(R.string.ym_sberbank)
     is GooglePay -> context.getText(R.string.ym_payment_option_google_pay)
     is PaymentIdCscConfirmation -> context.getText(R.string.ym_saved_card)
+    is SBP -> context.getText(R.string.ym_sbp)
 }
 
 internal fun PaymentOption.getAdditionalInfo(context: Context): CharSequence? {
@@ -106,6 +113,7 @@ internal fun PaymentOption.toTokenizeScheme(
     }
     is GooglePay -> TokenizeSchemeGooglePay()
     is PaymentIdCscConfirmation -> TokenizeSchemeRecurring()
+    is SBP -> TokenizeSchemeSBP()
 }
 
 private fun getTokenizeSchemeLinkedCard(paymentInstrumentBankCard: PaymentInstrumentBankCard?) = when {
@@ -121,13 +129,25 @@ internal fun PaymentOption.getConfirmation(
     sberbankPackage: String
 ): Confirmation {
     return when (this) {
-        is YooMoney, is BankCardPaymentOption, is GooglePay, is PaymentIdCscConfirmation -> RedirectConfirmation(
-            returnUrl
-        )
+        is YooMoney, is BankCardPaymentOption, is GooglePay, is PaymentIdCscConfirmation -> {
+            RedirectConfirmation(
+                returnUrl
+            )
+        }
         is SberBank -> if (canPayWithSberPay(context, sberbankPackage)) {
             MobileApplication("$appScheme://$INVOICING_AUTHORITY/$SBERPAY_PATH")
         } else {
             ExternalConfirmation
+        }
+        is SBP -> {
+            if (appScheme.isNullOrEmpty()) {
+                Log.d(
+                    TAG,
+                    "Note that you didn't specify a parameter ym_app_scheme\n" +
+                            "There will be no return to your application"
+                )
+            }
+            MobileApplication("$appScheme://$SBP_PATH")
         }
     }
 }

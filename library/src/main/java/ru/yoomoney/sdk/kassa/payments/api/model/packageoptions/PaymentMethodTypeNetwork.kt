@@ -38,6 +38,9 @@ internal enum class PaymentMethodTypeNetwork(val value: String) {
     @JsonProperty("sberbank")
     SBERBANK("sberbank"),
 
+    @JsonProperty("sbp")
+    SBP("sbp"),
+
     @JsonEnumDefaultValue
     UNKNOWN("")
 }

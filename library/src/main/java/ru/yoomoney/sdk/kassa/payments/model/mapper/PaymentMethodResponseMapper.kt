@@ -51,6 +51,7 @@ private fun PaymentMethodBankCardResponse.mapToPaymentMethodBankCard(): PaymentM
         PaymentMethodTypeNetwork.GOOGLE_PAY -> PaymentMethodType.GOOGLE_PAY
         PaymentMethodTypeNetwork.SBERBANK -> PaymentMethodType.SBERBANK
         PaymentMethodTypeNetwork.YOO_MONEY -> PaymentMethodType.YOO_MONEY
+        PaymentMethodTypeNetwork.SBP -> PaymentMethodType.SBP
         else -> {
             throw IllegalAccessError("")
         }

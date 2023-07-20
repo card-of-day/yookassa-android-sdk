@@ -33,7 +33,3 @@ internal fun Int.highlight(): Int {
     }
     return ColorUtils.HSLToColor(hsl)
 }
-
-internal fun Int.isLightColor(): Boolean {
-    return ColorUtils.calculateLuminance(this) > 0.5
-}

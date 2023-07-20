@@ -21,6 +21,11 @@
       "method": "google_pay",
       "title": "Google Pay",
       "iconUrl": "https://static.yoomoney.ru/mobile-app-content-front/msdk/payment-options/v1/ym_ic_google_pay.png"
+    },
+    {
+      "method": "sbp",
+      "title": "СБП",
+      "iconUrl": "https://static.yoomoney.ru/mobile-app-content-front/msdk/payment-options/v1/ym_ic_sbp.png"
     }
   ],
   "savePaymentMethodOptionTexts": {

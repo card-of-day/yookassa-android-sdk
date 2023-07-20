@@ -22,6 +22,7 @@
 package ru.yoomoney.sdk.kassa.payments.ui
 
 import android.animation.ValueAnimator
+import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import androidx.core.animation.doOnCancel
@@ -32,6 +33,10 @@ internal fun ViewGroup.animateHeightChange(changeView: () -> Unit): ValueAnimato
     val heightBefore = getViewHeight()
     changeView()
     val heightAfter = getViewHeight()
+    return getHeightValueAnimator(heightBefore, heightAfter)
+}
+
+internal fun View.getHeightValueAnimator(heightBefore: Int, heightAfter: Int): ValueAnimator {
     return ValueAnimator.ofInt(heightBefore, heightAfter).apply {
         addUpdateListener { animation ->
             updateLayoutParams<ViewGroup.LayoutParams> {

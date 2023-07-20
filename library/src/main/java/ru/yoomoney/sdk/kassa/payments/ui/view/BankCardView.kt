@@ -167,7 +167,7 @@ internal class BankCardView
     private var mode = Mode.EDIT
 
     init {
-        CheckoutInjector.inject(this)
+        CheckoutInjector.injectBankCardView(this)
         View.inflate(context, R.layout.ym_bank_card_view, this)
 
         duration = resources.getInteger(android.R.integer.config_shortAnimTime).toLong()

@@ -106,10 +106,10 @@ internal class SuspendResultCallAdapterFactory(
                         Response.success(Result.success(body))
                     )
                 } else {
-                    val throwable = apiErrorMapper.map(response)
+                    val exception = apiErrorMapper.map(response)
                     callback.onResponse(
                         this@CatchingCall,
-                        Response.success(Result.failure<Any>(throwable))
+                        Response.success(Result.failure<Any>(exception))
                     )
                 }
             }

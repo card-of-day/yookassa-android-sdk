@@ -18,16 +18,16 @@
   ~ OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
   ~ OTHER DEALINGS IN THE SOFTWARE.
   -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ViewAnimator
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rootContainer"
     android:layout_width="@dimen/ym_dialogWidth"
-    android:layout_height="3dp"
+    android:layout_height="wrap_content"
+    tools:layout_width="match_parent"
     android:measureAllChildren="false"
-    android:orientation="vertical"
-    android:transitionName="@string/ym_transition_name"
-    tools:layout_width="match_parent">
+    android:transitionName="@string/ym_transition_name">
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/contractScrollView"
@@ -73,4 +73,4 @@
 
     </androidx.core.widget.NestedScrollView>
 
-</LinearLayout>
+</ViewAnimator>

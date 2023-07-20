@@ -19,31 +19,59 @@
   ~ OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
   ~ OTHER DEALINGS IN THE SOFTWARE.
   -->
-
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="center_vertical"
-    android:orientation="vertical"
-    android:padding="@dimen/ym_space_m">
+    android:paddingStart="@dimen/ym_spaceM"
+    android:paddingEnd="@dimen/ym_spaceM">
+
+    <ImageView
+        android:id="@+id/icon"
+        android:layout_width="@dimen/empty_state_icon_big_size"
+        android:layout_height="@dimen/empty_state_icon_big_size"
+        android:layout_marginBottom="@dimen/ym_spaceL"
+        android:contentDescription="@null"
+        android:src="@drawable/ym_ic_fail"
+        app:layout_constraintBottom_toTopOf="@id/title"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:tint="@color/color_type_secondary"/>
+
+    <ru.yoomoney.sdk.gui.widget.text.TextTitle2View
+        android:id="@+id/title"
+        style="@style/Text.Title2.Center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/ym_space4XL"
+        android:layout_marginEnd="@dimen/ym_space4XL"
+        android:text="@string/ym_error_screen_title"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
 
     <ru.yoomoney.sdk.gui.widget.text.TextBodyView
-        android:id="@+id/textView"
-        style="@style/Text.Body.Secondary"
-        android:layout_width="match_parent"
+        android:id="@+id/message"
+        style="@style/Text.Body.Secondary.Center"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:drawablePadding="@dimen/ym_iconPlusText_iconMargin_xl"
-        android:gravity="center"
-        tools:text="Проблема с интернетом. Попробуйте ещё раз, когда будете онлайн"/>
+        android:layout_marginStart="@dimen/ym_space4XL"
+        android:layout_marginTop="@dimen/ym_spaceXS"
+        android:layout_marginEnd="@dimen/ym_space4XL"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title"
+        tools:text="Описание ошибки"/>
 
-    <ru.yoomoney.sdk.kassa.payments.ui.FlatButtonView
+    <ru.yoomoney.sdk.gui.widget.button.FlatButtonView
         android:id="@+id/button"
-        android:textAllCaps="true"
-        android:layout_marginTop="@dimen/ym_decor_marginTop_xl"
-        android:gravity="center_horizontal"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:ym_text="Повторить попытку"/>
-</LinearLayout>
+        android:layout_marginTop="@dimen/ym_spaceS"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/message"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

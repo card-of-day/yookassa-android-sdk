@@ -28,6 +28,7 @@
 
     <declare-styleable name="ym_ErrorView">
         <attr name="ym_error_text" format="reference|string"/>
+        <attr name="ym_error_title" format="reference|string"/>
         <attr name="ym_error_button_text" format="reference|string"/>
     </declare-styleable>
 

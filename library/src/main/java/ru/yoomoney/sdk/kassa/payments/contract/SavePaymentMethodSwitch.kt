@@ -47,19 +47,9 @@ internal fun Contract.State.Content.getSavePaymentMethodOption(): SavePaymentMet
     val isBindAllowed = contractInfo.paymentOption.savePaymentInstrument && !customerId.isNullOrBlank()
     val isRecurrentAllowed = contractInfo.paymentOption.savePaymentMethodAllowed
     return when(contractInfo) {
-        is ContractInfo.WalletContractInfo -> SavePaymentMethodOption.None
-        is ContractInfo.WalletLinkedCardContractInfo -> SavePaymentMethodOption.None
-        is ContractInfo.AbstractWalletContractInfo -> SavePaymentMethodOption.None
-        is ContractInfo.SberBankContractInfo -> getSberPaySavePaymentOption(
-            savePaymentMethod = savePaymentMethod,
-            savePaymentMethodOptionTexts = savePaymentMethodOptionTexts,
-            isRecurrentAllowed = isRecurrentAllowed
-        )
-        is ContractInfo.LinkedBankCardContractInfo -> getLinkedBankCardSavePaymentOption(
-            savePaymentMethod = savePaymentMethod,
-            savePaymentMethodOptionTexts = savePaymentMethodOptionTexts,
-            isRecurrentAllowed = isRecurrentAllowed
-        )
+        is ContractInfo.WalletContractInfo,
+        is ContractInfo.WalletLinkedCardContractInfo,
+        is ContractInfo.AbstractWalletContractInfo,
         is ContractInfo.PaymentIdCscConfirmationContractInfo -> SavePaymentMethodOption.None
         is ContractInfo.NewBankCardContractInfo -> getNewBankCardSavePaymentOption(
             savePaymentMethod = savePaymentMethod,
@@ -67,40 +57,14 @@ internal fun Contract.State.Content.getSavePaymentMethodOption(): SavePaymentMet
             isBindAllowed = isBindAllowed,
             isRecurrentAllowed = isRecurrentAllowed
         )
-        is ContractInfo.GooglePayContractInfo -> getGooglePaySavePaymentOption(
+        is ContractInfo.GooglePayContractInfo,
+        is ContractInfo.SBPContractInfo,
+        is ContractInfo.LinkedBankCardContractInfo,
+        is ContractInfo.SberBankContractInfo-> getDefaultSavePaymentOption(
             savePaymentMethod = savePaymentMethod,
             savePaymentMethodOptionTexts = savePaymentMethodOptionTexts,
             isRecurrentAllowed = isRecurrentAllowed
         )
-    }
-}
-
-private fun getLinkedBankCardSavePaymentOption(
-    savePaymentMethod: SavePaymentMethod,
-    savePaymentMethodOptionTexts: SavePaymentMethodOptionTexts,
-    isRecurrentAllowed: Boolean
-): SavePaymentMethodOption {
-    return when(savePaymentMethod){
-        SavePaymentMethod.ON -> when {
-            isRecurrentAllowed -> SavePaymentMethodOption.MessageSavePaymentMethodOption(
-                title = savePaymentMethodOptionTexts.messageRecurrentOnBindOffTitle,
-                subtitle = savePaymentMethodOptionTexts.messageRecurrentOnBindOffSubtitle,
-                screenTitle = savePaymentMethodOptionTexts.screenRecurrentOnBindOffTitle,
-                screenText = savePaymentMethodOptionTexts.screenRecurrentOnBindOffText
-            )
-            else -> SavePaymentMethodOption.None
-        }
-        SavePaymentMethod.OFF -> SavePaymentMethodOption.None
-        SavePaymentMethod.USER_SELECTS -> when {
-            isRecurrentAllowed ->
-                SavePaymentMethodOption.SwitchSavePaymentMethodOption(
-                    title = savePaymentMethodOptionTexts.switchRecurrentOnBindOffTitle,
-                    subtitle = savePaymentMethodOptionTexts.switchRecurrentOnBindOffSubtitle,
-                    screenTitle = savePaymentMethodOptionTexts.screenRecurrentOnBindOffTitle,
-                    screenText = savePaymentMethodOptionTexts.screenRecurrentOnBindOffText
-                )
-            else -> SavePaymentMethodOption.None
-        }
     }
 }
 
@@ -166,36 +130,7 @@ private fun getNewBankCardSavePaymentOption(
     }
 }
 
-private fun getGooglePaySavePaymentOption(
-    savePaymentMethod: SavePaymentMethod,
-    savePaymentMethodOptionTexts: SavePaymentMethodOptionTexts,
-    isRecurrentAllowed: Boolean
-): SavePaymentMethodOption {
-    return when(savePaymentMethod){
-        SavePaymentMethod.ON -> when {
-            isRecurrentAllowed -> SavePaymentMethodOption.MessageSavePaymentMethodOption(
-                title = savePaymentMethodOptionTexts.messageRecurrentOnBindOffTitle,
-                subtitle = savePaymentMethodOptionTexts.messageRecurrentOnBindOffSubtitle,
-                screenTitle = savePaymentMethodOptionTexts.screenRecurrentOnBindOffTitle,
-                screenText = savePaymentMethodOptionTexts.screenRecurrentOnBindOffText
-            )
-            else -> SavePaymentMethodOption.None
-        }
-        SavePaymentMethod.USER_SELECTS -> when {
-            isRecurrentAllowed ->
-                SavePaymentMethodOption.SwitchSavePaymentMethodOption(
-                    title = savePaymentMethodOptionTexts.switchRecurrentOnBindOffTitle,
-                    subtitle = savePaymentMethodOptionTexts.switchRecurrentOnBindOffSubtitle,
-                    screenTitle = savePaymentMethodOptionTexts.screenRecurrentOnBindOffTitle,
-                    screenText = savePaymentMethodOptionTexts.screenRecurrentOnBindOffText
-                )
-            else -> SavePaymentMethodOption.None
-        }
-        else -> SavePaymentMethodOption.None
-    }
-}
-
-private fun getSberPaySavePaymentOption(
+private fun getDefaultSavePaymentOption(
     savePaymentMethod: SavePaymentMethod,
     savePaymentMethodOptionTexts: SavePaymentMethodOptionTexts,
     isRecurrentAllowed: Boolean

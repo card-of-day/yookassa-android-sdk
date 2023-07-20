@@ -22,6 +22,7 @@
 package ru.yoomoney.sdk.kassa.payments.model
 
 import ru.yoomoney.sdk.kassa.payments.api.jacksonBaseObjectMapper
+import ru.yoomoney.sdk.kassa.payments.checkoutParameters.HostParameters
 
 internal data class Config(
     val yooMoneyLogoUrlLight: String,
@@ -36,8 +37,18 @@ internal data class Config(
     val agentSchemeProviderAgreement: Map<String, String>?
 )
 
-internal fun String.toConfig(): Config =
-    jacksonBaseObjectMapper.readValue(this, Config::class.java)
+internal fun String.toConfig(hostParameters: HostParameters): Config {
+    val config = jacksonBaseObjectMapper.readValue(this, Config::class.java)
+    return if (hostParameters.isDevHost) {
+        return config.copy(
+            yooMoneyApiEndpoint = hostParameters.host,
+            yooMoneyPaymentAuthorizationApiEndpoint = hostParameters.paymentAuthorizationHost,
+            yooMoneyAuthApiEndpoint = hostParameters.authHost
+        )
+    } else {
+        config
+    }
+}
 
 internal fun Config.toJsonObject(): String =
     jacksonBaseObjectMapper.writeValueAsString(this)

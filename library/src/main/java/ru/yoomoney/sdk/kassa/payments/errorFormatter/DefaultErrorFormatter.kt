@@ -21,6 +21,7 @@
 
 package ru.yoomoney.sdk.kassa.payments.errorFormatter
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import ru.yoomoney.sdk.kassa.payments.R
 import ru.yoomoney.sdk.kassa.payments.model.ApiMethodException
@@ -34,6 +35,7 @@ internal open class DefaultErrorFormatter(private val context: Context): ErrorFo
             is NoInternetException -> context.getText(R.string.ym_error_no_internet)
             is PassphraseCheckFailedException -> context.getText(R.string.ym_wrong_passcode_error)
             is ApiMethodException -> formatApiMethodException(e)
+            is ActivityNotFoundException -> context.getText(R.string.ym_sbp_bank_not_found_message)
             else -> context.getText(R.string.ym_error_something_went_wrong)
         }
     }

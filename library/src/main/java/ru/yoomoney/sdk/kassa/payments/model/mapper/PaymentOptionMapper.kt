@@ -46,6 +46,7 @@ import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentInstrument
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionResponse
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionBankCard
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionGooglePay
+import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionSBP
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionSberbank
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.Unknown
 import ru.yoomoney.sdk.kassa.payments.model.ConfigPaymentOption
@@ -69,6 +70,12 @@ internal fun PaymentOptionResponse.mapToPaymentOption(
         }
         is PaymentOptionGooglePay -> {
             this.mapToGooglePayModel(
+                id,
+                configPaymentOptions.first { it.method == paymentMethodType.value }
+            )
+        }
+        is PaymentOptionSBP -> {
+            this.mapToSBPModel(
                 id,
                 configPaymentOptions.first { it.method == paymentMethodType.value }
             )

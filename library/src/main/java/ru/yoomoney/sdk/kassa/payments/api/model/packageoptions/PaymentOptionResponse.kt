@@ -236,4 +236,29 @@ internal data class PaymentOptionGooglePay(
     val paymentSystemsAllowed: BankCardType,
 ) : PaymentOptionResponse()
 
+internal data class PaymentOptionSBP(
+    @get:JsonProperty("payment_method_type")
+    @param:JsonProperty("payment_method_type")
+    val paymentMethodType: PaymentMethodTypeNetwork,
+
+    @get:JsonProperty("confirmation_types")
+    @param:JsonProperty("confirmation_types")
+    val confirmationTypes: List<ConfirmationType>?,
+
+    @JsonProperty("charge")
+    val charge: Amount,
+
+    @JsonProperty("fee")
+    val fee: Fee?,
+
+    @get:JsonProperty("save_payment_method")
+    @param:JsonProperty("save_payment_method")
+    val savePaymentMethod: SavePaymentMethod,
+
+    @get:JsonProperty("save_payment_instrument")
+    @param:JsonProperty("save_payment_instrument")
+    val savePaymentInstrument: Boolean
+
+) : PaymentOptionResponse()
+
 internal object Unknown : PaymentOptionResponse()

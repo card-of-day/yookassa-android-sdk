@@ -23,6 +23,7 @@ package ru.yoomoney.sdk.kassa.payments.config
 
 import android.content.SharedPreferences
 import ru.yoomoney.sdk.kassa.payments.api.config.ConfigRequestApi
+import ru.yoomoney.sdk.kassa.payments.checkoutParameters.HostParameters
 import ru.yoomoney.sdk.kassa.payments.metrics.ErrorLoggerReporter
 import ru.yoomoney.sdk.kassa.payments.model.Config
 import ru.yoomoney.sdk.kassa.payments.model.SdkException
@@ -34,6 +35,7 @@ import ru.yoomoney.sdk.kassa.payments.utils.getLanguage
 private const val CONFIG_FIELD_NAME = "config"
 
 internal class ApiConfigRepository(
+    private val hostParameters: HostParameters,
     private val getDefaultConfig: Config,
     private val configRequestApi: ConfigRequestApi,
     private val sp: SharedPreferences,
@@ -47,7 +49,7 @@ internal class ApiConfigRepository(
 
     get() = sp.getString(CONFIG_FIELD_NAME + "_${getLanguage()}", null)?.let {
         try {
-            it.toConfig()
+            it.toConfig(hostParameters)
         } catch (e: Throwable) {
             errorReporter.report(SdkException(e))
             getDefaultConfig

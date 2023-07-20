@@ -26,7 +26,7 @@ import android.content.res.Resources
 import android.util.SparseArray
 import ru.yoomoney.sdk.kassa.payments.R
 
-class SwipeConfig {
+internal class SwipeConfig {
     val animationDuration: Int
     val menuOpenThreshold: Int
     val menuOpenedWidth: Int

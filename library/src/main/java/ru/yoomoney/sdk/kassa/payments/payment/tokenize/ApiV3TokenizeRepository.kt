@@ -35,6 +35,7 @@ import ru.yoomoney.sdk.kassa.payments.model.PaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOptionInfo
 import ru.yoomoney.sdk.kassa.payments.model.PaymentTokenInfo
 import ru.yoomoney.sdk.kassa.payments.model.Result
+import ru.yoomoney.sdk.kassa.payments.model.SBP
 import ru.yoomoney.sdk.kassa.payments.model.SberBank
 import ru.yoomoney.sdk.kassa.payments.model.YooMoney
 import ru.yoomoney.sdk.kassa.payments.model.mapper.toPaymentTokenInfo
@@ -154,7 +155,7 @@ internal class ApiV3TokenizeRepository(
                 profilingSessionId = profilingSessionIdStorage.profilingSessionId
                 eventType = ProfileEventType.LOGIN
             }
-            is SberBank -> {
+            is SberBank, is SBP -> {
                 return "profilingSessionId"
             }
             else -> {

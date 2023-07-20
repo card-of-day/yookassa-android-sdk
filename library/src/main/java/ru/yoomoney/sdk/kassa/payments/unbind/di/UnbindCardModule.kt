@@ -27,6 +27,7 @@ import dagger.Provides
 import dagger.multibindings.IntoMap
 import ru.yoomoney.sdk.kassa.payments.api.PaymentsApi
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
+import ru.yoomoney.sdk.kassa.payments.di.scope.CheckoutScope
 import ru.yoomoney.sdk.kassa.payments.di.ViewModelKey
 import ru.yoomoney.sdk.kassa.payments.metrics.Reporter
 import ru.yoomoney.sdk.kassa.payments.payment.GetLoadedPaymentOptionListRepository
@@ -40,13 +41,12 @@ import ru.yoomoney.sdk.kassa.payments.unbind.UnbindCardUseCase
 import ru.yoomoney.sdk.kassa.payments.unbind.UnbindCardUseCaseImpl
 import ru.yoomoney.sdk.march.Out
 import ru.yoomoney.sdk.march.RuntimeViewModel
-import javax.inject.Singleton
 
 @Module
 internal class UnbindCardModule {
 
     @Provides
-    @Singleton
+    @CheckoutScope
     fun unbindCardMethodInfoGatewayProvider(
         testParameters: TestParameters,
         paymentsApi: PaymentsApi
@@ -59,7 +59,7 @@ internal class UnbindCardModule {
     }
 
     @Provides
-    @Singleton
+    @CheckoutScope
     fun unbindCardUseCaseProvider(
         unbindCardInfoGateway: UnbindCardGateway,
         getLoadedPaymentOptionListRepository: GetLoadedPaymentOptionListRepository

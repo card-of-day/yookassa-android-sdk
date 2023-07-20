@@ -31,6 +31,7 @@ import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentMethodType
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionBankCard
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionGooglePay
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionResponse
+import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionSBP
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.PaymentOptionSberbank
 import ru.yoomoney.sdk.kassa.payments.api.model.packageoptions.Unknown
 
@@ -43,6 +44,7 @@ internal class PaymentOptionDeserializer : JsonDeserializer<PaymentOptionRespons
             PaymentMethodTypeNetwork.BANK_CARD -> codec.treeToValue(node, PaymentOptionBankCard::class.java)
             PaymentMethodTypeNetwork.SBERBANK -> codec.treeToValue(node, PaymentOptionSberbank::class.java)
             PaymentMethodTypeNetwork.GOOGLE_PAY -> codec.treeToValue(node, PaymentOptionGooglePay::class.java)
+            PaymentMethodTypeNetwork.SBP -> codec.treeToValue(node, PaymentOptionSBP::class.java)
             PaymentMethodTypeNetwork.UNKNOWN -> Unknown
             else -> Unknown
         }

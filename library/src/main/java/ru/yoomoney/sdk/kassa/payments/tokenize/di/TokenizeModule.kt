@@ -27,6 +27,7 @@ import dagger.Provides
 import dagger.multibindings.IntoMap
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.UiParameters
+import ru.yoomoney.sdk.kassa.payments.di.scope.CheckoutScope
 import ru.yoomoney.sdk.kassa.payments.di.ViewModelKey
 import ru.yoomoney.sdk.kassa.payments.metrics.ErrorScreenReporter
 import ru.yoomoney.sdk.kassa.payments.metrics.Reporter
@@ -49,6 +50,7 @@ import ru.yoomoney.sdk.march.input
 @Module
 internal class TokenizeModule {
 
+    @CheckoutScope
     @Provides
     fun tokenizeUseCase(
         getLoadedPaymentOptionListRepository: GetLoadedPaymentOptionListRepository,

@@ -38,6 +38,7 @@ import ru.yoomoney.sdk.kassa.payments.model.LinkedCardInfo
 import ru.yoomoney.sdk.kassa.payments.model.PaymentIdCscConfirmation
 import ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOptionInfo
+import ru.yoomoney.sdk.kassa.payments.model.SBP
 import ru.yoomoney.sdk.kassa.payments.model.SberBank
 import ru.yoomoney.sdk.kassa.payments.model.Wallet
 import ru.yoomoney.sdk.kassa.payments.model.getUserAgreementAgentSchemeUrl
@@ -274,6 +275,7 @@ internal class ContractBusinessLogic(
             is GooglePay -> ContractInfo.GooglePayContractInfo(paymentOption)
             is SberBank -> ContractInfo.SberBankContractInfo(paymentOption, paymentParameters.userPhoneNumber)
             is AbstractWallet -> ContractInfo.AbstractWalletContractInfo(paymentOption)
+            is SBP -> ContractInfo.SBPContractInfo(paymentOption)
         }
     }
 

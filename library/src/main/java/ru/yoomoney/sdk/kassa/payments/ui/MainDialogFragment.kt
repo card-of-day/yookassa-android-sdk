@@ -29,39 +29,38 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewTreeObserver
 import android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN
 import android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
 import android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
-import android.widget.FrameLayout
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.android.synthetic.main.ym_fragment_bottom_sheet.topArrowLine
 import ru.yoomoney.sdk.gui.utils.extensions.hide
-import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentMethodType
-import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
 import ru.yoomoney.sdk.kassa.payments.R
+import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentMethodType
+import ru.yoomoney.sdk.kassa.payments.confirmation.ConfirmationFragment
+import ru.yoomoney.sdk.kassa.payments.confirmation.EXTRA_PAYMENT_METHOD_TYPE
+import ru.yoomoney.sdk.kassa.payments.contract.ContractFragment
 import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
 import ru.yoomoney.sdk.kassa.payments.extensions.hideSoftKeyboard
 import ru.yoomoney.sdk.kassa.payments.extensions.inTransaction
 import ru.yoomoney.sdk.kassa.payments.metrics.SessionReporter
+import ru.yoomoney.sdk.kassa.payments.model.LinkedCard
+import ru.yoomoney.sdk.kassa.payments.model.toType
 import ru.yoomoney.sdk.kassa.payments.navigation.Router
 import ru.yoomoney.sdk.kassa.payments.navigation.Screen
-import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuthFragment
-import ru.yoomoney.sdk.kassa.payments.userAuth.MoneyAuthFragment
-import ru.yoomoney.sdk.kassa.payments.model.toType
 import ru.yoomoney.sdk.kassa.payments.payment.GetLoadedPaymentOptionListRepository
-import ru.yoomoney.sdk.kassa.payments.contract.ContractFragment
-import ru.yoomoney.sdk.kassa.payments.model.LinkedCard
+import ru.yoomoney.sdk.kassa.payments.payment.sbp.BankListFragment
+import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuthFragment
 import ru.yoomoney.sdk.kassa.payments.paymentOptionList.PaymentOptionListFragment
 import ru.yoomoney.sdk.kassa.payments.tokenize.TokenizeFragment
+import ru.yoomoney.sdk.kassa.payments.ui.model.StartScreenData
 import ru.yoomoney.sdk.kassa.payments.ui.view.BackPressedAppCompatDialog
 import ru.yoomoney.sdk.kassa.payments.ui.view.BackPressedBottomSheetDialog
 import ru.yoomoney.sdk.kassa.payments.ui.view.WithBackPressedListener
 import ru.yoomoney.sdk.kassa.payments.unbind.UnbindCardFragment
+import ru.yoomoney.sdk.kassa.payments.userAuth.MoneyAuthFragment
 import javax.inject.Inject
 
 private const val PAYMENT_OPTION_LIST_FRAGMENT_TAG = "paymentOptionListFragment"
@@ -70,6 +69,8 @@ private const val TOKENIZE_FRAGMENT_TAG = "tokenizeFragment"
 private const val AUTH_FRAGMENT_TAG = "authFragment"
 private const val PAYMENT_AUTH_FRAGMENT_TAG = "paymentAuthFragment"
 private const val UNBIND_CARD_FRAGMENT_TAG = "unbindCardFragment"
+private const val CONFIRMATION_SBP_FRAGMENT_TAG = "confirmationSBPFragment"
+private const val LIST_BANKS_FRAGMENT_TAG = "listBanksFragment"
 
 internal class MainDialogFragment : BottomSheetDialogFragment() {
 
@@ -77,15 +78,10 @@ internal class MainDialogFragment : BottomSheetDialogFragment() {
     lateinit var sessionReporter: SessionReporter
 
     @Inject
-    lateinit var paymentParameters: PaymentParameters
-
-    @Inject
     lateinit var router: Router
 
     @Inject
     lateinit var loadedPaymentOptionListRepository: GetLoadedPaymentOptionListRepository
-
-    private var onGlobalLayoutListener: ViewTreeObserver.OnGlobalLayoutListener? = null
 
     init {
         setStyle(STYLE_NO_FRAME, R.style.ym_MainDialogTheme)
@@ -114,36 +110,12 @@ internal class MainDialogFragment : BottomSheetDialogFragment() {
             topArrowLine.hide()
         }
 
-        if (savedInstanceState == null) {
-            childFragmentManager.inTransaction {
-                if (paymentParameters.paymentMethodTypes.contains(PaymentMethodType.YOO_MONEY)) {
-                    add(R.id.authContainer,
-                        MoneyAuthFragment(), AUTH_FRAGMENT_TAG
-                    )
-                }
-                add(
-                    R.id.containerBottomSheet,
-                    PaymentOptionListFragment(),
-                    PAYMENT_OPTION_LIST_FRAGMENT_TAG
-                )
-            }
+        val startScreenData = arguments?.getParcelable(START_SCREEN_DATA_INFO) as StartScreenData?
+        val confirmationData = startScreenData?.confirmationData
+        when {
+            confirmationData.isNullOrBlank().not() -> inflateConfirmationFragment(confirmationData!!)
+            savedInstanceState == null -> inflateBaseFragment()
         }
-
-        router.screensData.observe(viewLifecycleOwner, Observer(::onScreenChanged))
-
-        onGlobalLayoutListener = ViewTreeObserver.OnGlobalLayoutListener {
-            (dialog as? BottomSheetDialog)?.also { dialog ->
-                val bottomSheet = dialog.findViewById<FrameLayout?>(R.id.design_bottom_sheet)!!
-                BottomSheetBehavior.from(bottomSheet).apply {
-                    state = BottomSheetBehavior.STATE_EXPANDED
-                    skipCollapsed = true
-                    isHideable = true
-                    peekHeight = 0
-                }
-                view.viewTreeObserver.removeOnGlobalLayoutListener(onGlobalLayoutListener)
-            }
-        }
-        view.viewTreeObserver?.addOnGlobalLayoutListener(onGlobalLayoutListener)
 
         (dialog as? WithBackPressedListener)?.onBackPressed = {
             requireActivity().onBackPressed()
@@ -168,9 +140,6 @@ internal class MainDialogFragment : BottomSheetDialogFragment() {
     }
 
     override fun onDestroyView() {
-        onGlobalLayoutListener?.also {
-            view?.viewTreeObserver?.removeOnGlobalLayoutListener(it)
-        }
 
         (dialog as? WithBackPressedListener)?.onBackPressed = null
 
@@ -187,6 +156,35 @@ internal class MainDialogFragment : BottomSheetDialogFragment() {
 
         super.onDismiss(dialog)
         activity?.finish()
+    }
+
+    private fun inflateConfirmationFragment(confirmationData: String) {
+        router.screensData.observe(viewLifecycleOwner, Observer(::onConfirmationScreenChanged))
+        childFragmentManager.inTransaction {
+            add(
+                R.id.containerBottomSheet,
+                ConfirmationFragment.createFragment(confirmationData),
+                CONFIRMATION_SBP_FRAGMENT_TAG
+            )
+        }
+    }
+
+    private fun inflateBaseFragment() {
+        router.screensData.observe(viewLifecycleOwner, Observer(::onScreenChanged))
+        val screenData = requireNotNull(arguments?.getParcelable(START_SCREEN_DATA_INFO)) as StartScreenData
+        childFragmentManager.inTransaction {
+            if (screenData.paymentMethodType.contains(PaymentMethodType.YOO_MONEY)) {
+                add(
+                    R.id.authContainer,
+                    MoneyAuthFragment(), AUTH_FRAGMENT_TAG
+                )
+            }
+            add(
+                R.id.containerBottomSheet,
+                PaymentOptionListFragment(),
+                PAYMENT_OPTION_LIST_FRAGMENT_TAG
+            )
+        }
     }
 
     private fun onScreenChanged(screen: Screen) {
@@ -247,6 +245,28 @@ internal class MainDialogFragment : BottomSheetDialogFragment() {
                 UnbindCardFragment.createFragment(screen.instrumentBankCard),
                 UNBIND_CARD_FRAGMENT_TAG
             )
+            else -> Unit
+        }
+    }
+
+    private fun onConfirmationScreenChanged(screen: Screen) {
+        val currentFragment = childFragmentManager.fragments.lastOrNull()
+        when (screen) {
+            is Screen.SBPConfirmation -> transitToFragment(
+                requireNotNull(currentFragment),
+                ConfirmationFragment.createFragment(screen.confirmationData),
+                CONFIRMATION_SBP_FRAGMENT_TAG
+            )
+            is Screen.SBPConfirmationSuccessful -> with(requireActivity()) {
+                setResult(Activity.RESULT_OK)
+                finish()
+            }
+            is Screen.BankList -> transitToFragment(
+                requireNotNull(currentFragment),
+                BankListFragment.newInstance(screen.confirmationUrl, screen.paymentId),
+                LIST_BANKS_FRAGMENT_TAG
+            )
+            else -> Unit
         }
     }
 
@@ -264,5 +284,17 @@ internal class MainDialogFragment : BottomSheetDialogFragment() {
             .replace(R.id.containerBottomSheet, newFragment, tag)
             .addToBackStack(newFragment::class.java.name)
             .commit()
+    }
+
+    companion object {
+        private const val START_SCREEN_DATA_INFO = "ru.yoomoney.sdk.kassa.payments.ui.START_SCREEN_DATA_INFO"
+
+        fun createFragment(startScreenData: StartScreenData? = null): MainDialogFragment {
+            return MainDialogFragment().apply {
+                arguments = Bundle().apply {
+                    putParcelable(START_SCREEN_DATA_INFO, startScreenData)
+                }
+            }
+        }
     }
 }

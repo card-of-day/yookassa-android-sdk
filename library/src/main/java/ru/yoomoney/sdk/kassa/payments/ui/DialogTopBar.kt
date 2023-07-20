@@ -26,7 +26,9 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
 import androidx.core.view.isVisible
+import androidx.transition.TransitionManager
 import kotlinx.android.synthetic.main.ym_dialog_top_bar.view.backButton
+import kotlinx.android.synthetic.main.ym_dialog_top_bar.view.dialogTopbarRoot
 import kotlinx.android.synthetic.main.ym_dialog_top_bar.view.logo
 import kotlinx.android.synthetic.main.ym_dialog_top_bar.view.paymentTitle
 import ru.yoomoney.sdk.gui.utils.extensions.tint
@@ -68,6 +70,14 @@ internal class DialogTopBar
 
     fun onBackButton(listener: ((View) -> Unit)?) {
         backButton.isVisible = listener != null
+        backButton.setOnClickListener(listener)
+    }
+
+    fun onBackButton(listener: ((View) -> Unit)?, withAnimation: Boolean) {
+        backButton.isVisible = listener != null
+        if (withAnimation) {
+            TransitionManager.beginDelayedTransition(dialogTopbarRoot)
+        }
         backButton.setOnClickListener(listener)
     }
 }

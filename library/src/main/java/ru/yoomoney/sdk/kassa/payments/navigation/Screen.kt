@@ -32,33 +32,40 @@ import java.io.Serializable
 
 internal sealed class Screen {
 
-    data class PaymentOptions(val moneyAuthResult: MoneyAuth.Result? = null): Screen()
+    data class PaymentOptions(val moneyAuthResult: MoneyAuth.Result? = null) : Screen()
 
-    object Contract: Screen()
+    object Contract : Screen()
 
-    data class Tokenize(val tokenizeInputModel: TokenizeInputModel): Screen() {
-        enum class TokenizeResult: Serializable {
+    data class Tokenize(val tokenizeInputModel: TokenizeInputModel) : Screen() {
+        enum class TokenizeResult : Serializable {
             CANCEL
         }
     }
 
-    data class TokenizeSuccessful(val tokenOutputModel: TokenizeOutputModel): Screen()
-    object TokenizeCancelled: Screen()
-    object MoneyAuth: Screen() {
-        enum class Result: Serializable {
+    data class TokenizeSuccessful(val tokenOutputModel: TokenizeOutputModel) : Screen()
+    object TokenizeCancelled : Screen()
+    object MoneyAuth : Screen() {
+        enum class Result : Serializable {
             SUCCESS,
             CANCEL
         }
     }
-    data class PaymentAuth(val amount: Amount, val linkWalletToApp: Boolean): Screen() {
-        enum class PaymentAuthResult: Serializable {
+
+    data class PaymentAuth(val amount: Amount, val linkWalletToApp: Boolean) : Screen() {
+        enum class PaymentAuthResult : Serializable {
             SUCCESS,
             CANCEL
         }
     }
-    data class UnbindLinkedCard(val paymentOption: PaymentOption): Screen()
-    data class UnbindInstrument(val instrumentBankCard: PaymentInstrumentBankCard): Screen() {
+
+    data class UnbindLinkedCard(val paymentOption: PaymentOption) : Screen()
+    data class UnbindInstrument(val instrumentBankCard: PaymentInstrumentBankCard) : Screen() {
         @Parcelize
-        data class Success(val panUnbindingCard: String): Parcelable
+        data class Success(val panUnbindingCard: String) : Parcelable
     }
+
+    data class SBPConfirmation(val confirmationData: String) : Screen()
+    data class BankList(val confirmationUrl: String, val paymentId: String) : Screen()
+
+    object SBPConfirmationSuccessful : Screen()
 }

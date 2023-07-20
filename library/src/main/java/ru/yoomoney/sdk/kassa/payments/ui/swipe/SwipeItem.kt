@@ -28,7 +28,7 @@ import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
 
-class SwipeItem internal constructor(
+internal class SwipeItem internal constructor(
     private val viewHolder: RecyclerView.ViewHolder,
     config: SwipeConfig,
     animationCallback: AnimationCallback

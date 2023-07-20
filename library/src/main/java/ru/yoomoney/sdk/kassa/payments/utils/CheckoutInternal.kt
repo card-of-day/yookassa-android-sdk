@@ -31,6 +31,7 @@ import android.net.Uri
 internal const val DEFAULT_REDIRECT_URL = "checkoutsdk://success"
 internal const val INVOICING_AUTHORITY = "invoicing"
 internal const val SBERPAY_PATH = "sberpay"
+internal const val SBP_PATH = "sbp-invoicing"
 
 internal fun checkUrl(url: String) {
     require(WebViewActivity.checkUrl(url)) { "Url $url is not allowed. It should be a valid https url." }
@@ -48,10 +49,10 @@ internal fun createSberbankIntent(context: Context?, confirmationUrl: String, sb
     }
 }
 
-internal fun isSberBankAppInstalled(context: Context, sberbankPackage: String): Boolean {
+internal fun isAppInstalled(context: Context, packageName: String): Boolean {
     return try {
         val packageManager = context.packageManager
-        packageManager.getPackageInfo(sberbankPackage, 0)
+        packageManager.getPackageInfo(packageName, 0)
         true
     } catch (e: PackageManager.NameNotFoundException) {
         false
@@ -59,7 +60,7 @@ internal fun isSberBankAppInstalled(context: Context, sberbankPackage: String): 
 }
 
 internal fun getSberbankPackage(isDevHost: Boolean): String {
-    return if(isDevHost) {
+    return if (isDevHost) {
         "ru.sberbankmobile_alpha"
     } else {
         "ru.sberbankmobile"

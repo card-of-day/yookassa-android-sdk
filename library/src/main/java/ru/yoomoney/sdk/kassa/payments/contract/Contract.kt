@@ -31,6 +31,7 @@ import ru.yoomoney.sdk.kassa.payments.model.PaymentIdCscConfirmation
 import ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOptionInfo
+import ru.yoomoney.sdk.kassa.payments.model.SBP
 import ru.yoomoney.sdk.kassa.payments.model.SavePaymentMethodOptionTexts
 import ru.yoomoney.sdk.kassa.payments.model.SberBank
 import ru.yoomoney.sdk.kassa.payments.model.Wallet
@@ -79,6 +80,10 @@ internal sealed class ContractInfo {
     data class SberBankContractInfo(
         override val paymentOption: SberBank,
         val userPhoneNumber: String?
+    ): ContractInfo()
+
+    data class SBPContractInfo(
+        override val paymentOption: SBP
     ): ContractInfo()
 }
 

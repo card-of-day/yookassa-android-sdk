@@ -22,115 +22,89 @@
 package ru.yoomoney.sdk.kassa.payments.di
 
 import android.content.Context
-import com.yandex.metrica.YandexMetrica
-import ru.yoomoney.sdk.kassa.payments.BuildConfig
-import ru.yoomoney.sdk.kassa.payments.payment.PaymentMethodId
-import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentMethodType
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.UiParameters
-import ru.yoomoney.sdk.kassa.payments.ui.CheckoutActivity
-import ru.yoomoney.sdk.kassa.payments.ui.color.InMemoryColorSchemeRepository
-import ru.yoomoney.sdk.kassa.payments.ui.MainDialogFragment
-import ru.yoomoney.sdk.kassa.payments.utils.checkUrl
-import ru.yoomoney.sdk.kassa.payments.extensions.initAppendableExtensions
-import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuthFragment
+import ru.yoomoney.sdk.kassa.payments.confirmation.ConfirmationActivity
+import ru.yoomoney.sdk.kassa.payments.confirmation.ConfirmationFragment
 import ru.yoomoney.sdk.kassa.payments.contract.ContractFragment
-import ru.yoomoney.sdk.kassa.payments.metrics.ExceptionReporter
-import ru.yoomoney.sdk.kassa.payments.metrics.YandexMetricaExceptionReporter
-import ru.yoomoney.sdk.kassa.payments.model.UnhandledException
-import ru.yoomoney.sdk.kassa.payments.userAuth.MoneyAuthFragment
+import ru.yoomoney.sdk.kassa.payments.di.component.CheckoutSubcomponent
+import ru.yoomoney.sdk.kassa.payments.di.component.ConfirmationSubcomponent
+import ru.yoomoney.sdk.kassa.payments.di.component.DaggerMainComponent
+import ru.yoomoney.sdk.kassa.payments.di.component.MainComponent
+import ru.yoomoney.sdk.kassa.payments.di.module.OkHttpModule
+import ru.yoomoney.sdk.kassa.payments.di.module.PaymentOptionsListModule
+import ru.yoomoney.sdk.kassa.payments.di.module.TokensStorageModule
+import ru.yoomoney.sdk.kassa.payments.extensions.initAppendableExtensions
+import ru.yoomoney.sdk.kassa.payments.payment.sbp.BankListFragment
+import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuthFragment
 import ru.yoomoney.sdk.kassa.payments.paymentOptionList.PaymentOptionListFragment
 import ru.yoomoney.sdk.kassa.payments.tokenize.TokenizeFragment
+import ru.yoomoney.sdk.kassa.payments.ui.CheckoutActivity
+import ru.yoomoney.sdk.kassa.payments.ui.MainDialogFragment
+import ru.yoomoney.sdk.kassa.payments.ui.color.InMemoryColorSchemeRepository
 import ru.yoomoney.sdk.kassa.payments.ui.view.BankCardView
 import ru.yoomoney.sdk.kassa.payments.unbind.UnbindCardFragment
+import ru.yoomoney.sdk.kassa.payments.userAuth.MoneyAuthFragment
+import ru.yoomoney.sdk.kassa.payments.utils.checkUrl
 import ru.yoomoney.sdk.kassa.payments.utils.getAllPaymentMethods
-
-internal fun setComponent(
-    context: Context,
-    paymentParameters: PaymentParameters,
-    testParameters: TestParameters,
-    uiParameters: UiParameters,
-    paymentMethodId: PaymentMethodId?,
-    okHttpModule: OkHttpModule,
-    paymentOptionsListModule: PaymentOptionsListModule,
-    tokensStorageModule: TokensStorageModule,
-    currentUserModule: CurrentUserModule,
-    yandexMetricaReporterModule: YandexMetricaReporterModule
-) {
-    CheckoutInjector.setupComponent(
-        context = context,
-        paymentParameters = paymentParameters,
-        testParameters = testParameters,
-        uiParameters = uiParameters,
-        paymentMethodId = paymentMethodId,
-        exceptionReporter = YandexMetricaExceptionReporter(YandexMetrica.getReporter(context, BuildConfig.APP_METRICA_KEY)),
-        okHttpModule = okHttpModule,
-        paymentOptionsListModule = paymentOptionsListModule,
-        currentUserModule = currentUserModule,
-        tokensStorageModule = tokensStorageModule,
-        yandexMetricaReporterModule = yandexMetricaReporterModule
-    )
-}
 
 internal object CheckoutInjector {
 
-    private lateinit var component: CheckoutActivityComponent
+    private lateinit var component: MainComponent
+
+    private lateinit var checkoutComponent: CheckoutSubcomponent
+
+    private lateinit var confirmationSubcomponent: ConfirmationSubcomponent
 
     fun setupComponent(
+        isConfirmation: Boolean,
         context: Context,
-        paymentParameters: PaymentParameters,
-        testParameters: TestParameters,
-        uiParameters: UiParameters,
-        paymentMethodId: PaymentMethodId?,
-        exceptionReporter: ExceptionReporter,
+        clientApplicationKey: String? = null,
+        testParameters: TestParameters = TestParameters(),
+        uiParameters: UiParameters = UiParameters(),
+        paymentParameters: PaymentParameters? = null,
         okHttpModule: OkHttpModule = OkHttpModule(),
         paymentOptionsListModule: PaymentOptionsListModule = PaymentOptionsListModule(),
-        yandexMetricaReporterModule: YandexMetricaReporterModule = YandexMetricaReporterModule(),
-        currentUserModule: CurrentUserModule = CurrentUserModule(),
-        tokensStorageModule: TokensStorageModule = TokensStorageModule()
+        tokensStorageModule: TokensStorageModule = TokensStorageModule(),
     ) {
-
-        val shopParameters =
-            if (paymentParameters.paymentMethodTypes.isEmpty()) {
+        val shopParameters = when {
+            paymentParameters != null &&
+                    paymentParameters.paymentMethodTypes.isEmpty()
+                    && clientApplicationKey.isNullOrEmpty() -> {
                 paymentParameters.copy(paymentMethodTypes = getAllPaymentMethods())
-            } else {
-                paymentParameters
             }
-
-        shopParameters.customReturnUrl?.let { checkUrl(it) }
-        if (shopParameters.paymentMethodTypes.let { PaymentMethodType.YOO_MONEY in it }
-            && shopParameters.authCenterClientId.isNullOrEmpty()) {
-            val exception = IllegalStateException(
-                "You should pass authCenterClientId to PaymentParameters if you want to allow PaymentMethodType.YOO_MONEY. " +
-                        "If you don't want to use PaymentMethodType.YOO_MONEY, specify your payment methods " +
-                        "explicitly in PaymentParameters.paymentMethodTypes \n" +
-                        "Visit https://github.com/yoomoney/yookassa-android-sdk for more information."
-            )
-            exceptionReporter.report(UnhandledException(exception))
-            throw exception
+            paymentParameters != null && clientApplicationKey.isNullOrEmpty() -> paymentParameters
+            else -> null
         }
+        shopParameters?.customReturnUrl?.let { checkUrl(it) }
 
         InMemoryColorSchemeRepository.colorScheme = uiParameters.colorScheme
 
         initAppendableExtensions(context)
 
-        component = DaggerCheckoutActivityComponent.builder()
+        component = DaggerMainComponent.builder()
             .context(context.applicationContext)
-            .paymentParameters(shopParameters)
-            .testParameters(testParameters)
-            .uiParameters(uiParameters)
-            .paymentMethodId(paymentMethodId)
             .okHttpModule(okHttpModule)
-            .paymentOptionsListModule(paymentOptionsListModule)
-            .mainReporterModule(yandexMetricaReporterModule)
             .tokensStorageModule(tokensStorageModule)
-            .currentUserModule(currentUserModule)
+            .testParameters(testParameters)
+            .clientApplicationKey(clientApplicationKey ?: paymentParameters?.clientApplicationKey)
             .build()
+
+        if (isConfirmation) {
+            confirmationSubcomponent = component.appendConfirmationSubcomponent()
+                .build()
+        } else {
+            checkoutComponent = component.appendCheckoutSubcomponent()
+                .paymentParameters(paymentParameters!!)
+                .paymentOptionsListModule(paymentOptionsListModule)
+                .uiParameters(uiParameters)
+                .build()
+        }
     }
 
     fun injectCheckoutActivity(activity: CheckoutActivity) {
-        component.inject(activity)
+        checkoutComponent.inject(activity)
     }
 
     fun injectMainDialogFragment(fragment: MainDialogFragment) {
@@ -138,30 +112,42 @@ internal object CheckoutInjector {
     }
 
     fun injectContractFragment(fragment: ContractFragment) {
-        component.inject(fragment)
+        checkoutComponent.inject(fragment)
     }
 
     fun injectUntieCardFragment(fragment: UnbindCardFragment) {
-        component.inject(fragment)
+        checkoutComponent.inject(fragment)
     }
 
     fun injectTokenizeFragment(fragment: TokenizeFragment) {
-        component.inject(fragment)
+        checkoutComponent.inject(fragment)
     }
 
     fun injectPaymentAuthFragment(fragment: PaymentAuthFragment) {
-        component.inject(fragment)
+        checkoutComponent.inject(fragment)
     }
 
     fun injectPaymentOptionListFragment(fragment: PaymentOptionListFragment) {
-        component.inject(fragment)
+        checkoutComponent.inject(fragment)
     }
 
-    fun inject(fragment: MoneyAuthFragment) {
-        component.inject(fragment)
+    fun injectMoneyAuthFragment(fragment: MoneyAuthFragment) {
+        checkoutComponent.inject(fragment)
     }
 
-    fun inject(bankCardView: BankCardView) {
-        component.inject(bankCardView)
+    fun injectBankCardView(bankCardView: BankCardView) {
+        checkoutComponent.inject(bankCardView)
+    }
+
+    fun injectConfirmationActivity(activity: ConfirmationActivity) {
+        confirmationSubcomponent.inject(activity)
+    }
+
+    fun injectBankListFragment(fragment: BankListFragment) {
+        confirmationSubcomponent.inject(fragment)
+    }
+
+    fun injectConfirmationFragment(fragment: ConfirmationFragment) {
+        confirmationSubcomponent.inject(fragment)
     }
 }

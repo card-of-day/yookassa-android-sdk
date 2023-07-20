@@ -1,0 +1,28 @@
+{
+  "banks": [
+    {
+      "member_id": "100000000111",
+      "package_name": "ru.sberbankmobile"
+    },
+    {
+      "member_id": "100000000004",
+      "package_name": "com.idamob.tinkoff.android"
+    },
+    {
+      "member_id": "100000000005",
+      "package_name": "ru.vtb24.mobilebanking.android"
+    },
+    {
+      "member_id": "100000000008",
+      "package_name": "ru.alfabank.mobile.android"
+    },
+    {
+      "member_id": "100000000007",
+      "package_name": "ru.raiffeisennews"
+    },
+    {
+      "member_id": "100000000015",
+      "package_name": "com.openbank"
+    }
+  ]
+}

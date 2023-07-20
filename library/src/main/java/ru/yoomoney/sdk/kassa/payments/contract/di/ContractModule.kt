@@ -28,7 +28,6 @@ import dagger.Provides
 import dagger.multibindings.IntoMap
 import ru.yoomoney.sdk.auth.YooMoneyAuth
 import ru.yoomoney.sdk.auth.api.account.AccountRepository
-import ru.yoomoney.sdk.kassa.payments.R
 import ru.yoomoney.sdk.kassa.payments.api.PaymentsApi
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentMethodType
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
@@ -40,7 +39,8 @@ import ru.yoomoney.sdk.kassa.payments.contract.ContractBusinessLogic
 import ru.yoomoney.sdk.kassa.payments.contract.SelectPaymentMethodUseCase
 import ru.yoomoney.sdk.kassa.payments.contract.SelectPaymentMethodUseCaseImpl
 import ru.yoomoney.sdk.kassa.payments.contract.getDefaultAgentSchemeUserAgreementUrl
-import ru.yoomoney.sdk.kassa.payments.di.TokenStorageModule
+import ru.yoomoney.sdk.kassa.payments.di.scope.CheckoutScope
+import ru.yoomoney.sdk.kassa.payments.di.module.TokenStorageModule
 import ru.yoomoney.sdk.kassa.payments.di.ViewModelKey
 import ru.yoomoney.sdk.kassa.payments.extensions.toTokenizeScheme
 import ru.yoomoney.sdk.kassa.payments.logout.LogoutRepository
@@ -76,6 +76,7 @@ import ru.yoomoney.sdk.yooprofiler.YooProfiler
 internal class ContractModule {
 
     @Provides
+    @CheckoutScope
     fun provideTokenizeRepository(
         testParameters: TestParameters,
         paymentParameters: PaymentParameters,
@@ -99,6 +100,7 @@ internal class ContractModule {
     }
 
     @Provides
+    @CheckoutScope
     fun selectPaymentOptionsUseCase(
         getLoadedPaymentOptionListRepository: GetLoadedPaymentOptionListRepository,
         checkPaymentAuthRequiredGateway: CheckPaymentAuthRequiredGateway,
@@ -116,6 +118,7 @@ internal class ContractModule {
     }
 
     @Provides
+    @CheckoutScope
     fun provideLogoutRepository(
         context: Context,
         currentUserRepository: CurrentUserRepository,
@@ -150,6 +153,7 @@ internal class ContractModule {
     }
 
     @Provides
+    @CheckoutScope
     fun logoutUseCase(
         logoutRepository: LogoutRepository
     ): LogoutUseCase {

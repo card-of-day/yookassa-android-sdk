@@ -68,10 +68,11 @@
   <string name='ym_payment_auth_wrong_code_with_attempts'>Снова не тот код. Осталось попыток: %d</string>
   <string name='ym_payment_auth_no_attempts'>Попытки закончились, нужно получить новый код</string>
   <string name='ym_payment_auth_wrong_code'>Это не тот код. Проверьте и попробуйте ещё раз</string>
-  <string name='ym_payment_auth_retry_text'>Повторить</string>
+  <string name='ym_payment_auth_retry_text'>Получить новый код</string>
   <string name='ym_check_cvc'>Проверьте CVC код</string>
   <string name='ym_linked_card'>Банковская карта</string>
   <string name='ym_saved_card'>Банковская карта</string>
+  <string name='ym_sbp'>СБП</string>
   <string name='ym_google_pay_description'>Дальше откроем приложение Google Pay — подтвердите оплату</string>
   <string name='ym_sber_pay_description'>Дальше откроем приложение СберБанк Онлайн — подтвердите оплату</string>
   <string name='ym_sber_phone_input_info'>Телефон для подтверждения оплаты в СберБанк Онлайн</string>
@@ -164,4 +165,14 @@
   <string name='ym_safe_payments_agreement_message'>Такое может быть, если вы платите на интернет-площадке, которая позволяет покупать одновременно у нескольких продавцов (например, на маркетплейсе). \nУточнить список получателей платежа можно на площадке, на которой вы совершаете платёж. </string>
   <string name='ym_agent_scheme_default_part_1'>Заплатив здесь, вы принимаете &lt;a href="https://yoomoney.ru/page?id=526623"&gt;условия сервиса,</string>
   <string name='ym_agent_scheme_default_part_2'>&lt;/a&gt; платеж совершается с участием &lt;a href="https://yoomoney.ru/page?id=530616"&gt;платежного агрегатора&lt;/a&gt;</string>
+  <!-- Текст контракта СБП https://jira.yooteam.ru/secure/attachment/761683/Screenshot%202023-05-18%20at%2012.29.18.png-->
+  <string name='ym_sbp_description'>Дальше откроем приложение вашего банка — подтвердите оплату</string>
+  <!-- Заголовок экрана выбора банка spb https://jira.yooteam.ru/secure/attachment/762790/screenshot-1.png-->
+  <string name='ym_sbp_select_bank_title'>Выберите банк для оплаты</string>
+  <!-- Названия пункта выбора другого банка на коротком списке банков https://jira.yooteam.ru/secure/attachment/762790/screenshot-1.png-->
+  <string name='ym_sbp_select_other_bank_button_title'>Выберите другой банк</string>
+  <!-- Сообщение об отсутствии выбранного банка https://jira.yooteam.ru/secure/attachment/765135/Screenshot%202023-06-02%20at%2012.53.15.png-->
+  <string name='ym_sbp_bank_not_found_message'>Кажется, у вас не установлено приложение этого банка. Установите или выберите другой банк</string>
+  <!-- Заголовок экрана ошибки https://jira.yooteam.ru/secure/attachment/765135/Screenshot%202023-06-02%20at%2012.53.15.png-->
+  <string name='ym_error_screen_title'>Не сработало</string>
 </resources>

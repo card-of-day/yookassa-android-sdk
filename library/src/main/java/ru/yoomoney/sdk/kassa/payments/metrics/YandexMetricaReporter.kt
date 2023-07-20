@@ -24,6 +24,7 @@ package ru.yoomoney.sdk.kassa.payments.metrics
 import android.content.Context
 import android.util.Log
 import com.yandex.metrica.IReporter
+import com.yandex.metrica.YandexMetrica
 import ru.yoomoney.sdk.kassa.payments.BuildConfig
 import ru.yoomoney.sdk.kassa.payments.model.ApiMethodException
 import ru.yoomoney.sdk.kassa.payments.model.AuthCheckApiMethodException
@@ -38,7 +39,7 @@ import ru.yoomoney.sdk.kassa.payments.model.UnhandledException
 import ru.yoomoney.sdk.kassa.payments.utils.isBuildDebug
 
 internal class YandexMetricaReporter(
-    private val metrica: IReporter
+    private val metrica: IReporter,
 ) : Reporter {
 
     override fun report(name: String, args: List<Param>?) =
@@ -56,33 +57,33 @@ internal class YandexMetricaReporter(
 }
 
 internal class YandexMetricaErrorReporter(
-    private val metrica: IReporter
+    private val metrica: IReporter,
 ) : ErrorReporter {
 
     override fun report(e: SdkException) {
-        when(e) {
+        when (e) {
             is SelectedOptionNotFoundException -> metrica.reportError("Selected option not found error", e)
             is RequestExecutionException -> metrica.reportError("Request execution error", e.e)
-            is NoInternetException ->  metrica.reportError("No internet error", e)
+            is NoInternetException -> metrica.reportError("No internet error", e)
             is ResponseReadingException -> metrica.reportError("Response reading error", e.e)
             is ResponseParsingException -> metrica.reportError("No internet error", e.e)
             is ApiMethodException -> metrica.reportError("Api method error", e)
             is AuthCheckApiMethodException -> metrica.reportError("Auth check api method error", e)
             is PassphraseCheckFailedException -> metrica.reportError("Passphrase check failed error", e)
-            else ->  metrica.reportError("Unknown sdk error", e)
+            else -> metrica.reportError("Unknown sdk error", e)
         }
     }
 }
 
 internal class YandexMetricaExceptionReporter(
-    private val metrica: IReporter
+    private val metrica: IReporter,
 ) : ExceptionReporter {
 
     override fun report(e: UnhandledException) = metrica.reportUnhandledException(e)
 }
 
 internal class YandexMetricaSessionReporter(
-    private val metrica: IReporter
+    private val metrica: IReporter,
 ) : SessionReporter {
 
     override fun resumeSession() = metrica.resumeSession()
@@ -93,7 +94,7 @@ internal class YandexMetricaSessionReporter(
 internal class YandexMetricaLoggerReporter(
     private val showLogs: Boolean,
     private val context: Context,
-    private val errorReporter: ErrorReporter
+    private val errorReporter: ErrorReporter,
 ) : ErrorLoggerReporter {
 
     companion object {

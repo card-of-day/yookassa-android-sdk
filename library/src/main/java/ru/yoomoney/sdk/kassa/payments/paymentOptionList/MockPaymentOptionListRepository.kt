@@ -37,6 +37,7 @@ import ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.Result
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOptionsResponse
+import ru.yoomoney.sdk.kassa.payments.model.SBP
 import ru.yoomoney.sdk.kassa.payments.model.SberBank
 import ru.yoomoney.sdk.kassa.payments.model.ShopProperties
 import ru.yoomoney.sdk.kassa.payments.model.Wallet
@@ -46,7 +47,7 @@ import java.util.Random
 
 private enum class SavePaymentOptionVariants(
     val savePaymentMethodAllowed: Boolean,
-    val createBinding: Boolean
+    val createBinding: Boolean,
 ) {
     RECURRENT_AND_BIND(true, true),
     RECURRENT_AND_NO_BIND(true, false),
@@ -68,7 +69,7 @@ private enum class SavePaymentOptionVariants(
 
 internal class MockPaymentOptionListRepository(
     private val linkedCardsCount: Int,
-    private val fee: Fee?
+    private val fee: Fee?,
 ) : PaymentOptionListRepository {
 
     private val random = Random()
@@ -89,89 +90,103 @@ internal class MockPaymentOptionListRepository(
     private fun createAuthorizedList(
         id: Iterator<Int>,
         amount: Amount,
-        fee: Fee?
+        fee: Fee?,
     ) = Result.Success(
         PaymentOptionsResponse(
             paymentOptions = mutableListOf<PaymentOption>().apply {
-        val savePaymentOptionVariant = SavePaymentOptionVariants.getVariant()
-        add(
-            Wallet(
-                id = id.next(),
-                charge = amount,
-                fee = fee,
-                icon = null,
-                title = null,
-                walletId = "11234567887654321",
-                balance = Amount(
-                    BigDecimal.TEN,
-                    amount.currency
-                ),
-                savePaymentMethodAllowed = true,
-                confirmationTypes = listOf(ConfirmationType.REDIRECT),
-                savePaymentInstrument = false
-            )
-        )
-        addAll(generateLinkedCards(id, amount, fee).take(linkedCardsCount))
-        add(
-            SberBank(
-                id = id.next(),
-                charge = amount,
-                fee = fee,
-                icon = null,
-                title = null,
-                savePaymentMethodAllowed = true,
-                confirmationTypes = listOf(ConfirmationType.MOBILE_APPLICATION, ConfirmationType.REDIRECT, ConfirmationType.EXTERNAL),
-                savePaymentInstrument = false
-            )
-        )
-        add(
-            GooglePay(
-                id = id.next(),
-                charge = amount,
-                fee = fee,
-                icon = null,
-                title = null,
-                savePaymentMethodAllowed = false,
-                confirmationTypes = emptyList(),
-                savePaymentInstrument = false
-            )
-        )
-        add(
-            BankCardPaymentOption(
-                id = id.next(),
-                charge = amount,
-                fee = fee,
-                savePaymentInstrument = savePaymentOptionVariant.createBinding,
-                confirmationTypes = listOf(ConfirmationType.REDIRECT),
-                paymentInstruments = listOf(
-                    PaymentInstrumentBankCard(
-                        paymentInstrumentId = "1",
-                        last4 = "1234",
-                        first6 = "987654",
-                        cscRequired = true,
-                        cardType= CardBrand.MASTER_CARD
-                    ),
-                    PaymentInstrumentBankCard(
-                        paymentInstrumentId = "2",
-                        last4 = "5678",
-                        first6 = "987654",
-                        cscRequired = false,
-                        cardType= CardBrand.MASTER_CARD
-                    ),
-                    PaymentInstrumentBankCard(
-                        paymentInstrumentId = "3",
-                        last4 = "9012",
-                        first6 = "987654",
-                        cscRequired = false,
-                        cardType= CardBrand.MASTER_CARD
+                val savePaymentOptionVariant = SavePaymentOptionVariants.getVariant()
+                add(
+                    Wallet(
+                        id = id.next(),
+                        charge = amount,
+                        fee = fee,
+                        icon = null,
+                        title = null,
+                        walletId = "11234567887654321",
+                        balance = Amount(
+                            BigDecimal.TEN,
+                            amount.currency
+                        ),
+                        savePaymentMethodAllowed = true,
+                        confirmationTypes = listOf(ConfirmationType.REDIRECT),
+                        savePaymentInstrument = false
                     )
-                ),
-                icon = null,
-                title = null,
-                savePaymentMethodAllowed = savePaymentOptionVariant.savePaymentMethodAllowed
-            )
-        )
-    }.toList(),
+                )
+                addAll(generateLinkedCards(id, amount, fee).take(linkedCardsCount))
+                add(
+                    SberBank(
+                        id = id.next(),
+                        charge = amount,
+                        fee = fee,
+                        icon = null,
+                        title = null,
+                        savePaymentMethodAllowed = true,
+                        confirmationTypes = listOf(ConfirmationType.MOBILE_APPLICATION,
+                            ConfirmationType.REDIRECT,
+                            ConfirmationType.EXTERNAL),
+                        savePaymentInstrument = false
+                    )
+                )
+                add(
+                    GooglePay(
+                        id = id.next(),
+                        charge = amount,
+                        fee = fee,
+                        icon = null,
+                        title = null,
+                        savePaymentMethodAllowed = false,
+                        confirmationTypes = emptyList(),
+                        savePaymentInstrument = false
+                    )
+                )
+                add(
+                    BankCardPaymentOption(
+                        id = id.next(),
+                        charge = amount,
+                        fee = fee,
+                        savePaymentInstrument = savePaymentOptionVariant.createBinding,
+                        confirmationTypes = listOf(ConfirmationType.REDIRECT),
+                        paymentInstruments = listOf(
+                            PaymentInstrumentBankCard(
+                                paymentInstrumentId = "1",
+                                last4 = "1234",
+                                first6 = "987654",
+                                cscRequired = true,
+                                cardType = CardBrand.MASTER_CARD
+                            ),
+                            PaymentInstrumentBankCard(
+                                paymentInstrumentId = "2",
+                                last4 = "5678",
+                                first6 = "987654",
+                                cscRequired = false,
+                                cardType = CardBrand.MASTER_CARD
+                            ),
+                            PaymentInstrumentBankCard(
+                                paymentInstrumentId = "3",
+                                last4 = "9012",
+                                first6 = "987654",
+                                cscRequired = false,
+                                cardType = CardBrand.MASTER_CARD
+                            )
+                        ),
+                        icon = null,
+                        title = null,
+                        savePaymentMethodAllowed = savePaymentOptionVariant.savePaymentMethodAllowed
+                    )
+                )
+                add(
+                    SBP(
+                        id = id.next(),
+                        charge = amount,
+                        fee = fee,
+                        savePaymentInstrument = savePaymentOptionVariant.createBinding,
+                        confirmationTypes = listOf(ConfirmationType.REDIRECT),
+                        icon = null,
+                        title = null,
+                        savePaymentMethodAllowed = savePaymentOptionVariant.savePaymentMethodAllowed
+                    )
+                )
+            }.toList(),
             shopProperties = ShopProperties(true, true, null)
         )
     )
@@ -179,83 +194,97 @@ internal class MockPaymentOptionListRepository(
     private fun createAnonymousList(
         id: Iterator<Int>,
         amount: Amount,
-        fee: Fee?
+        fee: Fee?,
     ) = Result.Success(
         PaymentOptionsResponse(
             paymentOptions =
             listOf(
-            AbstractWallet(
-                id = id.next(),
-                charge = Amount(amount.value, amount.currency),
-                fee = fee,
-                icon = null,
-                title = null,
-                savePaymentMethodAllowed = true,
-                confirmationTypes = listOf(ConfirmationType.REDIRECT),
-                savePaymentInstrument = false
-            ),
-            SberBank(
-                id = id.next(),
-                charge = Amount(amount.value, amount.currency),
-                fee = fee,
-                icon = null,
-                title = null,
-                savePaymentMethodAllowed = true,
-                confirmationTypes = listOf(ConfirmationType.MOBILE_APPLICATION, ConfirmationType.REDIRECT, ConfirmationType.EXTERNAL),
-                savePaymentInstrument = false
-            ),
-            GooglePay(
-                id = id.next(),
-                charge = amount,
-                fee = fee,
-                icon = null,
-                title = null,
-                savePaymentMethodAllowed = false,
-                confirmationTypes = emptyList(),
-                savePaymentInstrument = false
-            ),
-            BankCardPaymentOption(
-                id = id.next(),
-                charge = Amount(amount.value, amount.currency),
-                fee = fee,
-                savePaymentMethodAllowed = true,
-                confirmationTypes = listOf(ConfirmationType.REDIRECT),
-                paymentInstruments = listOf(
-                    PaymentInstrumentBankCard(
-                        paymentInstrumentId = "1",
-                        last4 = "1234",
-                        first6 = "987654",
-                        cscRequired = true,
-                        cardType= CardBrand.MASTER_CARD
-                    ),
-                    PaymentInstrumentBankCard(
-                        paymentInstrumentId = "2",
-                        last4 = "5678",
-                        first6 = "987654",
-                        cscRequired = false,
-                        cardType= CardBrand.MASTER_CARD
-                    ),
-                    PaymentInstrumentBankCard(
-                        paymentInstrumentId = "3",
-                        last4 = "9012",
-                        first6 = "987654",
-                        cscRequired = false,
-                        cardType= CardBrand.MASTER_CARD
-                    )
+                AbstractWallet(
+                    id = id.next(),
+                    charge = Amount(amount.value, amount.currency),
+                    fee = fee,
+                    icon = null,
+                    title = null,
+                    savePaymentMethodAllowed = true,
+                    confirmationTypes = listOf(ConfirmationType.REDIRECT),
+                    savePaymentInstrument = false
                 ),
-                savePaymentInstrument = false,
-                icon = null,
-                title = null
-            )
-        ),
+                SberBank(
+                    id = id.next(),
+                    charge = Amount(amount.value, amount.currency),
+                    fee = fee,
+                    icon = null,
+                    title = null,
+                    savePaymentMethodAllowed = true,
+                    confirmationTypes = listOf(
+                        ConfirmationType.MOBILE_APPLICATION,
+                        ConfirmationType.REDIRECT,
+                        ConfirmationType.EXTERNAL
+                    ),
+                    savePaymentInstrument = false
+                ),
+                GooglePay(
+                    id = id.next(),
+                    charge = amount,
+                    fee = fee,
+                    icon = null,
+                    title = null,
+                    savePaymentMethodAllowed = false,
+                    confirmationTypes = emptyList(),
+                    savePaymentInstrument = false
+                ),
+                BankCardPaymentOption(
+                    id = id.next(),
+                    charge = Amount(amount.value, amount.currency),
+                    fee = fee,
+                    savePaymentMethodAllowed = true,
+                    confirmationTypes = listOf(ConfirmationType.REDIRECT),
+                    paymentInstruments = listOf(
+                        PaymentInstrumentBankCard(
+                            paymentInstrumentId = "1",
+                            last4 = "1234",
+                            first6 = "987654",
+                            cscRequired = true,
+                            cardType = CardBrand.MASTER_CARD
+                        ),
+                        PaymentInstrumentBankCard(
+                            paymentInstrumentId = "2",
+                            last4 = "5678",
+                            first6 = "987654",
+                            cscRequired = false,
+                            cardType = CardBrand.MASTER_CARD
+                        ),
+                        PaymentInstrumentBankCard(
+                            paymentInstrumentId = "3",
+                            last4 = "9012",
+                            first6 = "987654",
+                            cscRequired = false,
+                            cardType = CardBrand.MASTER_CARD
+                        )
+                    ),
+                    savePaymentInstrument = false,
+                    icon = null,
+                    title = null
+                ),
+                SBP(
+                    id = id.next(),
+                    charge = amount,
+                    fee = fee,
+                    savePaymentInstrument = true,
+                    confirmationTypes = listOf(ConfirmationType.REDIRECT),
+                    icon = null,
+                    title = null,
+                    savePaymentMethodAllowed = true
+                )
+            ),
             shopProperties = ShopProperties(true, true, null)
-    )
+        )
     )
 
     private fun generateLinkedCards(
         id: Iterator<Int>,
         charge: Amount,
-        fee: Fee?
+        fee: Fee?,
     ) = generateSequence {
         val cardId = generateSequence { random.nextInt(10) }.take(16).joinToString("")
         LinkedCard(

@@ -42,12 +42,14 @@ Android Checkout mobile SDK - версия $versionName ([changelog](./CHANGELOG
         * [Запуск токенизации всеми методами](#запуск-токенизации-всеми-методами)
         * [Запуск токенизации кошельком ЮMoney](#запуск-токенизации-кошельком-юмани)
         * [Запуск токенизации SberPay](#запуск-токенизации-сберпей)
+        * [Запуск токенизации СБП](#запуск-токенизации-сбп)
         * [Запуск токенизации банковской картой](#запуск-токенизации-банковской-картой)
         * [Запуск токенизации для сохранённых банковских карт](#запуск-токенизации-для-сохранённых-банковских-карт)
         * [Получить результат токенизации](#получить-результат-токенизации)
     * [Подтверждение платежа](#подтверждение-платежа)
         * [SberPay](#sberpay)
         * [3DSecure](#3dsecure)
+        * [СБП](#сбп)
     * [Привязанная карта](#привязанная-карта)
     * [Рекуррентные платежи](#рекуррентные-платежи)
     * [Настройка логирования и mock режима](#настройка-логирования-и-mock-режима)
@@ -56,7 +58,6 @@ Android Checkout mobile SDK - версия $versionName ([changelog](./CHANGELOG
         * [Настройка mock режима](#настройка-тестового-режима)
     * [Сканирование банковской карты](#сканирование-банковской-карты)
 * [Модерация приложения (используемые зависимости)](#вопрос-модерации)
-  * [QUERY_ALL_PACKAGES](#использование-разрешений-для-доступа-к-пакетам)
   * [Разрешения доступа к геолокации](#использование-разрешений-для-доступа-к-местоположению)
 * [Полезные ссылки](#полезные-ссылки)
 
@@ -169,7 +170,7 @@ android:networkSecurityConfig="@xml/ym_network_security_config"
 
 Необязательные:
 - paymentMethodTypes (Set of PaymentMethodType) - ограничения способов оплаты. Если оставить поле пустым или передать в него null, библиотека будет использовать все доступные способы оплаты, (см. [Запуск токенизации всеми методами](#запуск-токенизации-всеми-методами));
-- customReturnUrl (String) - url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url, (см. [3DSecure](#3dsecure));
+- customReturnUrl (String) - url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. **Должен использоваться только при при использовании своего Activity для 3ds url**, (см. [3DSecure](#3dsecure)), или при необходимости продолжить работу внутри WebView;
 - userPhoneNumber (String) - номер телефона пользователя при оплате через SberPay, (см. [Запуск токенизации SberPay](#запуск-токенизации-сберпей));
 - authCenterClientId (String) - уникальный идентификатор приложения для токенизации через ЮMoney. (см. [Запуск токенизации кошельком ЮMoney](#запуск-токенизации-кошельком-юмани))
 
@@ -187,7 +188,7 @@ android:networkSecurityConfig="@xml/ym_network_security_config"
 - YOO_MONEY - оплата произведена с кошелька ЮMoney;
 - BANK_CARD - оплата произведена с банковской карты;
 - SBERBANK - оплата произведена через Сбербанк (SMS invoicing или SberPay);
-- GOOGLE_PAY - оплата произведена через Google Pay.
+- SBP - оплата произведена через CБП (Система Быстрых Платежей).
 
 ### <a name="запуск-токенизации-всеми-методами"></a> Запуск токенизации всеми методами
 
@@ -232,6 +233,7 @@ class MyActivity extends AppCompatActivity {
             add(PaymentMethodType.SBERBANK); // выбранный способ оплаты - SberPay
             add(PaymentMethodType.YOO_MONEY); // выбранный способ оплаты - ЮMoney
             add(PaymentMethodType.BANK_CARD); // выбранный способ оплаты - Банковская карта
+            add(PaymentMethodType.SBP); // выбранный способ оплаты - СБП
         }};
         PaymentParameters paymentParameters = new PaymentParameters(
                 new Amount(BigDecimal.TEN, Currency.getInstance("RUB")),
@@ -242,7 +244,7 @@ class MyActivity extends AppCompatActivity {
                 SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
                 paymentMethodTypes, // передан весь список доступных методов оплаты
                 "gatewayId", // gatewayId магазина для платежей Google Pay (необходим в случае, если в способах оплаты есть Google Pay)
-                "https://custom.redirect.url", // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url. 
+                "https://custom.redirect.url", // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url (вы не используете метод createConfirmationIntent() из SDK) или при необходимости продолжить работу внутри WebView;. 
                 userPhoneNumber = "+79041234567", // номер телефона пользователя. Используется для автозаполнения поля при оплате через SberPay. Поддерживаемый формат данных: "+7XXXXXXXXXX".
                 null, // настройки для токенизации через GooglePay,
                 "example_authCenterClientId" // идентификатор, полученный при регистрации приложения на сайте https://yookassa.ru
@@ -272,7 +274,7 @@ class MyActivity : AppCompatActivity() {
             savePaymentMethod = SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода,
             authCenterClientId = "example_authCenterClientId", // идентификатор, полученный при регистрации приложения на сайте https://yookassa.ru
             gatewayId = "gatewayId", // gatewayId магазина для платежей Google Pay (необходим в случае, если в способах оплаты есть Google Pay)
-            customReturnUrl = "https://custom.redirect.url", // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url. 
+            customReturnUrl = "https://custom.redirect.url", // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url (вы не используете метод createConfirmationIntent() из SDK) или при необходимости продолжить работу внутри WebView;. 
             userPhoneNumber = "+79041234567", // номер телефона пользователя. Используется для автозаполнения поля при оплате через SberPay. Поддерживаемый формат данных: "+7XXXXXXXXXX".
         )
         val intent = Checkout.createTokenizeIntent(this, paymentParameters)
@@ -298,7 +300,7 @@ class MyActivity extends AppCompatActivity {
                 SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
                 null, // передан весь список доступных методов оплаты
                 "gatewayId", // gatewayId магазина для платежей Google Pay (необходим в случае, если в способах оплаты есть Google Pay)
-                "https://custom.redirect.url", // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url. 
+                "https://custom.redirect.url", // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url (вы не используете метод createConfirmationIntent() из SDK) или при необходимости продолжить работу внутри WebView;. 
                 "+79041234567", // номер телефона пользователя. Используется для автозаполнения поля при оплате через SberPay. Поддерживаемый формат данных: "+7XXXXXXXXXX".
                 null, // настройки для токенизации через GooglePay,
                 "example_authCenterClientId" // идентификатор, полученный при регистрации приложения на сайте https://yookassa.ru
@@ -374,7 +376,7 @@ class MyActivity extends AppCompatActivity {
                 SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
                 paymentMethodTypes.add(PaymentMethodType.YOO_MONEY), // выбранный способ оплаты - кошелек ЮMoney,
                 null, // gateway магазина для платежей Google Pay (необходим в случае, если в способах оплаты есть Google Pay)
-                null, // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url. 
+                null, // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url (вы не используете метод createConfirmationIntent() из SDK) или при необходимости продолжить работу внутри WebView. 
                 null, // номер телефона пользователя. Используется для автозаполнения поля при оплате через SberPay. Поддерживаемый формат данных: "+7XXXXXXXXXX".
                 null, // настройки для токенизации через GooglePay,
                 "example_authCenterClientId" // authCenterClientId - идентификатор, полученный при регистрации приложения на сайте https://yookassa.ru
@@ -395,7 +397,7 @@ class MyActivity extends AppCompatActivity {
 - Оплата через мобильное приложение Сбербанк Онлайн;
 - Оплата без мобильного приложения Сбербанк Онлайн, по номеру телефона;
 
-Для того, что-бы ваши пользователи могли платить с помощью мобильного приложение Сбербанк Онлайн, нужно указать уникальную схему от диплинка вашего приложения.
+Для того, чтобы ваши пользователи могли платить с помощью мобильного приложение Сбербанк Онлайн, нужно указать уникальную схему от диплинка вашего приложения.
 Уникальная схема диплинка - это то, что вы указываете в качестве схемы в ваших диплинках. Например в диплинке `exampleapp://some.path`, `exampleapp` - это и есть схема вашего приложения.
 
 Для добавления уникальной схемы диплинка нужно добавить в ваш файл build.gradle в блок android.defaultConfig строку `resValue "string", "ym_app_scheme", "exampleapp"`
@@ -462,8 +464,88 @@ public class MyActivity extends Activity {
                 SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
                 paymentMethodTypes, // выбранный способ оплаты - SberPay,
                 null, // gateway магазина для платежей Google Pay (необходим в случае, если в способах оплаты есть Google Pay)
-                null, // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url.
+                null, // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url (вы не используете метод createConfirmationIntent() из SDK) или при необходимости продолжить работу внутри WebView.
                 "+79041234567" // номер телефона пользователя. Используется для автозаполнения поля при оплате через SberPay. Поддерживаемый формат данных: "+7XXXXXXXXXX".
+        );
+        Intent intent = Checkout.createTokenizeIntent(this, paymentParameters);
+        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
+    }
+}
+```
+</details>
+
+**Обработка результата процесса токенизации находится в разделе** [Получить результат токенизации](#получить-результат-токенизации)
+
+
+### <a name="запуск-токенизации-сбп"></a> Запуск токенизации SBP
+
+Для того, чтобы ваши пользователи могли платить с помощью СБВ, нужно указать уникальную схему от диплинка вашего приложения.
+Уникальная схема диплинка - это то, что вы указываете в качестве схемы в ваших диплинках. Например в диплинке `exampleapp://some.path`, `exampleapp` - это и есть схема вашего приложения.
+
+Для добавления уникальной схемы диплинка нужно добавить в ваш файл build.gradle в блок android.defaultConfig строку `resValue "string", "ym_app_scheme", "exampleapp"`
+```
+android {
+    defaultConfig {
+        resValue "string", "ym_app_scheme", "exampleapp"
+    }
+}
+```
+Или добавить в ваш strings.xml строку вида:
+```
+<resources>
+    <string name="ym_app_scheme" translatable="false">exampleapp</string>
+</resources>
+```
+Где `exampleapp` - это уникальная схема диплинка вашего приложения. Сюда нужно подставить свою схему.
+Если вы уже обрабатывете какие-то deeplink в своём приложении, то можно использовать готовую схему вашего приложения.
+Если ранее в проекте вы не обрабатывали deeplink, можно придумать уникальную схему для вашего приложения, состоящую из латинских букв.
+
+**Запуск токеннизации через СБП выглядит следующим образом.**
+
+<details open>
+  <summary>Kotlin</summary>
+
+```kotlin
+class MyActivity: Activity() {
+
+    private fun startSberPayTokenize() {
+        val paymentParameters = PaymentParameters(
+            amount = Amount(BigDecimal.valueOf(10.0), Currency.getInstance("RUB")),
+            title = "Название товара",
+            subtitle = "Описание товара",
+            clientApplicationKey = "live_thisKeyIsNotReal", // ключ для клиентских приложений из личного кабинета ЮKassa (https://yookassa.ru/my/api-keys-settings)
+            shopId = "12345", // идентификатор вашего магазина ЮKassa
+            savePaymentMethod = SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
+            paymentMethodTypes = setOf(PaymentMethodType.SBP) // выбранный способ оплаты - СБП
+        )
+        val intent = createTokenizeIntent(this, paymentParameters)
+        startActivityForResult(intent, REQUEST_CODE_TOKENIZE)
+    }
+}
+```
+</details>
+
+<details>
+  <summary>Java</summary>
+
+```java
+public class MyActivity extends Activity {
+
+    private void startSberPayTokenize() {
+        Set<PaymentMethodType> paymentMethodTypes = new HashSet<PaymentMethodType>(){{
+            add(PaymentMethodType.SBERBANK); // выбранный способ оплаты - SberPay
+        }};
+        PaymentParameters paymentParameters = new PaymentParameters(
+                new Amount(BigDecimal.valueOf(10.0), Currency.getInstance("RUB")),
+                "Название товара",
+                "Описание товара",
+                "live_thisKeyIsNotReal", // ключ для клиентских приложений из личного кабинета ЮKassa (https://yookassa.ru/my/api-keys-settings)
+                "12345", // идентификатор вашего магазина ЮKassa
+                SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
+                paymentMethodTypes, // выбранный способ оплаты - SBP,
+                null, // gateway магазина для платежей Google Pay (необходим в случае, если в способах оплаты есть Google Pay)
+                null, // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url (вы не используете метод createConfirmationIntent() из SDK) или при необходимости продолжить работу внутри WebView;. 
+                null // номер телефона пользователя. Используется для автозаполнения поля при оплате через SberPay. Поддерживаемый формат данных: "+7XXXXXXXXXX".
         );
         Intent intent = Checkout.createTokenizeIntent(this, paymentParameters);
         startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
@@ -693,8 +775,8 @@ public final class MainActivity extends AppCompatActivity {
 
 ## <a name="подтверждение-платежа"></a> Подтверждение платежа
 
-При необходимости система может запросить процесс подтверждения платежа, при котором пользователь подтверждает транзакцию с помощью сторонних сервисов.
-Существует два типа подтверждения платежа - 3Dsecure (при оплате банковской картой) и пуш-нотификации или App2App сценарий (при оплате через SberPay).
+При необходимости система может запросить процесс подтверждения платежа, при котором пользователь подтверждает транзакцию с помощью сторонних сервисов  (при платеже вы получили в response confirmation_url).
+Существует два типа подтверждения платежа - 3Dsecure (при оплате банковской картой) и пуш-нотификации или App2App сценарий (при оплате через SberPay или SBP).
 
 ### <a name="sberpay"></a> SberPay
 
@@ -783,6 +865,98 @@ class MyActivity extends AppCompatActivity {
                     // data.getIntExtra(Checkout.EXTRA_ERROR_CODE) - код ошибки из WebViewClient.ERROR_* или Checkout.ERROR_NOT_HTTPS_URL
                     // data.getStringExtra(Checkout.EXTRA_ERROR_DESCRIPTION) - описание ошибки (может отсутствовать)
                     // data.getStringExtra(Checkout.EXTRA_ERROR_FAILING_URL) - url по которому произошла ошибка (может отсутствовать)
+                    break;
+            }
+        }
+    }
+}
+```
+</details>
+
+### <a name="сбп"></a> СБП
+
+Для подтверждения платежа при оплате через СБП необходимо:
+1. вызвать метод Checkout.createConfirmationIntent();
+2. обработать полученный результат в Activity в методе onActivityResult;
+
+Входные параметры для `Checkout.createConfirmationIntent()`:
+
+Обязательные параметры метода:
+- context (Context) - контекст приложения;
+- confirmationUrl (String) - диплинк для перехода на экран подтверждения платежа через СБП;
+- clientApplicationKey (String) - ключ для клиентских приложений из личного кабинета ЮKassa ([раздел Настройки — Ключи API](https://yookassa.ru/my/api-keys-settings));
+- paymentMethodType (PaymentMethodType) - выбранный тип платежного метода (тот, что был получен в методе `createTokenizationResult()`, (см. [Получить результат токенизации](#получить-результат-токенизации)) .
+
+Опциональные параметры метода:
+- testParameters (TestParameters) - параметры для тестового режима - включить логирование/использовать mock-данные, (см. [Настройка логирования и mock режима](#настройка-логирования-и-mock-режима));
+- colorScheme (ColorScheme) - цветовая схема, (см. [Настройка интерфейса](#настройка-интерфейса)).
+
+Возможные типы результата проведения подтверждения через СБП:
+
+- Activity.RESULT_OK - сообщает о том, что процесс подтверждения через СБП завершён, но не несет информацию о том, что процесс завершился успешно. После получения результата рекомендуется запросить статус платежа;
+- Activity.RESULT_CANCELED - прохождение подтверждения через СБП было отменено (например, пользователь нажал на кнопку "назад" во время процесса);
+- Checkout.RESULT_ERROR - не удалось пройти подтверждение через СБП.
+
+**Запуск подтверждения СБП и получение результата**
+
+<details open>
+  <summary>Kotlin</summary>
+
+```kotlin
+class MyActivity : AppCompatActivity() {
+
+    fun startConfirmSBP() {
+        val intent = createConfirmationIntent(
+            this, 
+            "https://sbp_confirmation.com/",
+            PaymentMethodType.SBP,
+            clientApplicationKey = "live_thisKeyIsNotReal",
+        )
+        startActivityForResult(intent, REQUEST_CODE_CONFIRM)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == REQUEST_CODE_CONFIRM) {
+            when (resultCode) {
+                RESULT_OK -> {
+                    // Процесс подтверждения через SBP завершён, нет информации о том, завершился процесс с успехом или нет
+                    // Рекомендуется запросить статус платежа
+                    return
+                }
+                RESULT_CANCELED -> return // Экран подтверждения через SBP был закрыт
+            }
+        }
+    }
+}
+```
+</details>
+
+<details>
+  <summary>Java</summary>
+
+```java
+class MyActivity extends AppCompatActivity {
+
+    void startConfirmSBP() {
+        Intent intent = Checkout.createConfirmationIntent(
+                this, 
+                "https://sbp_confirmation.com/", 
+                PaymentMethodType.SBP,
+                "live_thisKeyIsNotReal"
+        );
+        startActivityForResult(intent, REQUEST_CODE_CONFIRM);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_CODE_CONFIRM) {
+            switch (resultCode) {
+                case RESULT_OK:
+                    // Процесс подтверждения через SBP завершён, нет информации о том, завершился процесс с успехом или нет
+                    // Рекомендуется запросить статус платежа
+                    break;
+                case RESULT_CANCELED:
+                    // Экран подтверждения через SBP был закрыт
                     break;
             }
         }
@@ -1380,34 +1554,17 @@ public class ScanBankCardActivity extends AppCompatActivity {
 ```
 </details>
 
-# <a name="вопрос-модерации"></a> Использование разрешений 
-
-## <a name="использование-разрешений-для-доступа-к-пакетам"></a> Использование разрешения QUERY_ALL_PACKAGES для доступа к пакетам (приложениям)
-
-Платежи в YooKassa Payments SDK защищены антивирусным ПО, которое декларирует разрешение QUERY_ALL_PACKAGES для чтения пакетов на вашем устройстве и используется для выявления:
-вредоносных приложений на устройстве Android конечного пользователя,
-средств удаленного управления и приложений для подмены геопозиции,
-устройств, которые были недавно полностью стерты и перепрошиты (wiped) (один из признаков
-проведения мошенничества),
-устройств, профиль использования которых соответствует поведению мошенников,
-легитимного перехода пользователя на использование нового Android-устройства (например, покупка
-новой модели) для реализации подхода, основанного на адаптивной аутентификации пользователей
-(Adaptive Authentication).
-Разрешение может вызвать вопросы у модераторов при проверке вашего приложения в сторе. Если это случится, рекомендуем вам прописать в ваш манифест атрибут, который удаляет разрешение QUERY_ALL_PACKAGES. Это разрешение не обязательно для нормальной работы антивирусного ПО — защита платежей из-за этого не пострадает.
-
-```xml
- <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:node="remove"/>
-```
-
-В случае, если вы хотите оставить это разрешение, то вам нужно будет заполнить [Permissions Declaration Form](https://support.google.com/googleplay/android-developer/answer/9214102?hl=en).
+# <a name="вопрос-модерации"></a> Использование разрешений
 
 ## <a name="использование-разрешений-для-доступа-к-местоположению"></a> Использование разрешения для доступа к местоположению
 
-По аналогичной причине использования антивирусного ПО для платежей в YooKassa Payments SDK используются ACCESS_FINE_LOCATION и ACCESS_COARSE_LOCATION разрешения, благодаря данным разрешением ПО выявляет:
+По причине использования антивирусного ПО для платежей в YooKassa Payments SDK используются ACCESS_FINE_LOCATION и ACCESS_COARSE_LOCATION разрешения, благодаря данным разрешением ПО выявляет:
 средства удаленного управления и приложений для подмены геопозиции.
+
+Кроме того, mSDK использует библиотеку AppMetrica. Так как AppMetrica собирает локацию, то Google в некоторых случаях может попросить дополнить политику конфиденциальности упоминанием, что данные пользователей могут передаваться сторонним компаниям.
 
 # <a name="полезные-ссылки"></a> Полезные ссылки
 * [Сайт ЮKassa](https://yookassa.ru)
 * [Документация мобильных SDK на сайте ЮKassa](https://yookassa.ru/docs/client-sdks/#mobil-nye-sdk)
-* [Демо-приложение в Google Play](https://play.google.com/store/apps/details?id=ru.yoo.sdk.kassa.payments.example.release)
+* [Демо-приложение в RuStore](https://apps.rustore.ru/app/ru.yoo.sdk.kassa.payments.example.release)
 * [SDK для iOS](https://git.yoomoney.ru/projects/SDK/repos/yookassa-payments-swift)

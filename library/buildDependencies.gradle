@@ -37,7 +37,6 @@ dependencies {
     implementation 'commons-codec:commons-codec:1.15'
     implementation "ru.yoomoney.sdk:march:$march_lib_version"
     implementation "ru.yoomoney.sdk.gui:ui-lib:$ui_lib_version"
-    implementation ("ru.yoomoney.sdk.auth:auth:$yoo_sdk_auth_version")
     implementation "ru.yoomoney.sdk.yoopinning:yoopinning-android-sdk:$yoopinning"
 
     implementation "com.squareup.retrofit2:retrofit:$retrofit"

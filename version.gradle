@@ -36,13 +36,5 @@ ext {
             "and write code version in the format number(e.g. 1).\n"
     )
 
-    versionEnding = {
-        currentBranchName = System.getenv('BUILD_BRANCH') ?: ''
-
-        if (currentBranchName != 'master') {
-            return '-SNAPSHOT'
-        } else {
-            return ''
-        }
-    }
+    currentBranchName = (System.getenv('BUILD_BRANCH') ?: '').replace('/','-')
 }

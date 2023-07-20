@@ -47,5 +47,10 @@ enum class PaymentMethodType {
      * Payment method Sberbank
      */
     @Keep
-    SBERBANK
+    SBERBANK,
+    /**
+     * Payment method SBP
+     */
+    @Keep
+    SBP
 }

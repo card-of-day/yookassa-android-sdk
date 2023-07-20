@@ -50,14 +50,12 @@ import ru.yoomoney.sdk.kassa.payments.model.LinkedCard
 import ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard
 import ru.yoomoney.sdk.kassa.payments.navigation.Router
 import ru.yoomoney.sdk.kassa.payments.navigation.Screen
-import ru.yoomoney.sdk.kassa.payments.ui.isTablet
 import ru.yoomoney.sdk.kassa.payments.ui.resumePostponedTransition
 import ru.yoomoney.sdk.kassa.payments.unbind.di.UnbindCardModule
 import ru.yoomoney.sdk.kassa.payments.utils.viewModel
 import ru.yoomoney.sdk.march.RuntimeViewModel
 import ru.yoomoney.sdk.march.observe
 import javax.inject.Inject
-
 
 internal typealias UntieCardViewModel = RuntimeViewModel<UnbindCard.State, UnbindCard.Action, UnbindCard.Effect>
 
@@ -82,9 +80,6 @@ internal class UnbindCardFragment : Fragment(R.layout.ym_fragment_unbind_card) {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        if (!isTablet) {
-            postponeEnterTransition()
-        }
         super.onViewCreated(view, savedInstanceState)
         requireActivity().onBackPressedDispatcher.addCallback(this) {
             closeScreen()
@@ -100,9 +95,6 @@ internal class UnbindCardFragment : Fragment(R.layout.ym_fragment_unbind_card) {
         val instrumental = arguments?.getParcelable<PaymentInstrumentBankCard>(PAYMENT_OPTION_INSTRUMENT)
 
         viewModel.handleAction(UnbindCard.Action.StartDisplayData(linkedCard, instrumental))
-        if (isTablet) {
-            rootContainer.updateLayoutParams<ViewGroup.LayoutParams> { height = resources.getDimensionPixelSize(R.dimen.ym_dialogHeight) }
-        }
     }
 
     override fun onDestroy() {

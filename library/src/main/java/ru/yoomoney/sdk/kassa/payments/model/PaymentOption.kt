@@ -29,7 +29,7 @@ import kotlinx.android.parcel.Parcelize
 import ru.yoomoney.sdk.kassa.payments.R
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.Amount
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentMethodType
-import ru.yoomoney.sdk.kassa.payments.utils.isSberBankAppInstalled
+import ru.yoomoney.sdk.kassa.payments.utils.isAppInstalled
 
 internal sealed class PaymentOption : Parcelable {
     abstract val id: Int
@@ -132,9 +132,21 @@ internal data class SberBank(
     val isSberPayAllowed: Boolean = confirmationTypes.contains(ConfirmationType.MOBILE_APPLICATION)
 
     fun canPayWithSberPay(context: Context, sberbankPackage: String): Boolean {
-        return isSberPayAllowed && isSberBankAppInstalled(context, sberbankPackage) && context.resources.getString(R.string.ym_app_scheme).isNotEmpty()
+        return isSberPayAllowed && isAppInstalled(context, sberbankPackage) && context.resources.getString(R.string.ym_app_scheme).isNotEmpty()
     }
 }
+
+@[Parcelize Keep SuppressLint("ParcelCreator")]
+internal data class SBP(
+    override val id: Int,
+    override val charge: Amount,
+    override val fee: Fee?,
+    override val icon: String?,
+    override val title: String?,
+    override val savePaymentMethodAllowed: Boolean,
+    override val confirmationTypes: List<ConfirmationType>,
+    override val savePaymentInstrument: Boolean
+) : PaymentOption()
 
 @[Parcelize Keep SuppressLint("ParcelCreator")]
 internal data class PaymentIdCscConfirmation(
@@ -166,5 +178,6 @@ internal fun PaymentOption.toType() = when (this) {
     is YooMoney -> PaymentMethodType.YOO_MONEY
     is SberBank -> PaymentMethodType.SBERBANK
     is GooglePay -> PaymentMethodType.GOOGLE_PAY
+    is SBP -> PaymentMethodType.SBP
     is PaymentIdCscConfirmation -> PaymentMethodType.BANK_CARD
 }

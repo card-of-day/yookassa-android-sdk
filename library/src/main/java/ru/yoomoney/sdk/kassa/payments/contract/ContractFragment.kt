@@ -62,6 +62,7 @@ import kotlinx.android.synthetic.main.ym_fragment_contract.savePaymentMethodMess
 import kotlinx.android.synthetic.main.ym_fragment_contract.savePaymentMethodMessageTitle
 import kotlinx.android.synthetic.main.ym_fragment_contract.savePaymentMethodSelection
 import kotlinx.android.synthetic.main.ym_fragment_contract.sberPayView
+import kotlinx.android.synthetic.main.ym_fragment_contract.sbpView
 import kotlinx.android.synthetic.main.ym_fragment_contract.subtitle
 import kotlinx.android.synthetic.main.ym_fragment_contract.sum
 import kotlinx.android.synthetic.main.ym_fragment_contract.switches
@@ -104,6 +105,7 @@ import ru.yoomoney.sdk.kassa.payments.model.MobileApplication
 import ru.yoomoney.sdk.kassa.payments.model.PaymentIdCscConfirmation
 import ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOption
+import ru.yoomoney.sdk.kassa.payments.model.SBPInfo
 import ru.yoomoney.sdk.kassa.payments.model.SberPay
 import ru.yoomoney.sdk.kassa.payments.model.SbolSmsInvoicingInfo
 import ru.yoomoney.sdk.kassa.payments.model.Wallet
@@ -350,6 +352,7 @@ internal class ContractFragment : Fragment(R.layout.ym_fragment_contract) {
             is ContractInfo.GooglePayContractInfo -> setUpGooglePlay(content.contractInfo.paymentOption.id)
             is ContractInfo.SberBankContractInfo -> setUpSberbankView(content, contractInfo.userPhoneNumber)
             is ContractInfo.AbstractWalletContractInfo -> setUpAbstractWallet()
+            is ContractInfo.SBPContractInfo -> setUpSBPView()
         }
 
         licenseAgreement.apply {
@@ -567,6 +570,15 @@ internal class ContractFragment : Fragment(R.layout.ym_fragment_contract) {
                 fragment = this,
                 paymentOptionId = paymentOptionId
             )
+        }
+    }
+
+    private fun setUpSBPView() {
+        sbpView.show()
+        nextButton.setOnClickListener {
+            view?.hideSoftKeyboard()
+            rootContainer.showChild(loadingView)
+            viewModel.handleAction(Action.Tokenize(SBPInfo))
         }
     }
 

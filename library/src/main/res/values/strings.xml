@@ -88,10 +88,11 @@ TranslatorComment:Translation source key: https://tanker.yandex-team.ru/?project
   <string name='ym_payment_auth_wrong_code_with_attempts'>Invalid code again. Attempts left: %d</string>
   <string name='ym_payment_auth_no_attempts'>No attempts left, you need to get a new code</string>
   <string name='ym_payment_auth_wrong_code'>Invalid code. Double-check and try again</string>
-  <string name='ym_payment_auth_retry_text'>Try again</string>
+  <string name='ym_payment_auth_retry_text'>Get a new code</string>
   <string name='ym_check_cvc'>Check the CVC</string>
   <string name='ym_linked_card'>Bank card</string>
   <string name='ym_saved_card'>Bank card</string>
+  <string name='ym_sbp'>SBP</string>
   <string name='ym_google_pay_description'>You\'ll be redirected into the Google Pay app: confirm the payment</string>
   <string name='ym_sber_pay_description'>Next, the SberBank Online application will be opened: confirm the payment</string>
   <string name='ym_sber_phone_input_info'>Phone number for payment confirmation via SberBank Online</string>
@@ -184,4 +185,14 @@ TranslatorComment:Translation source key: https://tanker.yandex-team.ru/?project
   <string name='ym_safe_payments_agreement_message'>It can happen when you pay on an online platform where it\'s possible to buy from multiple sellers at once (for example, on marketplaces). \nYou can find the list of recipients on the platform where you\'re making the payment.</string>
   <string name='ym_agent_scheme_default_part_1'>By making this payment, you accept &lt;a href="https://yoomoney.ru/page?id=526623"&gt;the terms and conditions of the service,</string>
   <string name='ym_agent_scheme_default_part_2'>&lt;/a&gt; the payment is processed in cooperation with &lt;a href="https://yoomoney.ru/page?id=530616"&gt;payment aggregator"'"s&lt;/a&gt;</string>
+  <!-- Текст контракта СБП https://jira.yooteam.ru/secure/attachment/761683/Screenshot%202023-05-18%20at%2012.29.18.png-->
+  <string name='ym_sbp_description'>Next, your bank\'s app will be opened: confirm the payment</string>
+  <!-- Заголовок экрана выбора банка spb https://jira.yooteam.ru/secure/attachment/762790/screenshot-1.png-->
+  <string name='ym_sbp_select_bank_title'>Select the bank for the payment</string>
+  <!-- Названия пункта выбора другого банка на коротком списке банков https://jira.yooteam.ru/secure/attachment/762790/screenshot-1.png-->
+  <string name='ym_sbp_select_other_bank_button_title'>Select a different bank</string>
+  <!-- Сообщение об отсутствии выбранного банка https://jira.yooteam.ru/secure/attachment/765135/Screenshot%202023-06-02%20at%2012.53.15.png-->
+  <string name='ym_sbp_bank_not_found_message'>Looks like you don\'t have this bank\'s app installed. Install it or select a different bank</string>
+  <!-- Заголовок экрана ошибки https://jira.yooteam.ru/secure/attachment/765135/Screenshot%202023-06-02%20at%2012.53.15.png-->
+  <string name='ym_error_screen_title'>It didn\'t work</string>
 </resources>

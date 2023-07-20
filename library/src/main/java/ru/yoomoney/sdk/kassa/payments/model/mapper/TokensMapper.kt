@@ -32,6 +32,7 @@ import ru.yoomoney.sdk.kassa.payments.api.model.tokens.ConfirmationRequest
 import ru.yoomoney.sdk.kassa.payments.api.model.tokens.PaymentMethodDataBankCardRequest
 import ru.yoomoney.sdk.kassa.payments.api.model.tokens.PaymentMethodDataGooglePayRequest
 import ru.yoomoney.sdk.kassa.payments.api.model.tokens.PaymentMethodDataRequest
+import ru.yoomoney.sdk.kassa.payments.api.model.tokens.PaymentMethodDataSBPRequest
 import ru.yoomoney.sdk.kassa.payments.api.model.tokens.PaymentMethodDataSberbankRequest
 import ru.yoomoney.sdk.kassa.payments.api.model.tokens.PaymentMethodDataYooMoneyLinkedBankCardRequest
 import ru.yoomoney.sdk.kassa.payments.api.model.tokens.PaymentMethodDataYooMoneyWalletRequest
@@ -49,6 +50,7 @@ import ru.yoomoney.sdk.kassa.payments.model.PaymentOptionInfo
 import ru.yoomoney.sdk.kassa.payments.model.PaymentTokenInfo
 import ru.yoomoney.sdk.kassa.payments.model.ProfilingInfo
 import ru.yoomoney.sdk.kassa.payments.model.RedirectConfirmation
+import ru.yoomoney.sdk.kassa.payments.model.SBPInfo
 import ru.yoomoney.sdk.kassa.payments.model.SberPay
 import ru.yoomoney.sdk.kassa.payments.model.SbolSmsInvoicingInfo
 import ru.yoomoney.sdk.kassa.payments.model.WalletInfo
@@ -84,6 +86,7 @@ internal fun PaymentOptionInfo.toRequest(paymentOption: PaymentOption): PaymentM
         )
     }
     is SberPay -> PaymentMethodDataSberbankRequest(type = PaymentMethodTypeNetwork.SBERBANK, phone = null)
+    is SBPInfo -> PaymentMethodDataSBPRequest(type = PaymentMethodTypeNetwork.SBP)
     is SbolSmsInvoicingInfo -> {
         PaymentMethodDataSberbankRequest(
             type = PaymentMethodTypeNetwork.SBERBANK,

@@ -15,5 +15,7 @@
         <domain includeSubdomains="true">iva-test-cms1.yamoney.ru</domain>
         <domain includeSubdomains="true">stubohub.appb2b1.cloud.yooteam.ru</domain>
         <domain includeSubdomains="true">payment-api-v3.appb2b1.cloud.yooteam.ru</domain>
+        <domain includeSubdomains="true">stubohub.appb2b2.cloud.yooteam.ru</domain>
+        <domain includeSubdomains="true">payment-api-v3.appb2b2.cloud.yooteam.ru</domain>
     </domain-config>
 </network-security-config>

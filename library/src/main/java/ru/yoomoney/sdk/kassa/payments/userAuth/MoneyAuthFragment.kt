@@ -96,7 +96,7 @@ internal class MoneyAuthFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        CheckoutInjector.inject(this)
+        CheckoutInjector.injectMoneyAuthFragment(this)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {

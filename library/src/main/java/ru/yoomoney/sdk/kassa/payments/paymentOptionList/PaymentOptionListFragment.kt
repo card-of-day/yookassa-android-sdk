@@ -37,7 +37,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
-import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
@@ -46,10 +45,12 @@ import kotlinx.android.synthetic.main.ym_fragment_payment_options.contentContain
 import kotlinx.android.synthetic.main.ym_fragment_payment_options.topBar
 import ru.yoomoney.sdk.gui.dialog.YmAlertDialog
 import ru.yoomoney.sdk.kassa.payments.R
+import ru.yoomoney.sdk.kassa.payments.checkoutParameters.SavedBankCardPaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.UiParameters
 import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
 import ru.yoomoney.sdk.kassa.payments.di.PaymentOptionsListFormatter
-import ru.yoomoney.sdk.kassa.payments.di.PaymentOptionsModule.Companion.PAYMENT_OPTIONS
+import ru.yoomoney.sdk.kassa.payments.di.PaymentOptionsViewModel
+import ru.yoomoney.sdk.kassa.payments.di.PaymentOptionsViewModelFactory
 import ru.yoomoney.sdk.kassa.payments.errorFormatter.ErrorFormatter
 import ru.yoomoney.sdk.kassa.payments.extensions.getAdditionalInfo
 import ru.yoomoney.sdk.kassa.payments.extensions.getPlaceholderIcon
@@ -63,6 +64,7 @@ import ru.yoomoney.sdk.kassa.payments.model.Wallet
 import ru.yoomoney.sdk.kassa.payments.navigation.Router
 import ru.yoomoney.sdk.kassa.payments.navigation.Screen
 import ru.yoomoney.sdk.kassa.payments.ui.CheckoutAlertDialog
+import ru.yoomoney.sdk.kassa.payments.ui.EXTRA_CSC_PARAMETERS
 import ru.yoomoney.sdk.kassa.payments.ui.changeViewWithAnimation
 import ru.yoomoney.sdk.kassa.payments.ui.getViewHeight
 import ru.yoomoney.sdk.kassa.payments.ui.isTablet
@@ -74,11 +76,8 @@ import ru.yoomoney.sdk.kassa.payments.unbind.UnbindCardFragment
 import ru.yoomoney.sdk.kassa.payments.userAuth.MoneyAuthFragment
 import ru.yoomoney.sdk.kassa.payments.utils.getBankOrBrandLogo
 import ru.yoomoney.sdk.kassa.payments.utils.viewModel
-import ru.yoomoney.sdk.march.RuntimeViewModel
 import ru.yoomoney.sdk.march.observe
 import javax.inject.Inject
-
-internal typealias PaymentOptionListViewModel = RuntimeViewModel<PaymentOptionList.State, PaymentOptionList.Action, PaymentOptionList.Effect>
 
 internal class PaymentOptionListFragment :
     Fragment(R.layout.ym_fragment_payment_options),
@@ -91,8 +90,20 @@ internal class PaymentOptionListFragment :
     @PaymentOptionsListFormatter
     lateinit var errorFormatter: ErrorFormatter
 
+    private val paymentMethodId: String? by lazy {
+        (arguments?.getParcelable(EXTRA_CSC_PARAMETERS) as SavedBankCardPaymentParameters?)?.paymentMethodId
+    }
+
     @Inject
-    lateinit var viewModelFactory: ViewModelProvider.Factory
+    lateinit var viewModelFactory: PaymentOptionsViewModelFactory.AssistedPaymentOptionVmFactory
+
+    private val viewModel: PaymentOptionsViewModel by viewModel(PaymentOptionsViewModelFactory.PAYMENT_OPTIONS_LIST) {
+        viewModelFactory.create(
+            PaymentOptionsViewModelFactory.PaymentOptionsAssisted(
+                paymentMethodId
+            )
+        )
+    }
 
     @Inject
     lateinit var router: Router
@@ -110,8 +121,6 @@ internal class PaymentOptionListFragment :
         )
         SwipeItemHelper(requireContext(), swipeConfig)
     }
-
-    private val viewModel: PaymentOptionListViewModel by viewModel(PAYMENT_OPTIONS) { viewModelFactory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

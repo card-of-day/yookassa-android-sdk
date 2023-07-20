@@ -62,6 +62,9 @@ internal data class SbolSmsInvoicingInfo(val phone: String) : PaymentOptionInfo(
 internal object SberPay: PaymentOptionInfo()
 
 @Parcelize
+internal object SBPInfo: PaymentOptionInfo()
+
+@Parcelize
 internal data class GooglePayInfo(
     val paymentMethodToken: String,
     val googleTransactionId: String

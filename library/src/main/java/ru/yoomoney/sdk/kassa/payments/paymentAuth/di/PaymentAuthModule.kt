@@ -34,6 +34,7 @@ import ru.yoomoney.sdk.kassa.payments.api.failures.ApiErrorMapper
 import ru.yoomoney.sdk.kassa.payments.api.jacksonBaseObjectMapper
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
 import ru.yoomoney.sdk.kassa.payments.di.AuthPaymentsHttpClient
+import ru.yoomoney.sdk.kassa.payments.di.scope.CheckoutScope
 import ru.yoomoney.sdk.kassa.payments.di.ViewModelKey
 import ru.yoomoney.sdk.kassa.payments.http.HostProvider
 import ru.yoomoney.sdk.kassa.payments.metrics.ErrorReporter
@@ -61,12 +62,12 @@ import ru.yoomoney.sdk.march.Out
 import ru.yoomoney.sdk.march.RuntimeViewModel
 import ru.yoomoney.sdk.march.input
 import ru.yoomoney.sdk.yooprofiler.YooProfiler
-import javax.inject.Singleton
 
 @Module
 internal class PaymentAuthModule {
 
     @Provides
+    @CheckoutScope
     fun paymentsAuthApi(
         hostProvider: HostProvider,
         @AuthPaymentsHttpClient okHttpClient: OkHttpClient,
@@ -82,9 +83,8 @@ internal class PaymentAuthModule {
     }
 
     @Provides
-    @Singleton
+    @CheckoutScope
     fun apiV3PaymentAuthRepository(
-        userAuthInfoRepository: TokensStorage,
         profiler: YooProfiler,
         profilingSessionIdStorage: ProfilingSessionIdStorage,
         paymentsAuthApi: PaymentsAuthApi
@@ -98,7 +98,7 @@ internal class PaymentAuthModule {
     }
 
     @Provides
-    @Singleton
+    @CheckoutScope
     fun paymentAuthTypeRepository(
         testParameters: TestParameters,
         apiV3PaymentAuthRepository: ApiV3PaymentAuthRepository
@@ -112,7 +112,7 @@ internal class PaymentAuthModule {
     }
 
     @Provides
-    @Singleton
+    @CheckoutScope
     fun processPaymentAuthRepository(
         testParameters: TestParameters,
         apiV3PaymentAuthRepository: ApiV3PaymentAuthRepository
@@ -126,7 +126,7 @@ internal class PaymentAuthModule {
     }
 
     @Provides
-    @Singleton
+    @CheckoutScope
     fun paymentAuthTokenRepository(
         testParameters: TestParameters,
         tokensStorage: TokensStorage
@@ -147,7 +147,7 @@ internal class PaymentAuthModule {
     }
 
     @Provides
-    @Singleton
+    @CheckoutScope
     fun smsSessionRetryRepository(
         testParameters: TestParameters,
         apiV3PaymentAuthRepository: ApiV3PaymentAuthRepository
@@ -161,6 +161,7 @@ internal class PaymentAuthModule {
     }
 
     @Provides
+    @CheckoutScope
     fun requestPaymentAuthUseCase(paymentAuthTypeRepository: PaymentAuthTypeRepository): RequestPaymentAuthUseCase {
         return RequestPaymentAuthUseCaseImpl(
             paymentAuthTypeRepository
@@ -168,6 +169,7 @@ internal class PaymentAuthModule {
     }
 
     @Provides
+    @CheckoutScope
     fun processPaymentAuthUseCase(
         processPaymentAuthRepository: ProcessPaymentAuthRepository,
         currentUserRepository: CurrentUserRepository,

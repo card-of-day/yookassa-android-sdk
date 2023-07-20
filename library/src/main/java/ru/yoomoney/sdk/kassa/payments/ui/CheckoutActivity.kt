@@ -24,22 +24,23 @@ package ru.yoomoney.sdk.kassa.payments.ui
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentManager
-import com.yandex.metrica.YandexMetrica
-import ru.yoomoney.sdk.kassa.payments.BuildConfig
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.SavedBankCardPaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentMethodType
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
+import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.UiParameters
 import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
 import ru.yoomoney.sdk.kassa.payments.errorFormatter.ErrorFormatter
 import ru.yoomoney.sdk.kassa.payments.metrics.ColorMetricsProvider
+import ru.yoomoney.sdk.kassa.payments.metrics.ExceptionReporter
 import ru.yoomoney.sdk.kassa.payments.metrics.Reporter
 import ru.yoomoney.sdk.kassa.payments.metrics.SavePaymentMethodProvider
 import ru.yoomoney.sdk.kassa.payments.metrics.UserAttiributionOnInitProvider
 import ru.yoomoney.sdk.kassa.payments.metrics.UserAuthTypeParamProvider
-import ru.yoomoney.sdk.kassa.payments.metrics.YandexMetricaExceptionReporter
 import ru.yoomoney.sdk.kassa.payments.metrics.YooKassaIconProvider
+import ru.yoomoney.sdk.kassa.payments.model.UnhandledException
 import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
+import ru.yoomoney.sdk.kassa.payments.ui.model.StartScreenData
 import javax.inject.Inject
 
 internal const val EXTRA_CREATED_WITH_CHECKOUT_METHOD = "ru.yoomoney.sdk.kassa.payments.extra.CREATED_WITH_CHECKOUT_METHOD"
@@ -50,7 +51,7 @@ internal const val EXTRA_UI_PARAMETERS = "ru.yoomoney.sdk.kassa.payments.extra.U
 
 internal const val EXTRA_PAYMENT_TOKEN = "ru.yoomoney.sdk.kassa.payments.extra.PAYMENT_TOKEN"
 
-private val TAG_BOTTOM_SHEET = MainDialogFragment::class.java.name
+internal val TAG_BOTTOM_SHEET = MainDialogFragment::class.java.name
 
 private const val ACTION_SDK_INITIALIZED = "actionSDKInitialised"
 
@@ -58,6 +59,9 @@ internal class CheckoutActivity : AppCompatActivity() {
 
     @Inject
     lateinit var errorFormatter: ErrorFormatter
+
+    @Inject
+    lateinit var exceptionReporter: ExceptionReporter
 
     @Inject
     lateinit var reporter: Reporter
@@ -90,23 +94,19 @@ internal class CheckoutActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         checkStartedWithCreateTokenizeIntent()
 
-        val paymentMethodId: String? = if (!intent.hasExtra(EXTRA_PAYMENT_PARAMETERS)) {
-            requireNotNull(intent.getParcelableExtra<SavedBankCardPaymentParameters>(EXTRA_CSC_PARAMETERS)).paymentMethodId
-        } else {
-            null
-        }
         val uiParameters: UiParameters = requireNotNull(intent.getParcelableExtra(EXTRA_UI_PARAMETERS))
         CheckoutInjector.setupComponent(
-            this,
-            paymentParameters,
-            requireNotNull(intent.getParcelableExtra(EXTRA_TEST_PARAMETERS)),
-            uiParameters,
-            paymentMethodId,
-            YandexMetricaExceptionReporter(YandexMetrica.getReporter(applicationContext, BuildConfig.APP_METRICA_KEY))
+            isConfirmation = false,
+            context = this,
+            paymentParameters = paymentParameters,
+            testParameters = intent.getParcelableExtra(EXTRA_TEST_PARAMETERS) ?: TestParameters(),
+            uiParameters = uiParameters,
         )
         CheckoutInjector.injectCheckoutActivity(this)
         sendInitializeAction(paymentParameters, uiParameters)
         super.onCreate(savedInstanceState)
+
+        checkParams(paymentParameters)
 
         showDialog(supportFragmentManager)
     }
@@ -124,7 +124,8 @@ internal class CheckoutActivity : AppCompatActivity() {
     }
 
     private fun showDialog(supportFragmentManager: FragmentManager) {
-        findDialog(supportFragmentManager) ?: MainDialogFragment()
+        val startScreenData = StartScreenData(paymentParameters.paymentMethodTypes)
+        findDialog(supportFragmentManager) ?: MainDialogFragment.createFragment(startScreenData)
             .show(supportFragmentManager, TAG_BOTTOM_SHEET)
     }
 
@@ -137,6 +138,26 @@ internal class CheckoutActivity : AppCompatActivity() {
                 "Intent for CheckoutActivity should be created only with Checkout.createTokenizeIntent()."
             )
         }
+    }
+
+    private fun checkParams(shopParameters: PaymentParameters?) {
+        if (shopParameters != null &&
+            shopParameters.paymentMethodTypes.let { PaymentMethodType.YOO_MONEY in it }
+            && shopParameters.authCenterClientId.isNullOrEmpty()
+        ) {
+            throwException(exceptionReporter)
+        }
+    }
+
+    private fun throwException(exceptionReporter: ExceptionReporter) {
+        val exception = IllegalStateException(
+            "You should pass authCenterClientId to PaymentParameters if you want to allow PaymentMethodType.YOO_MONEY. " +
+                    "If you don't want to use PaymentMethodType.YOO_MONEY, specify your payment methods " +
+                    "explicitly in PaymentParameters.paymentMethodTypes \n" +
+                    "Visit https://github.com/yoomoney/yookassa-android-sdk for more information."
+        )
+        exceptionReporter.report(UnhandledException(exception))
+        throw exception
     }
 
     private fun sendInitializeAction(paymentParameters: PaymentParameters, uiParameters: UiParameters) {

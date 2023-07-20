@@ -28,3 +28,5 @@ internal fun getLanguage(): String {
         if (it == "ru") it else "en"
     }
 }
+
+internal fun isRussianLanguageSelected() = getLanguage() == "ru"

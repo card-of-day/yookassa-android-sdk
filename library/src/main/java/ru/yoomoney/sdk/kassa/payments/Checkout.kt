@@ -28,7 +28,6 @@ import androidx.annotation.Keep
 import ru.yoomoney.sdk.kassa.payments.ui.CheckoutActivity
 import ru.yoomoney.sdk.kassa.payments.ui.EXTRA_CREATED_WITH_CHECKOUT_METHOD
 import ru.yoomoney.sdk.kassa.payments.ui.EXTRA_CSC_PARAMETERS
-import ru.yoomoney.sdk.kassa.payments.ui.EXTRA_PAYMENT_METHOD_TYPE
 import ru.yoomoney.sdk.kassa.payments.ui.EXTRA_PAYMENT_PARAMETERS
 import ru.yoomoney.sdk.kassa.payments.ui.EXTRA_PAYMENT_TOKEN
 import ru.yoomoney.sdk.kassa.payments.ui.EXTRA_TEST_PARAMETERS
@@ -40,8 +39,10 @@ import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.SavedBankCardPaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.UiParameters
-import ru.yoomoney.sdk.kassa.payments.ui.ConfirmationActivity
-import ru.yoomoney.sdk.kassa.payments.ui.EXTRA_CONFIRMATION_URL
+import ru.yoomoney.sdk.kassa.payments.confirmation.ConfirmationActivity
+import ru.yoomoney.sdk.kassa.payments.confirmation.EXTRA_CLIENT_APPLICATION_KEY
+import ru.yoomoney.sdk.kassa.payments.confirmation.EXTRA_CONFIRMATION_URL
+import ru.yoomoney.sdk.kassa.payments.confirmation.EXTRA_PAYMENT_METHOD_TYPE
 import ru.yoomoney.sdk.kassa.payments.ui.color.ColorScheme
 import ru.yoomoney.sdk.kassa.payments.ui.view.EXTRA_CARD_NUMBER
 import ru.yoomoney.sdk.kassa.payments.ui.view.EXTRA_EXPIRY_MONTH
@@ -205,14 +206,16 @@ object Checkout {
         context: Context,
         confirmationUrl: String,
         paymentMethodType: PaymentMethodType,
+        clientApplicationKey: String? = null,
         colorScheme: ColorScheme = ColorScheme.getDefaultScheme(),
         testParameters: TestParameters = TestParameters()
     ): Intent = when(paymentMethodType) {
-        PaymentMethodType.SBERBANK -> {
+        PaymentMethodType.SBERBANK, PaymentMethodType.SBP -> {
             Intent(context, ConfirmationActivity::class.java)
                 .putExtra(EXTRA_CONFIRMATION_URL, confirmationUrl)
                 .putExtra(EXTRA_PAYMENT_METHOD_TYPE, paymentMethodType)
                 .putExtra(EXTRA_TEST_PARAMETERS, testParameters)
+                .putExtra(EXTRA_CLIENT_APPLICATION_KEY, clientApplicationKey)
         }
         else -> {
             checkUrl(confirmationUrl)

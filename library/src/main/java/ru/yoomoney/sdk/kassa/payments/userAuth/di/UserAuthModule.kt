@@ -32,6 +32,7 @@ import ru.yoomoney.sdk.auth.transferData.TransferDataRepository
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentMethodType
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
+import ru.yoomoney.sdk.kassa.payments.di.scope.CheckoutScope
 import ru.yoomoney.sdk.kassa.payments.di.ViewModelKey
 import ru.yoomoney.sdk.kassa.payments.http.HostProvider
 import ru.yoomoney.sdk.kassa.payments.metrics.Reporter
@@ -56,13 +57,12 @@ import ru.yoomoney.sdk.march.Out
 import ru.yoomoney.sdk.march.RuntimeViewModel
 import ru.yoomoney.sdk.kassa.payments.userAuth.MoneyAuth
 import ru.yoomoney.sdk.kassa.payments.userAuth.YooMoneyAuthorizeUserRepository
-import javax.inject.Singleton
 
 @Module
 internal class UserAuthModule {
 
     @Provides
-    @Singleton
+    @CheckoutScope
     fun authorizeUserRepository(
         paymentParameters: PaymentParameters,
         testParameters: TestParameters,
@@ -85,7 +85,7 @@ internal class UserAuthModule {
     }
 
     @Provides
-    @Singleton
+    @CheckoutScope
     fun checkPaymentAuthRequiredGateway(
         testParameters: TestParameters,
         tokensStorage: TokensStorage
@@ -102,13 +102,13 @@ internal class UserAuthModule {
     }
 
     @Provides
-    @Singleton
+    @CheckoutScope
     fun tokenizeSchemeParamProvider(): TokenizeSchemeParamProvider {
         return TokenizeSchemeParamProvider()
     }
 
     @Provides
-    @Singleton
+    @CheckoutScope
     fun userAuthTypeParamProvider(
         currentUserRepository: CurrentUserRepository,
         checkPaymentAuthRequiredGateway: CheckPaymentAuthRequiredGateway
@@ -120,7 +120,7 @@ internal class UserAuthModule {
     }
 
     @Provides
-    @Singleton
+    @CheckoutScope
     fun transferDataRepository(
         context: Context,
         paymentParameters: PaymentParameters,
@@ -135,13 +135,13 @@ internal class UserAuthModule {
     }
 
     @Provides
-    @Singleton
+    @CheckoutScope
     fun getTransferDataUseCase(transferDataRepository: TransferDataRepository): GetTransferDataUseCase {
         return GetTransferDataUseCaseImpl(transferDataRepository)
     }
 
     @Provides
-    @Singleton
+    @CheckoutScope
     fun accountRepository(context: Context, hostProvider: HostProvider): AccountRepository {
         return YooMoneyAuth.provideAccountRepository(
             context = context,

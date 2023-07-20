@@ -30,6 +30,7 @@ import ru.yoomoney.sdk.kassa.payments.model.BankCardPaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.PaymentIdCscConfirmation
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOption
 import ru.yoomoney.sdk.kassa.payments.model.Result
+import ru.yoomoney.sdk.kassa.payments.model.SBP
 import ru.yoomoney.sdk.kassa.payments.model.SberBank
 import ru.yoomoney.sdk.kassa.payments.model.Wallet
 import ru.yoomoney.sdk.kassa.payments.model.YooMoney
@@ -149,4 +150,5 @@ private fun PaymentOption.toAllowed() = when (this) {
     is SberBank -> PaymentMethodType.SBERBANK
     is GooglePay -> PaymentMethodType.GOOGLE_PAY
     is PaymentIdCscConfirmation -> PaymentMethodType.BANK_CARD
+    is SBP -> PaymentMethodType.SBP
 }

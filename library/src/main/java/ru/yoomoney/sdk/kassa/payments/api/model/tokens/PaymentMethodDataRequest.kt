@@ -75,3 +75,8 @@ internal data class PaymentMethodDataGooglePayRequest(
     @param:JsonProperty("payment_method_token")
     val paymentMethodToken: String
 ) : PaymentMethodDataRequest()
+
+internal data class PaymentMethodDataSBPRequest(
+    @JsonProperty("type")
+    val type: PaymentMethodTypeNetwork
+) : PaymentMethodDataRequest()

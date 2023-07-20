@@ -47,7 +47,7 @@ buildscript {
     ext.espresso_intents = '3.4.0'
     ext.espresso_web = '3.4.0'
     ext.androidx_junit = '1.1.3'
-    ext.yoopinning = '1.0.2'
+    ext.yoopinning = '1.0.4'
     ext.retrofit = '2.9.0'
     ext.jackson = '2.13.3'
     ext.gibsdk = '2.0.b302271022'
@@ -79,8 +79,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        //заменить на зеркало
-        maven { url "https://pay.cards/maven" }
     }
 }
 

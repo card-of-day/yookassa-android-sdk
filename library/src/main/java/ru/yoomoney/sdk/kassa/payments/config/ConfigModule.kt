@@ -52,13 +52,14 @@ internal class ConfigModule {
         okHttpClient: OkHttpClient,
         apiErrorMapper: ApiErrorMapper
     ): ConfigRepository {
-        val defaultConfig = context.resources.openRawResource(R.raw.ym_default_config).readText().toConfig()
+        val defaultConfig = context.resources.openRawResource(R.raw.ym_default_config).readText().toConfig(testParameters.hostParameters)
         return if (testParameters.mockConfiguration != null) {
             MockConfigRepository(defaultConfig)
         } else {
             ApiConfigRepository(
+                hostParameters = testParameters.hostParameters,
                 getDefaultConfig = defaultConfig,
-                sp = context.getSharedPreferences("configPrefs", MODE_PRIVATE),
+                sp = context.getSharedPreferences(CONFIG_PREFS, MODE_PRIVATE),
                 errorReporter = errorReporter,
                 configRequestApi = createConfigApi(
                     { testParameters.hostParameters.configHost + "/" },
@@ -81,5 +82,9 @@ internal class ConfigModule {
             .addCallAdapterFactory(SuspendResultCallAdapterFactory(apiErrorMapper))
             .build()
             .create(ConfigRequestApi::class.java)
+    }
+
+    companion object {
+        internal const val CONFIG_PREFS = "configPrefs"
     }
 }

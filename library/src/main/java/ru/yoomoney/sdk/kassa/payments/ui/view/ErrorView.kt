@@ -24,12 +24,10 @@ package ru.yoomoney.sdk.kassa.payments.ui.view
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.appcompat.widget.LinearLayoutCompat
-import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.ym_view_error.view.*
-import ru.yoomoney.sdk.gui.utils.extensions.tint
 import ru.yoomoney.sdk.kassa.payments.R
+import ru.yoomoney.sdk.kassa.payments.ui.color.InMemoryColorSchemeRepository
 
 internal class ErrorView : LinearLayoutCompat {
 
@@ -39,20 +37,13 @@ internal class ErrorView : LinearLayoutCompat {
 
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
         View.inflate(context, R.layout.ym_view_error, this)
-        orientation = LinearLayoutCompat.VERTICAL
-
-        val topDrawable = checkNotNull(AppCompatResources.getDrawable(context, R.drawable.ym_ic_fail))
-            .tint(ContextCompat.getColor(context, R.color.color_type_secondary)).apply {
-                setBounds(0, 0, intrinsicWidth, intrinsicHeight)
-            }
-        textView.setCompoundDrawables(null, topDrawable, null, null)
-
+        orientation = VERTICAL
         setAttributes(context, attrs, defStyleAttr)
     }
 
     fun setErrorText(text: CharSequence) {
-        textView.text = text
-        textView.visibility = View.VISIBLE
+        message.text = text
+        message.visibility = View.VISIBLE
     }
 
     fun setErrorButtonText(text: CharSequence) {
@@ -62,10 +53,12 @@ internal class ErrorView : LinearLayoutCompat {
 
     fun setErrorButtonListener(listener: OnClickListener) {
         button.setOnClickListener(listener)
+        button.setTextColor(InMemoryColorSchemeRepository.typeColorStateList(context))
     }
 
     fun setErrorButtonListener(action: () -> Unit) {
         button.setOnClickListener { action() }
+        button.setTextColor(InMemoryColorSchemeRepository.typeColorStateList(context))
     }
 
     private fun setAttributes(context: Context, attrs: AttributeSet?, defStyleAttr: Int) {
