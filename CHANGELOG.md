@@ -5,9 +5,13 @@
 ### NEXT_VERSION_DESCRIPTION_BEGIN
 ### NEXT_VERSION_DESCRIPTION_END
 
+## [6.7.1] (31-07-2023)
+
+- Fixed mistakes in documentation
+
 ## [6.7.0] (20-07-2023)
 
-- Added new payment option - SPB
+- Added new payment option - SBP
 
 ## [6.6.4] (04-07-2023)
 
