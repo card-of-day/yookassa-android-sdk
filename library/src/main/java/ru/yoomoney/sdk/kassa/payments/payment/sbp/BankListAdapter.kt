@@ -25,16 +25,22 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.MarginLayoutParams
+import androidx.appcompat.widget.LinearLayoutCompat
+import androidx.constraintlayout.widget.ConstraintLayout.LayoutParams
+import androidx.core.content.ContextCompat
 import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import ru.yoomoney.sdk.gui.widgetV2.list.item_action.ItemVectorPrimaryActionView
 import ru.yoomoney.sdk.gui.widgetV2.list.item_detail.ItemVectorPrimaryDetailView
 import ru.yoomoney.sdk.kassa.payments.R
+import ru.yoomoney.sdk.kassa.payments.ui.view.ErrorView
 
 internal const val BANK_ITEM_VIEW_TYPE = 1
 internal const val SELECT_ANOTHER_BANK_VIEW_TYPE = 2
 internal const val DIVIDER_VIEW_TYPE = 3
+internal const val EMPTY_STATE_TYPE = 4
 
 internal sealed class BankListViewEntity {
 
@@ -43,6 +49,8 @@ internal sealed class BankListViewEntity {
     data class SelectAnotherBankViewEntity(val title: String) : BankListViewEntity()
 
     object Divider : BankListViewEntity()
+
+    object EmptyState : BankListViewEntity()
 }
 
 internal class BankListAdapter(val onClickBank: (String) -> Unit, val onClickSelectAnotherBank: () -> Unit) :
@@ -53,6 +61,7 @@ internal class BankListAdapter(val onClickBank: (String) -> Unit, val onClickSel
             is BankListViewEntity.BankViewEntity -> BANK_ITEM_VIEW_TYPE
             is BankListViewEntity.SelectAnotherBankViewEntity -> SELECT_ANOTHER_BANK_VIEW_TYPE
             is BankListViewEntity.Divider -> DIVIDER_VIEW_TYPE
+            is BankListViewEntity.EmptyState -> EMPTY_STATE_TYPE
         }
     }
 
@@ -63,7 +72,9 @@ internal class BankListAdapter(val onClickBank: (String) -> Unit, val onClickSel
                 parent.context,
                 onClickSelectAnotherBank
             )
+
             DIVIDER_VIEW_TYPE -> BankListViewHolder.DividerViewHolder(parent)
+            EMPTY_STATE_TYPE -> BankListViewHolder.EmptyStateViewHolder(parent)
             else -> throw IllegalStateException("viewType: $viewType is not supported")
         }
     }
@@ -113,6 +124,22 @@ internal sealed class BankListViewHolder(val view: View) : RecyclerView.ViewHold
         override fun bind(item: BankListViewEntity) {
             view.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                 leftMargin = view.context.resources.getDimensionPixelSize(R.dimen.ym_spaceM)
+            }
+        }
+    }
+
+    class EmptyStateViewHolder(parent: ViewGroup) :
+        BankListViewHolder(ErrorView(parent.context)) {
+
+        override fun bind(item: BankListViewEntity) {
+            (view as ErrorView).apply {
+                setErrorTitle(context.getString(R.string.ym_title_not_found))
+                setErrorText(context.getString(R.string.ym_subtitle_sbp_not_found))
+                setIcon(requireNotNull(ContextCompat.getDrawable(context, R.drawable.ym_search_not_found)))
+            }
+            view.layoutParams = LinearLayoutCompat.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+            (view.layoutParams as MarginLayoutParams).apply {
+                this.setMargins(0, view.context.resources.getDimensionPixelSize(R.dimen.ym_space_3xl), 0, 0)
             }
         }
     }

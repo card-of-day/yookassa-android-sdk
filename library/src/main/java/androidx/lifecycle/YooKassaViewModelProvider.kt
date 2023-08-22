@@ -32,7 +32,7 @@ internal class YooKassaViewModelProvider(
 
     override fun <T : ViewModel> get(key: String, modelClass: Class<T>): T {
         var viewModel = store[key]
-        if (modelClass.isInstance(viewModel)) {
+        if (modelClass.isInstance(viewModel) && viewModel != null) {
             (factory as? OnRequeryFactory)?.onRequery(viewModel)
             @Suppress("UNCHECKED_CAST")
             return viewModel as T

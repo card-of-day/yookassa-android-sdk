@@ -35,12 +35,18 @@ internal interface BankListInteractor {
     suspend fun getPriorityBanks(bankList: List<SbpBankInfoDomain>): BankList.Action
 
     suspend fun getPaymentStatus(paymentId: String): BankList.Action
+
+    fun searchBank(searchText: String, banks: List<SbpBankInfoDomain>): List<SbpBankInfoDomain>
+
+    var bankWasSelected: Boolean
 }
 
 internal class BankListInteractorImpl(
     private val context: Context,
     private val bankListRepository: BankListRepository,
 ) : BankListInteractor {
+
+    override var bankWasSelected: Boolean = false
 
     override suspend fun getSbpBanks(confirmationUrl: String): BankList.Action {
         return bankListRepository.getSbpBanks(confirmationUrl).fold(
@@ -77,6 +83,12 @@ internal class BankListInteractorImpl(
                 }
             }
         )
+    }
+
+    override fun searchBank(searchText: String, banks: List<SbpBankInfoDomain>): List<SbpBankInfoDomain> {
+        return banks.filter { bank ->
+            bank.nameEng.contains(searchText, ignoreCase = true) || bank.nameRus.contains(searchText, ignoreCase = true)
+        }
     }
 
     private suspend fun getPrioritySbpBanks(bankList: List<SbpBankInfoDomain>): List<SbpBankInfoDomain> {

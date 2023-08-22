@@ -1,5 +1,5 @@
 <resources>
-  <string name='app_name'>Demo mSDK</string>
+  <string name='ym_app_name'>Demo mSDK</string>
   <string name='start_payment'>Start the payment process</string>
   <string name='tokenization_canceled'>Tokenization canceled</string>
   <string name='tokenization_success'>Token: %1$s</string>

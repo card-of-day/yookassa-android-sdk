@@ -35,7 +35,6 @@ Android Checkout mobile SDK - версия $versionName ([changelog](./CHANGELOG
 * [Migration guide](#migration-guide)
 * [Подключение через Gradle](#подключение)
 * [Рекомендации по интеграции](#рекомендации-по-интеграции)
-    * [Настройка приложения при продаже цифровых товаров](#настройка-приложения-при-продаже-цифровых-товаров)
     * [Рекомендуемые совместимые версии](#рекомендуемые-совместимые-версии)
 * [Использование библиотеки](#использование-библиотеки)
     * [Токенизация](#токенизация)
@@ -79,27 +78,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'ru.yoomoney.sdk.kassa.payments:yookassa-android-sdk:6.5.0'
+    implementation 'ru.yoomoney.sdk.kassa.payments:yookassa-android-sdk:6.8.0'
 }
-```
-
-Также необходимо подключить kotlin plugin. Для этого нужно добавить в файл build.gradle root каталога следующий блок кода:
-
-```groovy
-buildscript {
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.31"
-    }
-}
-```
-
-В app модуль добавить в файл build.gradle:
-
-```groovy
-plugin {
-    id 'kotlin-android'
-}
-
 ```
 
 В AndroidManifest'е вашего приложения внутри тэга application необходимо добавить настройки доступа к сети для корректной работы библиотеки. 
@@ -118,28 +98,17 @@ android:networkSecurityConfig="@xml/ym_network_security_config"
         <domain includeSubdomains="true">certs.yoomoney.ru</domain>
 </domain-config>
 ```
+
 # <a name="рекомендации-по-интеграции"></a> Рекомендации по интеграции
-
-## <a name="настройка-приложения-при-продаже-цифровых-товаров"></a> Настройка приложения при продаже цифровых товаров
-
-Если в вашем приложении продаются цифровые товары, нужно отключить Google Pay из списка платежных опций.
-Для этого добавьте в AndroidManifest следующий код:
-
-```xml
-<meta-data
-    android:name="com.google.android.gms.wallet.api.enabled"
-    tools:node="remove" />
-```
-
 
 ## <a name="рекомендуемые-совместимые-версии"></a> Рекомендуемые совместимые версии
 
 Минимально поддерживаемая версия Android SDK: 21 (Android 5.0).
 
 Для корректной работы библиотеки следует использовать в приложении:
-- Kotlin версии 1.7.10;
+- Kotlin version 1.8.22;
 - targetSdkVersion 33;
-- Версия Gradle 7.0.+.
+- Gradle version 7.+.
 
 # <a name="использование-библиотеки"></a> Использование библиотеки
 
@@ -192,12 +161,11 @@ android:networkSecurityConfig="@xml/ym_network_security_config"
 
 ### <a name="запуск-токенизации-всеми-методами"></a> Запуск токенизации всеми методами
 
-Для того, чтобы запустить токенизацию всеми доступными методами оплаты, необходимо вызвать метод `createTokenizeIntent` и передать в него объект `PaymentParameters`, в котором находится набор всех спобосов оплаты или же не передавать этот набор.
+Для того, чтобы запустить токенизацию всеми доступными методами оплаты, необходимо вызвать метод `createTokenizeIntent` и передать в него объект `PaymentParameters`, в котором находится набор всех способов оплаты или же не передавать этот набор.
 
 **Вариант 1**:
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class MyActivity : AppCompatActivity() {
@@ -210,7 +178,7 @@ class MyActivity : AppCompatActivity() {
             clientApplicationKey = "live_thisKeyIsNotReal", // ключ для клиентских приложений из личного кабинета ЮKassa 
             shopId = "12345", // идентификатор магазина ЮKassa
             savePaymentMethod = SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода,
-            paymentMethodTypes = setOf(PaymentMethodType.YOO_MONEY, PaymentMethodType.BANK_CARD, PaymentMethodType.SBERBANK, PaymentMethodType.GOOGLE_PAY), // передан весь список доступных методов оплаты
+            paymentMethodTypes = setOf(PaymentMethodType.YOO_MONEY, PaymentMethodType.BANK_CARD, PaymentMethodType.SBERBANK), // передан весь список доступных методов оплаты
             customReturnUrl = "https://custom.redirect.url", // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. 
             userPhoneNumber = "+79041234567", // номер телефона пользователя для автозаполнения поля номера телефона пользователя в SberPay. Поддерживаемый формат данных: "+7XXXXXXXXXX"
             authCenterClientId = "example_authCenterClientId" // идентификатор, полученный при регистрации приложения на сайте https://yookassa.ru
@@ -222,44 +190,9 @@ class MyActivity : AppCompatActivity() {
 ```
 </details>
 
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    void startTokenize() {
-        Set<PaymentMethodType> paymentMethodTypes = new HashSet<PaymentMethodType>(){{
-            add(PaymentMethodType.SBERBANK); // выбранный способ оплаты - SberPay
-            add(PaymentMethodType.YOO_MONEY); // выбранный способ оплаты - ЮMoney
-            add(PaymentMethodType.BANK_CARD); // выбранный способ оплаты - Банковская карта
-            add(PaymentMethodType.SBP); // выбранный способ оплаты - СБП
-        }};
-        PaymentParameters paymentParameters = new PaymentParameters(
-                new Amount(BigDecimal.TEN, Currency.getInstance("RUB")),
-                "Название товара",
-                "Описание товара",
-                "live_thisKeyIsNotReal", // ключ для клиентских приложений из личного кабинета ЮKassa 
-                "12345", // идентификатор магазина ЮKassa
-                SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
-                paymentMethodTypes, // передан весь список доступных методов оплаты
-                "gatewayId", // gatewayId магазина для платежей Google Pay (необходим в случае, если в способах оплаты есть Google Pay)
-                "https://custom.redirect.url", // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url (вы не используете метод createConfirmationIntent() из SDK) или при необходимости продолжить работу внутри WebView;. 
-                userPhoneNumber = "+79041234567", // номер телефона пользователя. Используется для автозаполнения поля при оплате через SberPay. Поддерживаемый формат данных: "+7XXXXXXXXXX".
-                null, // настройки для токенизации через GooglePay,
-                "example_authCenterClientId" // идентификатор, полученный при регистрации приложения на сайте https://yookassa.ru
-        );
-        Intent intent = Checkout.createTokenizeIntent(this, paymentParameters);
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
-    }
-}
-```
-</details>
-
 **Вариант 2**:
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class MyActivity : AppCompatActivity() {
@@ -279,34 +212,6 @@ class MyActivity : AppCompatActivity() {
         )
         val intent = Checkout.createTokenizeIntent(this, paymentParameters)
         startActivityForResult(intent, REQUEST_CODE_TOKENIZE)
-    }
-}
-```
-</details>
-
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    void startTokenize() {
-        PaymentParameters paymentParameters = new PaymentParameters(
-                new Amount(BigDecimal.TEN, Currency.getInstance("RUB")),
-                "Название товара",
-                "Описание товара",
-                "live_thisKeyIsNotReal", // ключ для клиентских приложений из личного кабинета ЮKassa 
-                "12345", // идентификатор магазина ЮKassa
-                SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
-                null, // передан весь список доступных методов оплаты
-                "gatewayId", // gatewayId магазина для платежей Google Pay (необходим в случае, если в способах оплаты есть Google Pay)
-                "https://custom.redirect.url", // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url (вы не используете метод createConfirmationIntent() из SDK) или при необходимости продолжить работу внутри WebView;. 
-                "+79041234567", // номер телефона пользователя. Используется для автозаполнения поля при оплате через SberPay. Поддерживаемый формат данных: "+7XXXXXXXXXX".
-                null, // настройки для токенизации через GooglePay,
-                "example_authCenterClientId" // идентификатор, полученный при регистрации приложения на сайте https://yookassa.ru
-        );
-        Intent intent = Checkout.createTokenizeIntent(this, paymentParameters);
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
     }
 }
 ```
@@ -336,7 +241,6 @@ class MyActivity extends AppCompatActivity {
 4. В открывшемся окне появится информация о зарегистрированном приложении. Вам понадобится `authCenterClientId` для запуска токенизации;
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class MyActivity : AppCompatActivity() {
@@ -354,35 +258,6 @@ class MyActivity : AppCompatActivity() {
         )
         val intent = createTokenizeIntent(this, paymentParameters)
         startActivityForResult(intent, REQUEST_CODE_TOKENIZE)
-    }
-}
-```
-</details>
-
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    void startYooMoneyTokenize() {
-        Set<PaymentMethodType> paymentMethodTypes = new HashSet<>();
-        PaymentParameters paymentParameters = new PaymentParameters(
-                new Amount(BigDecimal.TEN, Currency.getInstance("RUB")),
-                "Название товара",
-                "Описание товара",
-                "live_thisKeyIsNotReal", // ключ для клиентских приложений из личного кабинета ЮKassa (https://yookassa.ru/my/api-keys-settings)
-                "12345", // идентификатор магазина ЮKassa
-                SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
-                paymentMethodTypes.add(PaymentMethodType.YOO_MONEY), // выбранный способ оплаты - кошелек ЮMoney,
-                null, // gateway магазина для платежей Google Pay (необходим в случае, если в способах оплаты есть Google Pay)
-                null, // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url (вы не используете метод createConfirmationIntent() из SDK) или при необходимости продолжить работу внутри WebView. 
-                null, // номер телефона пользователя. Используется для автозаполнения поля при оплате через SberPay. Поддерживаемый формат данных: "+7XXXXXXXXXX".
-                null, // настройки для токенизации через GooglePay,
-                "example_authCenterClientId" // authCenterClientId - идентификатор, полученный при регистрации приложения на сайте https://yookassa.ru
-        );
-        Intent intent = Checkout.createTokenizeIntent(this, paymentParameters);
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
     }
 }
 ```
@@ -421,7 +296,6 @@ android {
 **Запуск токеннизации через SberPay выглядит следующим образом.**
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class MyActivity: Activity() {
@@ -439,36 +313,6 @@ class MyActivity: Activity() {
         )
         val intent = createTokenizeIntent(this, paymentParameters)
         startActivityForResult(intent, REQUEST_CODE_TOKENIZE)
-    }
-}
-```
-</details>
-
-<details>
-  <summary>Java</summary>
-
-```java
-public class MyActivity extends Activity {
-
-    private void startSberPayTokenize() {
-        Set<PaymentMethodType> paymentMethodTypes = new HashSet<PaymentMethodType>(){{
-            add(PaymentMethodType.SBERBANK); // выбранный способ оплаты - SberPay
-        }};
-        paymentMethodTypes.add(PaymentMethodType.SBERBANK);
-        PaymentParameters paymentParameters = new PaymentParameters(
-                new Amount(BigDecimal.valueOf(10.0), Currency.getInstance("RUB")),
-                "Название товара",
-                "Описание товара",
-                "live_thisKeyIsNotReal", // ключ для клиентских приложений из личного кабинета ЮKassa (https://yookassa.ru/my/api-keys-settings)
-                "12345", // идентификатор вашего магазина ЮKassa
-                SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
-                paymentMethodTypes, // выбранный способ оплаты - SberPay,
-                null, // gateway магазина для платежей Google Pay (необходим в случае, если в способах оплаты есть Google Pay)
-                null, // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url (вы не используете метод createConfirmationIntent() из SDK) или при необходимости продолжить работу внутри WebView.
-                "+79041234567" // номер телефона пользователя. Используется для автозаполнения поля при оплате через SberPay. Поддерживаемый формат данных: "+7XXXXXXXXXX".
-        );
-        Intent intent = Checkout.createTokenizeIntent(this, paymentParameters);
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
     }
 }
 ```
@@ -503,7 +347,6 @@ android {
 **Запуск токеннизации через СБП выглядит следующим образом.**
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class MyActivity: Activity() {
@@ -525,35 +368,6 @@ class MyActivity: Activity() {
 ```
 </details>
 
-<details>
-  <summary>Java</summary>
-
-```java
-public class MyActivity extends Activity {
-
-    private void startSberPayTokenize() {
-        Set<PaymentMethodType> paymentMethodTypes = new HashSet<PaymentMethodType>(){{
-            add(PaymentMethodType.SBERBANK); // выбранный способ оплаты - SberPay
-        }};
-        PaymentParameters paymentParameters = new PaymentParameters(
-                new Amount(BigDecimal.valueOf(10.0), Currency.getInstance("RUB")),
-                "Название товара",
-                "Описание товара",
-                "live_thisKeyIsNotReal", // ключ для клиентских приложений из личного кабинета ЮKassa (https://yookassa.ru/my/api-keys-settings)
-                "12345", // идентификатор вашего магазина ЮKassa
-                SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
-                paymentMethodTypes, // выбранный способ оплаты - SBP,
-                null, // gateway магазина для платежей Google Pay (необходим в случае, если в способах оплаты есть Google Pay)
-                null, // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url (вы не используете метод createConfirmationIntent() из SDK) или при необходимости продолжить работу внутри WebView;. 
-                null // номер телефона пользователя. Используется для автозаполнения поля при оплате через SberPay. Поддерживаемый формат данных: "+7XXXXXXXXXX".
-        );
-        Intent intent = Checkout.createTokenizeIntent(this, paymentParameters);
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
-    }
-}
-```
-</details>
-
 **Обработка результата процесса токенизации находится в разделе** [Получить результат токенизации](#получить-результат-токенизации)
 
 
@@ -562,7 +376,6 @@ public class MyActivity extends Activity {
 Для запуска токенизации только банковской картой необходимо передать в `PaymentParameters` `setOf(PaymentMethodType.BANK_CARD)` :
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class MyActivity : AppCompatActivity() {
@@ -579,30 +392,6 @@ class MyActivity : AppCompatActivity() {
         )
         val intent = createTokenizeIntent(this, paymentParameters)
         startActivityForResult(intent, REQUEST_CODE_TOKENIZE)
-    }
-}
-```
-</details>
-
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    void startBankCardTokenize() {
-        Set<PaymentMethodType> paymentMethodTypes = new HashSet<>();
-        PaymentParameters paymentParameters = new PaymentParameters(
-                new Amount(BigDecimal.TEN, Currency.getInstance("RUB")),
-                "Название товара",
-                "Описание товара",
-                "live_thisKeyIsNotReal", // ключ для клиентских приложений из личного кабинета ЮKassa (https://yookassa.ru/my/api-keys-settings)
-                "12345", // идентификатор магазина ЮKassa
-                SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
-                paymentMethodTypes.add(PaymentMethodType.BANK_CARD) // выбранный способ оплаты - банковская карта
-        );
-        Intent intent = Checkout.createTokenizeIntent(this, paymentParameters);
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
     }
 }
 ```
@@ -651,7 +440,6 @@ class MyActivity extends AppCompatActivity {
   Подробнее про рекуррентные платежи можно прочитать в разделе [Рекуррентные платежи](#рекуррентные-платежи).
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class MyActivity : AppCompatActivity() {
@@ -668,29 +456,6 @@ class MyActivity : AppCompatActivity() {
         )
         val intent = createSavedCardTokenizeIntent(this, parameters)
         startActivityForResult(intent, REQUEST_CODE_TOKENIZE)
-    }
-}
-```
-</details>
-
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    void startSavedCardTokenize() {
-        SavedBankCardPaymentParameters parameters = new SavedBankCardPaymentParameters(
-                new Amount(BigDecimal.TEN, Currency.getInstance("RUB")),
-                "Название товара",
-                "Описание товара",
-                "live_thisKeyIsNotReal", // ключ для клиентских приложений из личного кабинета ЮKassa
-                "12345", // идентификатор магазина ЮKassa
-                "paymentMethodIdExample", // уникальный идентификатор платежа
-                SavePaymentMethod.OFF // флаг выключенного сохранения платежного метода
-        );
-        Intent intent = Checkout.createSavedCardTokenizeIntent(this, parameters);
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
     }
 }
 ```
@@ -717,11 +482,9 @@ class MyActivity extends AppCompatActivity {
 Значения `PaymentMethodType`:
 * YOO_MONEY - оплата произведена с кошелька ЮMoney;
 * BANK_CARD - оплата произведена с банковской карты;
-* SBERBANK - оплата произведена через Сбербанк (SMS invoicing или SberPay);
-* GOOGLE_PAY - оплата произведена через Google Pay.
+* SBERBANK - оплата произведена через Сбербанк (SMS invoicing или SberPay).
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class MainActivity : AppCompatActivity() {
@@ -745,33 +508,6 @@ class MainActivity : AppCompatActivity() {
 ```
 </details>
 
-<details>
-  <summary>Java</summary>
-
-```java
-public final class MainActivity extends AppCompatActivity {
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == REQUEST_CODE_TOKENIZE) {
-            switch (resultCode) {
-                case RESULT_OK:
-                    // successful tokenization
-                    TokenizationResult result = Checkout.createTokenizationResult(data);
-                        ...
-                    break;
-                case RESULT_CANCELED:
-                    // user canceled tokenization
-                        ...
-                    break;
-            }
-        }
-    }
-}
-```
-</details>
 
 ## <a name="подтверждение-платежа"></a> Подтверждение платежа
 
@@ -804,7 +540,6 @@ public final class MainActivity extends AppCompatActivity {
 **Запуск 3ds и получение результата**
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class MyActivity : AppCompatActivity() {
@@ -837,41 +572,6 @@ class MyActivity : AppCompatActivity() {
 ```
 </details>
 
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    void startConfirmSberPay() {
-        Intent intent = Checkout.createConfirmationIntent(this, "your_app_scheme://invoicing/sberpay", PaymentMethodType.SBERBANK);
-        startActivityForResult(intent, REQUEST_CODE_CONFIRM);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_CODE_CONFIRM) {
-            switch (resultCode) {
-                case RESULT_OK:
-                    // Процесс подтверждения через SberPay завершён, нет информации о том, завершился процесс с успехом или нет
-                    // Рекомендуется запросить статус платежа
-                    break;
-                case RESULT_CANCELED:
-                    // Экран подтверждения через SberPay был закрыт
-                    break;
-                case Checkout.RESULT_ERROR:
-                    // Во время подтверждения через SberPay произошла какая-то ошибка (нет соединения или что-то еще)
-                    // Более подробную информацию можно посмотреть в data
-                    // data.getIntExtra(Checkout.EXTRA_ERROR_CODE) - код ошибки из WebViewClient.ERROR_* или Checkout.ERROR_NOT_HTTPS_URL
-                    // data.getStringExtra(Checkout.EXTRA_ERROR_DESCRIPTION) - описание ошибки (может отсутствовать)
-                    // data.getStringExtra(Checkout.EXTRA_ERROR_FAILING_URL) - url по которому произошла ошибка (может отсутствовать)
-                    break;
-            }
-        }
-    }
-}
-```
-</details>
 
 ### <a name="сбп"></a> СБП
 
@@ -900,7 +600,6 @@ class MyActivity extends AppCompatActivity {
 **Запуск подтверждения СБП и получение результата**
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class MyActivity : AppCompatActivity() {
@@ -924,40 +623,6 @@ class MyActivity : AppCompatActivity() {
                     return
                 }
                 RESULT_CANCELED -> return // Экран подтверждения через SBP был закрыт
-            }
-        }
-    }
-}
-```
-</details>
-
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    void startConfirmSBP() {
-        Intent intent = Checkout.createConfirmationIntent(
-                this, 
-                "https://sbp_confirmation.com/", 
-                PaymentMethodType.SBP,
-                "live_thisKeyIsNotReal"
-        );
-        startActivityForResult(intent, REQUEST_CODE_CONFIRM);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_CODE_CONFIRM) {
-            switch (resultCode) {
-                case RESULT_OK:
-                    // Процесс подтверждения через SBP завершён, нет информации о том, завершился процесс с успехом или нет
-                    // Рекомендуется запросить статус платежа
-                    break;
-                case RESULT_CANCELED:
-                    // Экран подтверждения через SBP был закрыт
-                    break;
             }
         }
     }
@@ -993,7 +658,6 @@ class MyActivity extends AppCompatActivity {
 **Запуск 3ds и получение результата**
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class MyActivity : AppCompatActivity() {
@@ -1026,42 +690,6 @@ class MyActivity : AppCompatActivity() {
 ```
 </details>
 
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    void start3DSecure() {
-        Intent intent = Checkout.createConfirmationIntent(this, "https://3dsurl.com/", PaymentMethodType.BANK_CARD);
-        startActivityForResult(intent, REQUEST_CODE_CONFIRM);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_CODE_CONFIRM) {
-            switch (resultCode) {
-                case RESULT_OK:
-                    // Процесс 3ds завершён, нет информации о том, завершился процесс с успехом или нет
-                    // Рекомендуется запросить статус платежа
-                    break;
-                case RESULT_CANCELED:
-                    // Экран 3ds был закрыт
-                    break;
-                case Checkout.RESULT_ERROR:
-                    // Во время 3ds произошла какая-то ошибка (нет соединения или что-то еще)
-                    // Более подробную информацию можно посмотреть в data
-                    // data.getIntExtra(Checkout.EXTRA_ERROR_CODE) - код ошибки из WebViewClient.ERROR_* или Checkout.ERROR_NOT_HTTPS_URL
-                    // data.getStringExtra(Checkout.EXTRA_ERROR_DESCRIPTION) - описание ошибки (может отсутствовать)
-                    // data.getStringExtra(Checkout.EXTRA_ERROR_FAILING_URL) - url по которому произошла ошибка (может отсутствовать)
-                    break;
-            }
-        }
-    }
-}
-```
-</details>
-
 ## <a name="привязанная-карта"></a> Привязанная карта
 
 Для того, чтобы после токенизации банковской картой эта банковская карта привязалась и отобразилась у пользователя в списке методов оплаты, необходимо в метод для токенизации (см. [Запуск токенизации банковской картой](#запуск-токенизации-банковской-картой)) передать опциональный параметр `customerId`. Карта привязывается исключительно тогда, когда пользователь дает согласие на ее привязку.
@@ -1071,7 +699,6 @@ class MyActivity extends AppCompatActivity {
 Таким образом, метод для проведения токенизации банковской карты с привязкой этой банковской карты выглядит слкдующим образом:
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class MyActivity : AppCompatActivity() {
@@ -1094,36 +721,6 @@ class MyActivity : AppCompatActivity() {
 ```
 </details>
 
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    void startLinkedBankCardTokenize() {
-        Set<PaymentMethodType> paymentMethodTypes = new HashSet<>();
-        PaymentParameters paymentParameters = new PaymentParameters(
-                new Amount(BigDecimal.TEN, Currency.getInstance("RUB")),
-                "Название товара",
-                "Описание товара",
-                "live_thisKeyIsNotReal", // ключ для клиентских приложений из личного кабинета ЮKassa (https://yookassa.ru/my/api-keys-settings)
-                "12345", // идентификатор магазина юKassa
-                SavePaymentMethod.OFF, // флаг выключенного сохранения платежного метода
-                paymentMethodTypes.add(PaymentMethodType.BANK_CARD), // выбранный способ оплаты - банковская карта
-                "gatewayId", // gatewayId магазина для платежей Google Pay (необходим в случае, если в способах оплаты есть Google Pay)
-                "https://custom.redirect.url", // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url. 
-                "+79041234567", // номер телефона пользователя. Используется для автозаполнения поля при оплате через SberPay. Поддерживаемый формат данных: "+7XXXXXXXXXX".
-                null, // настройки для токенизации через GooglePay,
-                "example_authCenterClientId", // идентификатор, полученный при регистрации приложения на сайте https://yookassa.ru
-                "uniqueCustomerId" // уникальный идентификатор покупателя в вашей системе
-        );
-        Intent intent = Checkout.createTokenizeIntent(this, paymentParameters);
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
-    }
-}
-```
-</details>
-
 Для того, чтобы посмотреть, как будет выглядеть привязанная карта на экране списка методов оплаты, можно воспользоваться тестовым режимом.
 Необходимо задать в параметре `linkedCardsCount` объекта `MockConfiguration` количество карт и вызвать метод `createTokenizeIntent`. Подробнее можно почитать в разделе [Настройка логирования и mock режима](#настройка-логирования-и-mock-режима)
 
@@ -1140,7 +737,6 @@ class MyActivity extends AppCompatActivity {
   ![SavePaymentMethod.USER_SELECTS](assets/images/recurrent-payments/save-payment-method-user-selects.png)
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class MyActivity : AppCompatActivity() {
@@ -1165,34 +761,6 @@ class MyActivity : AppCompatActivity() {
 ```
 </details>
 
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    void startTokenize() {
-        PaymentParameters paymentParameters = new PaymentParameters(
-                new Amount(BigDecimal.TEN, Currency.getInstance("RUB")),
-                "Название товара",
-                "Описание товара",
-                "live_thisKeyIsNotReal", // ключ для клиентских приложений из личного кабинета ЮKassa 
-                "12345", // идентификатор магазина ЮKassa
-                SavePaymentMethod.ON, // флаг включения сохранения платежного метода
-                null, // передан весь список доступных методов оплаты
-                "gatewayId", // gatewayId магазина для платежей Google Pay (необходим в случае, если в способах оплаты есть Google Pay)
-                "https://custom.redirect.url", // url страницы (поддерживается только https), на которую надо вернуться после прохождения 3ds. Должен использоваться только при при использовании своего Activity для 3ds url. 
-                "+79041234567", // номер телефона пользователя. Используется для автозаполнения поля при оплате через SberPay. Поддерживаемый формат данных: "+7XXXXXXXXXX".
-                null, // настройки для токенизации через GooglePay,
-                "example_authCenterClientId" // идентификатор, полученный при регистрации приложения на сайте https://yookassa.ru
-        );
-        Intent intent = Checkout.createTokenizeIntent(this, paymentParameters);
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
-    }
-}
-```
-</details>
-
 > После получения токена для рекуррентного платежа, проведите платёж и [следуйте инструкциям](https://yookassa.ru/developers/payments/recurring-payments#process)
 
 ## <a name="настройка-логирования-и-mock-режима"></a> Настройка логирования и mock режима
@@ -1202,7 +770,6 @@ class MyActivity extends AppCompatActivity {
 Для отладки вам может понадобиться включить логи в sdk. Для этого нужно при запуске токенизации передать параметр `showLogs = true` в `TestParameters`
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class MyActivity : AppCompatActivity() {
@@ -1213,23 +780,6 @@ class MyActivity : AppCompatActivity() {
         )
         val intent = createTokenizeIntent(this, paymentParameters, testParameters)
         startActivityForResult(intent, REQUEST_CODE_TOKENIZE)
-    }
-}
-```
-</details>
-
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    void startTokenize() {
-        TestParameters testParameters = new TestParameters(
-                true // showLogs - включить/выключить отображение логов sdk
-        );
-        Intent intent = Checkout.createTokenizeIntent(this, paymentParameters, testParameters);
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
     }
 }
 ```
@@ -1250,7 +800,6 @@ class MyActivity extends AppCompatActivity {
 Для запуска токенизации с mock-режимом нужно передать параметр `mockConfiguration` в `TestParameters`
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class MyActivity : AppCompatActivity() {
@@ -1268,31 +817,6 @@ class MyActivity : AppCompatActivity() {
         )
         val intent = createTokenizeIntent(this, paymentParameters, testParameters)
         startActivityForResult(intent, REQUEST_CODE_TOKENIZE)
-    }
-}
-```
-</details>
-
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    void startTokenize() {
-        MockConfiguration mockConfiguration = new MockConfiguration(
-                true, // completeWithError - возвращать всегда при токенизации ошибку
-                true, // paymentAuthPassed - авторизован пользователь или нет, для оплаты кошельком 
-                3,// linkedCardsCount - количество карт, привязанных к кошельку пользователя;
-                new Amount(BigDecimal.ONE, Currency.getInstance("RUB")) // serviceFee - комиссия, которая будет отображена на экране выбранного способа оплаты
-        );
-        TestParameters testParameters = new TestParameters(
-                true, // showLogs - включить/выключить отображение логов sdk
-                true, // googlePayTestEnvironment - какую, тестовую или боевую, среду нужно использовать для Google Pay, подробнее можно почитать тут: https://developers.google.com/pay/api/android/guides/test-and-deploy/integration-checklist
-                mockConfiguration
-        );
-        Intent intent = Checkout.createTokenizeIntent(this, paymentParameters, testParameters);
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
     }
 }
 ```
@@ -1319,7 +843,6 @@ class MyActivity extends AppCompatActivity {
 | ![Корректный цвет](assets/images/custom_ui_parameters_examples/3_good_color_example.png)     | ![Некорректный цвет](assets/images/custom_ui_parameters_examples/4_bad_color_example.png)   |
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class MyActivity : AppCompatActivity() {
@@ -1338,28 +861,6 @@ class MyActivity : AppCompatActivity() {
         startActivityForResult(intent, REQUEST_CODE_TOKENIZE)
     }
 }
-```
-</details>
-
-<details>
-  <summary>Java</summary>
-
-```java
-class MyActivity extends AppCompatActivity {
-
-    void tokenizeCustomUiParameters() {
-        PaymentParameters paymentParameters = new PaymentParameters(...);
-        UiParameters uiParameters = new UiParameters(true, new ColorScheme(Color.rgb(0, 114, 245))); // передаем флаг true для того, чтобы логотип ЮKassa отобразился на экране списка способов оплаты, передаем ColorScheme, в котором находится кастомный цвет
-        Intent intent = Checkout.createTokenizeIntent(
-                this,
-                paymentParameters,
-                null, // параметры для тестового режима - включить логирование/использовать mock-данные
-                uiParameters
-        );
-        startActivityForResult(intent, REQUEST_CODE_TOKENIZE);
-    }
-}
-
 ```
 </details>
 
@@ -1390,7 +891,6 @@ class MyActivity extends AppCompatActivity {
 Для этого перед завершением работы `activity` вызовите метод `Checkout.createScanBankCardResult`, передав туда номер карты и опциональные параметры месяц/год и передайте в метод `setResult`. После чего вызовите метод `finish()`
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class ScanBankCardActivity : Activity() {
@@ -1404,28 +904,12 @@ class ScanBankCardActivity : Activity() {
 ```
 </details>
 
-<details>
-  <summary>Java</summary>
-
-Java:
-```java
-class ScanBankCardActivity extends Activity {
-
-    private void onScanningDone(final String cardNumber, final int expirationMonth, final int expirationYear) {
-        final Intent result = Checkout.createScanBankCardResult(cardNumber, expirationMonth, expirationYear);
-        setResult(Activity.RESULT_OK, result);
-        finish();
-    }
-}
-```
-</details>
 
 #### <a name="пример-реализации-`activity`-для-сканирования-данных-карты"></a> Пример реализации `activity` для сканирования данных карты
 Ниже приведён пример реализации сканирования данных карты с помощью сторонней библиотеки card.io: https://github.com/card-io/card.io-Android-SDK
 Можно использовать любую другую подходящую вам библиотеку или решение.
 
 <details open>
-  <summary>Kotlin</summary>
 
 ```kotlin
 class ScanBankCardActivity : Activity() {
@@ -1482,73 +966,6 @@ class ScanBankCardActivity : Activity() {
 
     companion object {
         const val REQUEST_CODE = 1
-    }
-}
-```
-</details>
-
-<details>
-  <summary>Java</summary>
-
-```java
-public class ScanBankCardActivity extends AppCompatActivity {
-
-    public static final int REQUEST_CODE = 1;
-
-    @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        ActivityCompat.requestPermissions(this, new String[]{ CAMERA }, REQUEST_CODE);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == REQUEST_CODE) {
-            if (grantResults[0] == PackageManager.PERMISSION_DENIED
-                    && !ActivityCompat.shouldShowRequestPermissionRationale(this, CAMERA)
-            ) {
-                Toast.makeText(
-                        this,
-                        "Выдайте разрешение на использование камеры в настройках",
-                        Toast.LENGTH_SHORT
-                ).show();
-
-                finish();
-            } else {
-                Intent scanIntent = new Intent(this, CardIOActivity.class);
-                scanIntent.putExtra(CardIOActivity.EXTRA_REQUIRE_EXPIRY, true);
-                startActivityForResult(scanIntent, REQUEST_CODE);
-            }
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == REQUEST_CODE) {
-            if (data != null && data.hasExtra(CardIOActivity.EXTRA_SCAN_RESULT)) {
-                CreditCard scanResult = data.getParcelableExtra(CardIOActivity.EXTRA_SCAN_RESULT);
-                final String cardNumber = scanResult.getFormattedCardNumber();
-
-                if (scanResult.isExpiryValid() && scanResult.getRedactedCardNumber() != null &&
-                        !scanResult.getRedactedCardNumber().isEmpty()) {
-                    final Intent scanBankCardResult = Checkout.createScanBankCardIntent(
-                            cardNumber,
-                            scanResult.expiryMonth,
-                            scanResult.expiryYear % 100
-                    );
-                    setResult(RESULT_OK, scanBankCardResult);
-                } else {
-                    setResult(RESULT_CANCELED);
-                }
-            } else {
-                setResult(RESULT_CANCELED);
-            }
-            finish();
-        }
     }
 }
 ```

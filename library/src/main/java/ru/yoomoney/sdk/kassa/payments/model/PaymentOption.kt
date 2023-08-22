@@ -25,7 +25,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Parcelable
 import androidx.annotation.Keep
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import ru.yoomoney.sdk.kassa.payments.R
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.Amount
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentMethodType

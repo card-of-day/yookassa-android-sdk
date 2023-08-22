@@ -53,6 +53,8 @@ internal object BankList {
         data class FullBankListContent(
             val bankList: List<SbpBankInfoDomain>,
             val showBackNavigation: Boolean,
+            val searchText: String = "",
+            val searchedBanks: List<SbpBankInfoDomain> = emptyList(),
         ) : State()
 
         data class PaymentShortBankListStatusError(
@@ -107,7 +109,11 @@ internal object BankList {
 
         object LoadPaymentStatus : Action()
 
-        data class ActivityNotFound(val throwable: Throwable): Action()
+        data class ActivityNotFound(val throwable: Throwable) : Action()
+
+        data class Search(val searchText: String) : Action()
+
+        object CancelSearch : Action()
     }
 
     sealed class Effect {

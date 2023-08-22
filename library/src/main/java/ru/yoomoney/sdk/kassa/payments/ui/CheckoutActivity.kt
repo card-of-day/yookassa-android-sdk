@@ -24,9 +24,9 @@ package ru.yoomoney.sdk.kassa.payments.ui
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentManager
-import ru.yoomoney.sdk.kassa.payments.checkoutParameters.SavedBankCardPaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentMethodType
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentParameters
+import ru.yoomoney.sdk.kassa.payments.checkoutParameters.SavedBankCardPaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.TestParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.UiParameters
 import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
@@ -43,7 +43,8 @@ import ru.yoomoney.sdk.kassa.payments.secure.TokensStorage
 import ru.yoomoney.sdk.kassa.payments.ui.model.StartScreenData
 import javax.inject.Inject
 
-internal const val EXTRA_CREATED_WITH_CHECKOUT_METHOD = "ru.yoomoney.sdk.kassa.payments.extra.CREATED_WITH_CHECKOUT_METHOD"
+internal const val EXTRA_CREATED_WITH_CHECKOUT_METHOD =
+    "ru.yoomoney.sdk.kassa.payments.extra.CREATED_WITH_CHECKOUT_METHOD"
 internal const val EXTRA_PAYMENT_PARAMETERS = "ru.yoomoney.sdk.kassa.payments.extra.PAYMENT_PARAMETERS"
 internal const val EXTRA_CSC_PARAMETERS = "ru.yoomoney.sdk.kassa.payments.extra.CSC_PARAMETERS"
 internal const val EXTRA_TEST_PARAMETERS = "ru.yoomoney.sdk.kassa.payments.extra.TEST_PARAMETERS"
@@ -72,8 +73,12 @@ internal class CheckoutActivity : AppCompatActivity() {
     @Inject
     lateinit var tokensStorage: TokensStorage
 
+    private val payWithoutSaving: Boolean by lazy {
+        intent.hasExtra(EXTRA_PAYMENT_PARAMETERS)
+    }
+
     private val paymentParameters: PaymentParameters by lazy {
-        if (intent.hasExtra(EXTRA_PAYMENT_PARAMETERS)) {
+        if (payWithoutSaving) {
             requireNotNull(intent.getParcelableExtra(EXTRA_PAYMENT_PARAMETERS))
         } else {
             val cscParameter =
@@ -124,7 +129,12 @@ internal class CheckoutActivity : AppCompatActivity() {
     }
 
     private fun showDialog(supportFragmentManager: FragmentManager) {
-        val startScreenData = StartScreenData(paymentParameters.paymentMethodTypes)
+        val paymentMethodId = if (payWithoutSaving) {
+            null
+        } else {
+            requireNotNull(intent.getParcelableExtra<SavedBankCardPaymentParameters>(EXTRA_CSC_PARAMETERS)).paymentMethodId
+        }
+        val startScreenData = StartScreenData(paymentParameters.paymentMethodTypes, paymentMethodId = paymentMethodId)
         findDialog(supportFragmentManager) ?: MainDialogFragment.createFragment(startScreenData)
             .show(supportFragmentManager, TAG_BOTTOM_SHEET)
     }

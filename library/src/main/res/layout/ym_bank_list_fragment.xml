@@ -22,21 +22,21 @@
 <ViewAnimator xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:measureAllChildren="false"
     android:id="@+id/rootContainer"
     android:layout_width="match_parent"
-    android:inAnimation="@anim/fade_in"
-    android:outAnimation="@anim/fade_out"
     android:layout_height="wrap_content"
+    android:inAnimation="@anim/fade_in"
+    android:measureAllChildren="false"
+    android:outAnimation="@anim/fade_out"
     android:transitionName="@string/ym_transition_name"
     tools:layout_width="match_parent">
 
     <LinearLayout
         android:id="@+id/contentLinear"
-        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:visibility="gone">
 
         <ru.yoomoney.sdk.kassa.payments.ui.DialogTopBar
             android:id="@+id/topBar"
@@ -47,6 +47,16 @@
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"/>
 
+        <ru.yoomoney.sdk.kassa.payments.ui.CheckoutTextInputView
+            android:id="@+id/searchInputView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/ym_space_s"
+            android:visibility="gone"
+            app:hint="@string/ym_bank_list_sbp_search_hint">
+
+        </ru.yoomoney.sdk.kassa.payments.ui.CheckoutTextInputView>
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/banksRecyclerView"
             android:layout_width="match_parent"
@@ -55,6 +65,7 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/topBar"/>
+
     </LinearLayout>
 
     <ru.yoomoney.sdk.kassa.payments.ui.view.LoadingView

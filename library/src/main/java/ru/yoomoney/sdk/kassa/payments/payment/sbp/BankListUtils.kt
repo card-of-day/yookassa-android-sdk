@@ -47,6 +47,9 @@ internal fun mapToFullBankListViewEntities(items: List<SbpBankInfoDomain>): List
             resultList.add(BankListViewEntity.Divider)
         }
     }
+    if (items.isEmpty()) {
+        resultList.add(BankListViewEntity.EmptyState)
+    }
     return resultList
 }
 

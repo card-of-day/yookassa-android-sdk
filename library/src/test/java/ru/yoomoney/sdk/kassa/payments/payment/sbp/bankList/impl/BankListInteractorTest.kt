@@ -67,4 +67,12 @@ internal class BankListInteractorTest {
             assert(banksAction is BankList.Action.LoadShortBankListSuccess && banksAction.shortBankList.isEmpty() && banksAction.fullBankList == fullBankList)
         }
     }
+
+    @Test
+    fun `should find only single bank result`() {
+        runBlocking {
+            val searchResult = bankListInteractor.searchBank("sber", fullBankList)
+            assert(searchResult.size == 1)
+        }
+    }
 }

@@ -23,40 +23,33 @@ package ru.yoomoney.sdk.kassa.payments.paymentAuth
 
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import androidx.activity.addCallback
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.ViewModelProvider
-import kotlinx.android.synthetic.main.ym_fragment_payment_auth.codeConfirmError
-import kotlinx.android.synthetic.main.ym_fragment_payment_auth.confirmCode
-import kotlinx.android.synthetic.main.ym_fragment_payment_auth.contentView
-import kotlinx.android.synthetic.main.ym_fragment_payment_auth.errorView
-import kotlinx.android.synthetic.main.ym_fragment_payment_auth.loadingView
-import kotlinx.android.synthetic.main.ym_fragment_payment_auth.retryAction
-import kotlinx.android.synthetic.main.ym_fragment_payment_auth.rootContainer
-import kotlinx.android.synthetic.main.ym_fragment_payment_auth.titleView
-import kotlinx.android.synthetic.main.ym_fragment_payment_auth.topBar
-import kotlinx.android.synthetic.main.ym_fragment_payment_auth.touchInterceptor
 import org.threeten.bp.Duration
 import ru.yoomoney.sdk.gui.utils.extensions.hide
 import ru.yoomoney.sdk.gui.utils.extensions.show
-import ru.yoomoney.sdk.kassa.payments.checkoutParameters.Amount
 import ru.yoomoney.sdk.kassa.payments.R
+import ru.yoomoney.sdk.kassa.payments.checkoutParameters.Amount
+import ru.yoomoney.sdk.kassa.payments.databinding.YmFragmentPaymentAuthBinding
 import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
+import ru.yoomoney.sdk.kassa.payments.errorFormatter.ErrorFormatter
 import ru.yoomoney.sdk.kassa.payments.extensions.hideSoftKeyboard
 import ru.yoomoney.sdk.kassa.payments.extensions.showChild
 import ru.yoomoney.sdk.kassa.payments.extensions.showSoftKeyboard
 import ru.yoomoney.sdk.kassa.payments.extensions.toHint
+import ru.yoomoney.sdk.kassa.payments.model.AuthTypeState
 import ru.yoomoney.sdk.kassa.payments.navigation.Router
 import ru.yoomoney.sdk.kassa.payments.navigation.Screen
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuth.Action
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuth.Effect
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.PaymentAuth.State
 import ru.yoomoney.sdk.kassa.payments.paymentAuth.di.PaymentAuthModule.Companion.PAYMENT_AUTH
-import ru.yoomoney.sdk.kassa.payments.model.AuthTypeState
-import ru.yoomoney.sdk.kassa.payments.errorFormatter.ErrorFormatter
 import ru.yoomoney.sdk.kassa.payments.utils.viewModel
 import ru.yoomoney.sdk.march.RuntimeViewModel
 import ru.yoomoney.sdk.march.observe
@@ -64,7 +57,7 @@ import javax.inject.Inject
 
 internal typealias PaymentAuthViewModel = RuntimeViewModel<State, Action, Effect>
 
-internal class PaymentAuthFragment : Fragment(R.layout.ym_fragment_payment_auth) {
+internal class PaymentAuthFragment : Fragment() {
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -87,9 +80,17 @@ internal class PaymentAuthFragment : Fragment(R.layout.ym_fragment_payment_auth)
         arguments?.getBoolean(LINK_WALLET_KEY) ?: throw IllegalStateException("LINK_WALLET_KEY should be passed")
     }
 
+    private var _binding: YmFragmentPaymentAuthBinding? = null
+    private val binding get() = requireNotNull(_binding)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         CheckoutInjector.injectPaymentAuthFragment(this)
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        _binding = YmFragmentPaymentAuthBinding.inflate(layoutInflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -111,14 +112,19 @@ internal class PaymentAuthFragment : Fragment(R.layout.ym_fragment_payment_auth)
         viewModel.handleAction(Action.Start(linkWalletToAp, amount))
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         timer?.cancel()
     }
 
     private fun setupViews() {
-        topBar.title = " "
-        topBar.onBackButton {
+        binding.topBar.title = " "
+        binding.topBar.onBackButton {
             finishWithResult(Screen.PaymentAuth.PaymentAuthResult.CANCEL)
         }
     }
@@ -129,6 +135,7 @@ internal class PaymentAuthFragment : Fragment(R.layout.ym_fragment_payment_auth)
             is State.StartError -> showError(state.error) {
                 viewModel.handleAction(Action.Start(linkWalletToAp, amount))
             }
+
             is State.InputCode -> showInputCode(state)
             is State.InputCodeProcess -> showInputCodeProcess(state)
             is State.InputCodeVerifyExceeded -> showInputCodeVerifyExceeded(state)
@@ -139,42 +146,44 @@ internal class PaymentAuthFragment : Fragment(R.layout.ym_fragment_payment_auth)
     }
 
     private fun showProgress() {
-        rootContainer.showChild(loadingView)
+        binding.rootContainer.showChild(binding.loadingView)
     }
 
     private fun showInputCode(inputCode: State.InputCode) {
         showInputCode(inputCode.data, null)
         startTimer(Duration.ofSeconds(inputCode.data.nextSessionTimeLeft.toLong()))
-        retryAction.showProgress(false)
-        touchInterceptor.hide()
-        retryAction.setOnClickListener {
-            codeConfirmError.text = ""
+        binding.retryAction.showProgress(false)
+        binding.touchInterceptor.hide()
+        binding.retryAction.setOnClickListener {
+            binding.codeConfirmError.text = ""
             viewModel.handleAction(Action.Start(linkWalletToAp, amount))
         }
     }
 
     private fun showInputCodeProcess(inputCodeProcess: State.InputCodeProcess) {
-        codeConfirmError.text = ""
+        binding.codeConfirmError.text = ""
         showInputCode(inputCodeProcess.data, inputCodeProcess.passphrase)
-        retryAction.showProgress(true)
-        touchInterceptor.show()
+        binding.retryAction.showProgress(true)
+        binding.touchInterceptor.show()
     }
 
     private fun showInputCode(data: AuthTypeState.SMS, passphrase: String?) {
-        rootContainer.showChild(contentView)
-        titleView.text = data.type.toHint(requireContext())
-        confirmCode.isEnabled = true
-        confirmCode.maxLength = data.codeLength
-        confirmCode.isFocusable = true
-        confirmCode.isFocusableInTouchMode = true
-        confirmCode.requestFocus()
-        confirmCode.showSoftKeyboard()
-        passphrase?.let { confirmCode.value = it }
-        confirmCode.onValueChangedListener = { value ->
-            codeConfirmError.text = ""
-            if (value.length == data.codeLength) {
-                confirmCode.onValueChangedListener = null
-                viewModel.handleAction(Action.ProcessAuthRequired(value, true))
+        with(binding) {
+            rootContainer.showChild(contentView)
+            titleView.text = data.type.toHint(requireContext())
+            confirmCode.isEnabled = true
+            confirmCode.maxLength = data.codeLength
+            confirmCode.isFocusable = true
+            confirmCode.isFocusableInTouchMode = true
+            confirmCode.requestFocus()
+            confirmCode.showSoftKeyboard()
+            passphrase?.let { confirmCode.value = it }
+            confirmCode.onValueChangedListener = { value ->
+                codeConfirmError.text = ""
+                if (value.length == data.codeLength) {
+                    confirmCode.onValueChangedListener = null
+                    viewModel.handleAction(Action.ProcessAuthRequired(value, true))
+                }
             }
         }
     }
@@ -182,23 +191,25 @@ internal class PaymentAuthFragment : Fragment(R.layout.ym_fragment_payment_auth)
     private fun showInputCodeVerifyExceeded(inputCodeProcess: State.InputCodeVerifyExceeded) {
         val data = inputCodeProcess.data
         val passphrase = inputCodeProcess.passphrase
-        rootContainer.showChild(contentView)
-        codeConfirmError.text = getString(R.string.ym_payment_auth_no_attempts)
-        confirmCode.onValueChangedListener = null
-        titleView.text = data.type.toHint(requireContext())
-        confirmCode.isEnabled = false
-        confirmCode.maxLength = data.codeLength
-        confirmCode.value = passphrase
-        confirmCode.isFocusable = false
-        confirmCode.isFocusableInTouchMode = false
-        confirmCode.hideSoftKeyboard()
-        retryAction.showProgress(false)
-        touchInterceptor.hide()
+        with(binding) {
+            rootContainer.showChild(contentView)
+            codeConfirmError.text = getString(R.string.ym_payment_auth_no_attempts)
+            confirmCode.onValueChangedListener = null
+            titleView.text = data.type.toHint(requireContext())
+            confirmCode.isEnabled = false
+            confirmCode.maxLength = data.codeLength
+            confirmCode.value = passphrase
+            confirmCode.isFocusable = false
+            confirmCode.isFocusableInTouchMode = false
+            confirmCode.hideSoftKeyboard()
+            retryAction.showProgress(false)
+            touchInterceptor.hide()
+        }
     }
 
     private fun showEffect(effect: Effect) = when (effect) {
         is Effect.ProcessAuthWrongAnswer -> {
-            codeConfirmError.show()
+            binding.codeConfirmError.show()
             val text = if (effect.attemptsCount != null && effect.attemptsLeft != null) {
                 when (effect.attemptsLeft) {
                     effect.attemptsCount - 1 -> getString(R.string.ym_payment_auth_wrong_code_try_again)
@@ -208,39 +219,40 @@ internal class PaymentAuthFragment : Fragment(R.layout.ym_fragment_payment_auth)
             } else {
                 getString(R.string.ym_payment_auth_wrong_code)
             }
-            codeConfirmError.text = text
+            binding.codeConfirmError.text = text
         }
+
         is Effect.ShowSuccess -> finishWithResult(Screen.PaymentAuth.PaymentAuthResult.SUCCESS)
     }
 
     private fun showError(throwable: Throwable, action: () -> Unit) {
-        errorView.setErrorText(errorFormatter.format(throwable))
-        errorView.setErrorButtonListener(View.OnClickListener { action() })
-        rootContainer.showChild(errorView)
+        binding.errorView.setErrorText(errorFormatter.format(throwable))
+        binding.errorView.setErrorButtonListener(View.OnClickListener { action() })
+        binding.rootContainer.showChild(binding.errorView)
     }
 
     private fun finishWithResult(paymentAuthResult: Screen.PaymentAuth.PaymentAuthResult) {
         setFragmentResult(PAYMENT_AUTH_RESULT_KEY, bundleOf(PAYMENT_AUTH_RESULT_EXTRA to paymentAuthResult))
         parentFragmentManager.popBackStack()
-        rootContainer.hideSoftKeyboard()
+        binding.rootContainer.hideSoftKeyboard()
     }
 
     private fun startTimer(duration: Duration) {
         timer?.cancel()
-        retryAction.isEnabled = false
+        binding.retryAction.isEnabled = false
         timer = object : CountDownTimer(duration.toMillis(), 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 if (isVisible) {
                     val secondsNow = millisUntilFinished / 1000
                     val minutes = (secondsNow / 60).toTimeString()
                     val seconds = (secondsNow % 60).toTimeString()
-                    retryAction.text = getString(R.string.ym_confirm_retry_timer_text, "$minutes:$seconds")
+                    binding.retryAction.text = getString(R.string.ym_confirm_retry_timer_text, "$minutes:$seconds")
                 }
             }
 
             override fun onFinish() {
-                retryAction.text = getString(R.string.ym_payment_auth_retry_text)
-                retryAction.isEnabled = true
+                binding.retryAction.text = getString(R.string.ym_payment_auth_retry_text)
+                binding.retryAction.isEnabled = true
             }
         }.start()
     }
@@ -248,7 +260,8 @@ internal class PaymentAuthFragment : Fragment(R.layout.ym_fragment_payment_auth)
     companion object {
 
         const val PAYMENT_AUTH_RESULT_KEY = "ru.yoomoney.sdk.kassa.payments.impl.paymentAuth.PAYMENT_AUTH_RESULT_KEY"
-        const val PAYMENT_AUTH_RESULT_EXTRA = "ru.yoomoney.sdk.kassa.payments.impl.paymentAuth.PAYMENT_AUTH_RESULT_EXTRA"
+        const val PAYMENT_AUTH_RESULT_EXTRA =
+            "ru.yoomoney.sdk.kassa.payments.impl.paymentAuth.PAYMENT_AUTH_RESULT_EXTRA"
 
         private const val AMOUNT_KEY = "ru.yoomoney.sdk.kassa.payments.impl.paymentAuth.AMOUNT_KEY"
         private const val LINK_WALLET_KEY = "ru.yoomoney.sdk.kassa.payments.impl.paymentAuth.LINK_WALLET_KEY"

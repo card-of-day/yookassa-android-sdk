@@ -82,9 +82,5 @@
             android:exported="false"
             android:screenOrientation="locked"
             android:theme="@style/ym_Theme"/>
-
-        <meta-data
-            android:name="com.google.android.gms.wallet.api.enabled"
-            android:value="true"/>
     </application>
 </manifest>

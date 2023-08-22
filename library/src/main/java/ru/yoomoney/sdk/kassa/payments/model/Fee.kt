@@ -22,7 +22,7 @@
 package ru.yoomoney.sdk.kassa.payments.model
 
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.Amount
 import ru.yoomoney.sdk.kassa.payments.extensions.format
 import java.math.BigDecimal

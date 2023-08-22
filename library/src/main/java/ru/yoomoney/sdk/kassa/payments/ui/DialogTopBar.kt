@@ -23,16 +23,14 @@ package ru.yoomoney.sdk.kassa.payments.ui
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
+import android.widget.ImageView
 import androidx.core.view.isVisible
 import androidx.transition.TransitionManager
-import kotlinx.android.synthetic.main.ym_dialog_top_bar.view.backButton
-import kotlinx.android.synthetic.main.ym_dialog_top_bar.view.dialogTopbarRoot
-import kotlinx.android.synthetic.main.ym_dialog_top_bar.view.logo
-import kotlinx.android.synthetic.main.ym_dialog_top_bar.view.paymentTitle
 import ru.yoomoney.sdk.gui.utils.extensions.tint
-import ru.yoomoney.sdk.kassa.payments.R
+import ru.yoomoney.sdk.kassa.payments.databinding.YmDialogTopBarBinding
 import ru.yoomoney.sdk.kassa.payments.ui.color.InMemoryColorSchemeRepository
 
 internal class DialogTopBar
@@ -41,43 +39,43 @@ internal class DialogTopBar
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
+    private val binding: YmDialogTopBarBinding = YmDialogTopBarBinding.inflate(LayoutInflater.from(context), this, true)
 
     var title: CharSequence?
         set(value) {
-            paymentTitle.text = value
+            binding.paymentTitle.text = value
         }
-        get() = paymentTitle.text
+        get() = binding.paymentTitle.text
 
     var isLogoVisible: Boolean
         set(value) {
-            logo.isVisible = value
+            binding.logo.isVisible = value
         }
-        get() = logo.isVisible
+        get() = binding.logo.isVisible
+
+    val backButton: ImageView = binding.backButton
+
+    val logo: ImageView = binding.logo
 
     init {
-        this.inflate()
         val primaryColor = InMemoryColorSchemeRepository.colorScheme.primaryColor
-        backButton.setImageDrawable(backButton.drawable.tint(primaryColor))
+        binding.backButton.setImageDrawable(binding.backButton.drawable.tint(primaryColor))
 
         val set = intArrayOf(android.R.attr.text)
         val a = context.obtainStyledAttributes(attrs, set)
         title = a.getText(0)
     }
 
-    private fun inflate() {
-        View.inflate(context, R.layout.ym_dialog_top_bar, this)
-    }
-
     fun onBackButton(listener: ((View) -> Unit)?) {
-        backButton.isVisible = listener != null
-        backButton.setOnClickListener(listener)
+        binding.backButton.isVisible = listener != null
+        binding.backButton.setOnClickListener(listener)
     }
 
     fun onBackButton(listener: ((View) -> Unit)?, withAnimation: Boolean) {
-        backButton.isVisible = listener != null
+        binding.backButton.isVisible = listener != null
         if (withAnimation) {
-            TransitionManager.beginDelayedTransition(dialogTopbarRoot)
+            TransitionManager.beginDelayedTransition(binding.dialogTopbarRoot)
         }
-        backButton.setOnClickListener(listener)
+        binding.backButton.setOnClickListener(listener)
     }
 }

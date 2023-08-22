@@ -5,6 +5,10 @@
 ### NEXT_VERSION_DESCRIPTION_BEGIN
 ### NEXT_VERSION_DESCRIPTION_END
 
+## [6.8.0] (22-08-2023)
+
+- add sbp bank search, update kotlin, other dependencies
+
 ## [6.7.1] (31-07-2023)
 
 - Fixed mistakes in documentation

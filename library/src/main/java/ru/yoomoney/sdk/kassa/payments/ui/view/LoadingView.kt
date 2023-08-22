@@ -23,26 +23,27 @@ package ru.yoomoney.sdk.kassa.payments.ui.view
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.LinearLayout
-import kotlinx.android.synthetic.main.ym_view_loading.view.*
 import ru.yoomoney.sdk.kassa.payments.R
+import ru.yoomoney.sdk.kassa.payments.databinding.YmViewLoadingBinding
 
 internal class LoadingView : LinearLayout {
+    private val binding: YmViewLoadingBinding = YmViewLoadingBinding.inflate(LayoutInflater.from(context), this, true)
 
     constructor(context: Context) : this(context, attrs = null)
 
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0)
 
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(context, attrs, defStyleAttr) {
-        View.inflate(context, R.layout.ym_view_loading, this)
         orientation = VERTICAL
         setAttributes(context, attrs, defStyleAttr)
     }
 
     fun setText(text: CharSequence) {
-        textView.text = text
-        textView.visibility = View.VISIBLE
+        binding.textView.text = text
+        binding.textView.visibility = View.VISIBLE
     }
 
     private fun setAttributes(context: Context, attrs: AttributeSet?, defStyleAttr: Int) {

@@ -26,7 +26,7 @@ import android.graphics.Color
 import android.os.Parcelable
 import androidx.annotation.ColorInt
 import androidx.annotation.Keep
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 /**
  * This class can be used to customize mSDK color scheme. It is used in [UiParameters].

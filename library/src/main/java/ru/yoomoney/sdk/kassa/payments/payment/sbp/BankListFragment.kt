@@ -25,23 +25,30 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.text.Editable
 import android.view.View
+import android.view.inputmethod.EditorInfo
 import android.widget.LinearLayout
 import android.widget.ViewAnimator
 import androidx.activity.OnBackPressedCallback
 import androidx.core.os.bundleOf
+import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
 import ru.yoomoney.sdk.kassa.payments.R
 import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
 import ru.yoomoney.sdk.kassa.payments.errorFormatter.ErrorFormatter
+import ru.yoomoney.sdk.kassa.payments.extensions.hideSoftKeyboard
 import ru.yoomoney.sdk.kassa.payments.extensions.showChild
+import ru.yoomoney.sdk.kassa.payments.extensions.visible
 import ru.yoomoney.sdk.kassa.payments.navigation.Router
 import ru.yoomoney.sdk.kassa.payments.navigation.Screen
 import ru.yoomoney.sdk.kassa.payments.payment.sbp.bankList.BankList
+import ru.yoomoney.sdk.kassa.payments.payment.sbp.bankList.impl.BankListInteractor
 import ru.yoomoney.sdk.kassa.payments.payment.sbp.bankList.impl.BankListViewModel
 import ru.yoomoney.sdk.kassa.payments.payment.sbp.bankList.impl.BankListViewModelFactory
 import ru.yoomoney.sdk.kassa.payments.payment.sbp.bankList.impl.BankListViewModelFactory.Companion.BANK_LIST_FEATURE
+import ru.yoomoney.sdk.kassa.payments.ui.CheckoutTextInputView
 import ru.yoomoney.sdk.kassa.payments.ui.DialogTopBar
 import ru.yoomoney.sdk.kassa.payments.ui.MainDialogFragment
 import ru.yoomoney.sdk.kassa.payments.ui.changeHeightWithMobileAnimation
@@ -67,6 +74,9 @@ internal class BankListFragment : Fragment(R.layout.ym_bank_list_fragment) {
     @Inject
     lateinit var router: Router
 
+    @Inject
+    lateinit var bankListInteractor: BankListInteractor
+
     private val confirmationUrl: String by lazy { arguments?.getString(CONFIRMATION_URL_KEY).orEmpty() }
     private val paymentId: String by lazy { arguments?.getString(PAYMENT_ID_KEY).orEmpty() }
 
@@ -86,6 +96,7 @@ internal class BankListFragment : Fragment(R.layout.ym_bank_list_fragment) {
     private lateinit var loadingView: LoadingView
     private lateinit var errorView: ErrorView
     private lateinit var contentLinear: LinearLayout
+    private lateinit var searchInputView: CheckoutTextInputView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -101,6 +112,7 @@ internal class BankListFragment : Fragment(R.layout.ym_bank_list_fragment) {
         loadingView = view.findViewById(R.id.loadingView) as LoadingView
         errorView = view.findViewById(R.id.errorView) as ErrorView
         contentLinear = view.findViewById(R.id.contentLinear)
+        searchInputView = view.findViewById(R.id.searchInputView)
 
         topBar.title = getString(R.string.ym_sbp_select_bank_title)
         bankListAdapter = BankListAdapter(
@@ -119,15 +131,23 @@ internal class BankListFragment : Fragment(R.layout.ym_bank_list_fragment) {
             this.viewLifecycleOwner,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
+                    searchInputView.text = ""
+                    rootContainer.hideSoftKeyboard()
                     viewModel.handleAction(BankList.Action.BackToBankList)
                 }
             }
         )
+        searchInputView.editText.doAfterTextChanged { text: Editable? ->
+            viewModel.handleAction(BankList.Action.Search(text?.toString().orEmpty()))
+        }
+        searchInputView.setImeOptions(EditorInfo.IME_ACTION_DONE)
     }
 
     override fun onResume() {
         super.onResume()
-        viewModel.handleAction(BankList.Action.BankInteractionFinished)
+        if (bankListInteractor.bankWasSelected) {
+            viewModel.handleAction(BankList.Action.BankInteractionFinished)
+        }
     }
 
     private fun showEffect(effect: BankList.Effect) {
@@ -136,6 +156,7 @@ internal class BankListFragment : Fragment(R.layout.ym_bank_list_fragment) {
             is BankList.Effect.CloseBankList -> {
                 (parentFragment as? MainDialogFragment)?.dismiss()
             }
+
             is BankList.Effect.CloseBankListWithFinish -> {
                 router.navigateTo(Screen.SBPConfirmationSuccessful)
             }
@@ -143,24 +164,32 @@ internal class BankListFragment : Fragment(R.layout.ym_bank_list_fragment) {
     }
 
     private fun showState(state: BankList.State) {
+        val showSearch = state is BankList.State.FullBankListContent
+        searchInputView.visible = showSearch
         when (state) {
             is BankList.State.Progress,
             is BankList.State.ShortBankListStatusProgress,
             is BankList.State.FullBankListStatusProgress,
             -> showProgress()
+
             is BankList.State.ShortBankListContent -> showShortBankListContent(state)
             is BankList.State.FullBankListContent -> showFullBankListContent(state)
             is BankList.State.Error -> showError(state.throwable) {
                 viewModel.handleAction(BankList.Action.LoadBankList)
             }
+
             is BankList.State.PaymentShortBankListStatusError -> showError(state.throwable) {
                 viewModel.handleAction(BankList.Action.LoadPaymentStatus)
             }
+
             is BankList.State.PaymentFullBankListStatusError -> showError(state.throwable) {
                 viewModel.handleAction(BankList.Action.LoadPaymentStatus)
             }
-            is BankList.State.ActivityNotFoundError -> showError(state.throwable,
-                buttonText = getString(R.string.ym_understand_button)) {
+
+            is BankList.State.ActivityNotFoundError -> showError(
+                state.throwable,
+                buttonText = getString(R.string.ym_understand_button)
+            ) {
                 viewModel.handleAction(BankList.Action.BackToBankList)
             }
         }
@@ -193,6 +222,7 @@ internal class BankListFragment : Fragment(R.layout.ym_bank_list_fragment) {
 
     private fun showShortBankListContent(shortBankListContent: BankList.State.ShortBankListContent) {
         topBar.onBackButton(null, true)
+        contentLinear.minimumHeight = 0
         val rootContainterHeightWas = rootContainer.getViewHeight()
         bankListAdapter.submitList(
             mapToShortBankListViewEntities(requireContext(), shortBankListContent.shortBankList)
@@ -209,15 +239,29 @@ internal class BankListFragment : Fragment(R.layout.ym_bank_list_fragment) {
     private fun showFullBankListContent(fullBankListContent: BankList.State.FullBankListContent) {
         if (fullBankListContent.showBackNavigation) {
             topBar.onBackButton(
-                { viewModel.handleAction(BankList.Action.BackToBankList) },
+                {
+                    searchInputView.text = ""
+                    rootContainer.hideSoftKeyboard()
+                    viewModel.handleAction(BankList.Action.BackToBankList)
+                },
                 true
             )
         } else {
             topBar.onBackButton(null, true)
         }
         val rootContainterHeightWas = rootContainer.getViewHeight()
-        bankListAdapter.submitList(mapToFullBankListViewEntities(fullBankListContent.bankList)) {
-            rootContainer.showChild(contentLinear)
+        val isSearchingNow = fullBankListContent.searchText.isEmpty().not()
+        val bankList = if (isSearchingNow) {
+            contentLinear.minimumHeight = rootContainer.getViewHeight()
+            fullBankListContent.searchedBanks
+        } else {
+            contentLinear.minimumHeight = 0
+            fullBankListContent.bankList
+        }
+        bankListAdapter.submitList(mapToFullBankListViewEntities(bankList)) {
+            if (contentLinear.visible.not()) {
+                rootContainer.showChild(contentLinear)
+            }
             changeHeightWithMobileAnimation(
                 rootContainer,
                 rootContainterHeightWas,

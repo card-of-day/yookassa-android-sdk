@@ -22,4 +22,7 @@
 
 <lint>
     <issue id="ContentDescription" severity="ignore" />
+    <issue id="NotificationPermission">
+        <ignore regexp="com.squareup.picasso.RemoteViewsAction.NotificationAction" />
+    </issue>
 </lint>

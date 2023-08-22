@@ -45,7 +45,6 @@ internal class ConfirmationDetailsBusinessLogicTest(
         @[Parameterized.Parameters(name = "{0}") JvmStatic]
         fun data(): Collection<Array<out Any>> {
             val failure = Throwable()
-            val initialState = State.Initial
             val loadingState = State.Loading
             val loadingDataFailed = State.LoadingDataFailed(failure)
             val confirmationUrl = "url"
@@ -65,7 +64,6 @@ internal class ConfirmationDetailsBusinessLogicTest(
             return generateBusinessLogicTests<State, Action>(
                 generateState = {
                     when (it) {
-                        State.Initial::class -> initialState
                         State.Loading::class -> loadingState
                         State.LoadingDataFailed::class -> loadingDataFailed
                         else -> it.objectInstance ?: error(it)
@@ -83,7 +81,7 @@ internal class ConfirmationDetailsBusinessLogicTest(
                 },
                 generateExpectation = { state, action ->
                     when (state to action) {
-                        initialState to getConfirmationDetailsAction -> loadingState
+                        loadingState to getConfirmationDetailsAction -> loadingState
                         loadingState to getConfirmationDetailsFailedAction -> loadingDataFailed
                         loadingState to getPaymentDetailsFailedAction -> loadingDataFailed
                         loadingDataFailed to getConfirmationDetailsAction -> loadingState

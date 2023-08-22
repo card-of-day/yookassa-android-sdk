@@ -175,4 +175,7 @@
   <string name='ym_sbp_bank_not_found_message'>Кажется, у вас не установлено приложение этого банка. Установите или выберите другой банк</string>
   <!-- Заголовок экрана ошибки https://jira.yooteam.ru/secure/attachment/765135/Screenshot%202023-06-02%20at%2012.53.15.png-->
   <string name='ym_error_screen_title'>Не сработало</string>
+  <string name='ym_bank_list_sbp_search_hint'>Поиск</string>
+  <string name='ym_title_not_found'>Ничего не найдено</string>
+  <string name='ym_subtitle_sbp_not_found'>Возможно, банк не поддерживает СБП</string>
 </resources>

@@ -23,9 +23,9 @@ package ru.yoo.sdk.kassa.payments.sample
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import kotlinx.android.synthetic.main.activity_main.tokenizeButton
 import ru.yoomoney.sdk.kassa.payments.Checkout.createTokenizationResult
 import ru.yoomoney.sdk.kassa.payments.Checkout.createTokenizeIntent
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.Amount
@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun initUi() {
         setContentView(R.layout.activity_main)
-        tokenizeButton.setOnClickListener {
+        findViewById<Button>(R.id.tokenizeButton).setOnClickListener {
             onTokenizeButtonCLick()
         }
     }
@@ -68,7 +68,8 @@ class MainActivity : AppCompatActivity() {
             PaymentMethodType.GOOGLE_PAY,
             PaymentMethodType.BANK_CARD,
             PaymentMethodType.SBERBANK,
-            PaymentMethodType.YOO_MONEY
+            PaymentMethodType.YOO_MONEY,
+            PaymentMethodType.SBP,
         )
         val paymentParameters = PaymentParameters(
             amount = Amount(BigDecimal.valueOf(10.0), Currency.getInstance("RUB")),

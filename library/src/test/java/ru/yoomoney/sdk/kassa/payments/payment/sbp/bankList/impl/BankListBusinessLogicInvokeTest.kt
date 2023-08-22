@@ -58,7 +58,7 @@ internal class BankListBusinessLogicInvokeTest {
     )
 
     private val logic =
-        BankListBusinessLogic(showState, showEffect, source, bankListInteractor, confirmationUrl, paymentId, true)
+        BankListBusinessLogic(showState, showEffect, source, bankListInteractor, confirmationUrl, paymentId)
 
 
     @Test

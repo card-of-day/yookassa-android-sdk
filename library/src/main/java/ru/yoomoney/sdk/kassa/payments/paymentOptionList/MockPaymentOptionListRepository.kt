@@ -70,6 +70,7 @@ private enum class SavePaymentOptionVariants(
 internal class MockPaymentOptionListRepository(
     private val linkedCardsCount: Int,
     private val fee: Fee?,
+    private val customerId: String?
 ) : PaymentOptionListRepository {
 
     private val random = Random()
@@ -121,9 +122,11 @@ internal class MockPaymentOptionListRepository(
                         icon = null,
                         title = null,
                         savePaymentMethodAllowed = true,
-                        confirmationTypes = listOf(ConfirmationType.MOBILE_APPLICATION,
+                        confirmationTypes = listOf(
+                            ConfirmationType.MOBILE_APPLICATION,
                             ConfirmationType.REDIRECT,
-                            ConfirmationType.EXTERNAL),
+                            ConfirmationType.EXTERNAL
+                        ),
                         savePaymentInstrument = false
                     )
                 )
@@ -146,29 +149,33 @@ internal class MockPaymentOptionListRepository(
                         fee = fee,
                         savePaymentInstrument = savePaymentOptionVariant.createBinding,
                         confirmationTypes = listOf(ConfirmationType.REDIRECT),
-                        paymentInstruments = listOf(
-                            PaymentInstrumentBankCard(
-                                paymentInstrumentId = "1",
-                                last4 = "1234",
-                                first6 = "987654",
-                                cscRequired = true,
-                                cardType = CardBrand.MASTER_CARD
-                            ),
-                            PaymentInstrumentBankCard(
-                                paymentInstrumentId = "2",
-                                last4 = "5678",
-                                first6 = "987654",
-                                cscRequired = false,
-                                cardType = CardBrand.MASTER_CARD
-                            ),
-                            PaymentInstrumentBankCard(
-                                paymentInstrumentId = "3",
-                                last4 = "9012",
-                                first6 = "987654",
-                                cscRequired = false,
-                                cardType = CardBrand.MASTER_CARD
+                        paymentInstruments = if (customerId == null) {
+                            emptyList()
+                        } else {
+                            listOf(
+                                PaymentInstrumentBankCard(
+                                    paymentInstrumentId = "1",
+                                    last4 = "1234",
+                                    first6 = "987654",
+                                    cscRequired = true,
+                                    cardType = CardBrand.MASTER_CARD
+                                ),
+                                PaymentInstrumentBankCard(
+                                    paymentInstrumentId = "2",
+                                    last4 = "5678",
+                                    first6 = "987654",
+                                    cscRequired = false,
+                                    cardType = CardBrand.MASTER_CARD
+                                ),
+                                PaymentInstrumentBankCard(
+                                    paymentInstrumentId = "3",
+                                    last4 = "9012",
+                                    first6 = "987654",
+                                    cscRequired = false,
+                                    cardType = CardBrand.MASTER_CARD
+                                )
                             )
-                        ),
+                        },
                         icon = null,
                         title = null,
                         savePaymentMethodAllowed = savePaymentOptionVariant.savePaymentMethodAllowed
@@ -239,29 +246,33 @@ internal class MockPaymentOptionListRepository(
                     fee = fee,
                     savePaymentMethodAllowed = true,
                     confirmationTypes = listOf(ConfirmationType.REDIRECT),
-                    paymentInstruments = listOf(
-                        PaymentInstrumentBankCard(
-                            paymentInstrumentId = "1",
-                            last4 = "1234",
-                            first6 = "987654",
-                            cscRequired = true,
-                            cardType = CardBrand.MASTER_CARD
-                        ),
-                        PaymentInstrumentBankCard(
-                            paymentInstrumentId = "2",
-                            last4 = "5678",
-                            first6 = "987654",
-                            cscRequired = false,
-                            cardType = CardBrand.MASTER_CARD
-                        ),
-                        PaymentInstrumentBankCard(
-                            paymentInstrumentId = "3",
-                            last4 = "9012",
-                            first6 = "987654",
-                            cscRequired = false,
-                            cardType = CardBrand.MASTER_CARD
+                    paymentInstruments = if (customerId == null) {
+                        emptyList()
+                    } else {
+                        listOf(
+                            PaymentInstrumentBankCard(
+                                paymentInstrumentId = "1",
+                                last4 = "1234",
+                                first6 = "987654",
+                                cscRequired = true,
+                                cardType = CardBrand.MASTER_CARD
+                            ),
+                            PaymentInstrumentBankCard(
+                                paymentInstrumentId = "2",
+                                last4 = "5678",
+                                first6 = "987654",
+                                cscRequired = false,
+                                cardType = CardBrand.MASTER_CARD
+                            ),
+                            PaymentInstrumentBankCard(
+                                paymentInstrumentId = "3",
+                                last4 = "9012",
+                                first6 = "987654",
+                                cscRequired = false,
+                                cardType = CardBrand.MASTER_CARD
+                            )
                         )
-                    ),
+                    },
                     savePaymentInstrument = false,
                     icon = null,
                     title = null

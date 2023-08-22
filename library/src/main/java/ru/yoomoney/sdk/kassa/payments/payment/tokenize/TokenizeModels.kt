@@ -22,7 +22,7 @@
 package ru.yoomoney.sdk.kassa.payments.payment.tokenize
 
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import ru.yoomoney.sdk.kassa.payments.model.Confirmation
 import ru.yoomoney.sdk.kassa.payments.model.PaymentInstrumentBankCard
 import ru.yoomoney.sdk.kassa.payments.model.PaymentOption

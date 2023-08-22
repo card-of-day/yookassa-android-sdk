@@ -23,8 +23,6 @@ package ru.yoomoney.sdk.kassa.payments.paymentOptionList
 
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
-import kotlinx.android.synthetic.main.ym_item_payment_option.view.item
-import kotlinx.android.synthetic.main.ym_item_payment_option.view.delete
 import ru.yoomoney.sdk.kassa.payments.ui.swipe.SwipeItem
 
 internal class PaymentOptionsViewHolder(
@@ -34,10 +32,10 @@ internal class PaymentOptionsViewHolder(
     override var isSwipeAvailable: Boolean = false
 
     override fun getContentContainer(): View {
-        return view.item
+        return view.getContentContainer()
     }
 
     override fun getSwipeMenuContainer(): View {
-        return view.delete
+        return view.getSwipeMenuContainer()
     }
 }

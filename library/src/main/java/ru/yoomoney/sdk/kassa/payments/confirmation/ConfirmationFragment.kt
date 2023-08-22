@@ -22,17 +22,14 @@
 package ru.yoomoney.sdk.kassa.payments.confirmation
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
-import kotlinx.android.synthetic.main.ym_confirmation_fragment.errorView
-import kotlinx.android.synthetic.main.ym_confirmation_fragment.loadingView
-import kotlinx.android.synthetic.main.ym_confirmation_fragment.rootContainer
-import ru.yoomoney.sdk.kassa.payments.R
+import ru.yoomoney.sdk.kassa.payments.databinding.YmConfirmationFragmentBinding
 import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
-import ru.yoomoney.sdk.kassa.payments.di.module.PaymentDetailsModule
+import ru.yoomoney.sdk.kassa.payments.di.module.PaymentDetailsModule.Companion.PAYMENT_DETAILS
 import ru.yoomoney.sdk.kassa.payments.errorFormatter.ErrorFormatter
 import ru.yoomoney.sdk.kassa.payments.extensions.showChild
 import ru.yoomoney.sdk.kassa.payments.navigation.Router
@@ -45,25 +42,39 @@ import javax.inject.Inject
 
 internal typealias ConfirmationViewModel = RuntimeViewModel<SBPConfirmationContract.State, SBPConfirmationContract.Action, SBPConfirmationContract.Effect>
 
-internal class ConfirmationFragment : Fragment(R.layout.ym_confirmation_fragment) {
+internal class ConfirmationFragment : Fragment() {
 
     @Inject
-    lateinit var viewModelFactory: ViewModelProvider.Factory
+    lateinit var viewModelFactory: SBPConfirmationVMFactory.AssistedSBPConfirmationVMFactory
 
     @Inject
     lateinit var errorFormatter: ErrorFormatter
 
     private val viewModel: ConfirmationViewModel
-            by viewModel(PaymentDetailsModule.PAYMENT_DETAILS) {
-                viewModelFactory
-            }
+            by viewModel(PAYMENT_DETAILS) { viewModelFactory.create(confirmationData) }
 
     @Inject
     lateinit var router: Router
 
+    private var _binding: YmConfirmationFragmentBinding? = null
+    private val binding get() = requireNotNull(_binding)
+
+    private val confirmationData: String by lazy {
+        requireNotNull(
+            arguments?.getString(
+                CONFIRMATION_DATA
+            )
+        )
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         CheckoutInjector.injectConfirmationFragment(this)
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        _binding = YmConfirmationFragmentBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -73,23 +84,31 @@ internal class ConfirmationFragment : Fragment(R.layout.ym_confirmation_fragment
             lifecycleOwner = this,
             onState = ::showState,
             onEffect = ::showEffect,
-            onFail = {}
+            onFail = ::handleLoadingDataFailed
         )
-        getConfirmationData()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     private fun showState(state: SBPConfirmationContract.State) {
         when (state) {
-            is SBPConfirmationContract.State.Loading -> rootContainer.showChild(loadingView)
-            is SBPConfirmationContract.State.LoadingDataFailed -> {
-                errorView.setErrorText(errorFormatter.format(state.throwable))
-                errorView.setErrorButtonListener {
-                    getConfirmationData()
-                }
-                rootContainer.showChild(errorView)
-                loadingView.updateLayoutParams<ViewGroup.LayoutParams> { height = rootContainer.getViewHeight() }
-            }
+            is SBPConfirmationContract.State.Loading -> binding.rootContainer.showChild(binding.loadingView)
+            is SBPConfirmationContract.State.LoadingDataFailed -> handleLoadingDataFailed(state.throwable)
             else -> Unit
+        }
+    }
+
+    private fun handleLoadingDataFailed(throwable: Throwable) {
+        binding.errorView.setErrorText(errorFormatter.format(throwable))
+        binding.errorView.setErrorButtonListener {
+            loadConfirmationData()
+        }
+        binding.rootContainer.showChild(binding.errorView)
+        binding.loadingView.updateLayoutParams<ViewGroup.LayoutParams> {
+            height = binding.rootContainer.getViewHeight()
         }
     }
 
@@ -98,22 +117,15 @@ internal class ConfirmationFragment : Fragment(R.layout.ym_confirmation_fragment
             is SBPConfirmationContract.Effect.ContinueSBPConfirmation -> {
                 router.navigateTo(Screen.BankList(effect.confirmationUrl, effect.paymentId))
             }
+
             is SBPConfirmationContract.Effect.SendFinishState -> {
                 router.navigateTo(Screen.SBPConfirmationSuccessful)
             }
         }
     }
 
-    private fun getConfirmationData() {
-        viewModel.handleAction(
-            SBPConfirmationContract.Action.GetConfirmationDetails(
-                requireNotNull(
-                    arguments?.getString(
-                        CONFIRMATION_DATA
-                    )
-                )
-            )
-        )
+    private fun loadConfirmationData() {
+        viewModel.handleAction(SBPConfirmationContract.Action.GetConfirmationDetails(confirmationData))
     }
 
     companion object {

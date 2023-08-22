@@ -21,21 +21,13 @@
 
 package ru.yoomoney.sdk.kassa.payments.di.module
 
-import androidx.lifecycle.ViewModel
 import dagger.Module
 import dagger.Provides
-import dagger.multibindings.IntoMap
 import ru.yoomoney.sdk.kassa.payments.api.SBPApi
-import ru.yoomoney.sdk.kassa.payments.confirmation.SBPConfirmationBusinessLogic
-import ru.yoomoney.sdk.kassa.payments.confirmation.SBPConfirmationContract
 import ru.yoomoney.sdk.kassa.payments.confirmation.SBPConfirmationInfoGateway
 import ru.yoomoney.sdk.kassa.payments.confirmation.SBPConfirmationUseCase
 import ru.yoomoney.sdk.kassa.payments.confirmation.SBPConfirmationUseCaseImpl
 import ru.yoomoney.sdk.kassa.payments.di.scope.ConfirmationScope
-import ru.yoomoney.sdk.kassa.payments.di.ViewModelKey
-import ru.yoomoney.sdk.march.Out
-import ru.yoomoney.sdk.march.RuntimeViewModel
-import ru.yoomoney.sdk.march.input
 
 @Module
 internal class PaymentDetailsModule {
@@ -54,28 +46,6 @@ internal class PaymentDetailsModule {
         sbpConfirmationInfoGateway: SBPConfirmationInfoGateway,
     ): SBPConfirmationUseCase {
         return SBPConfirmationUseCaseImpl(sbpConfirmationInfoGateway)
-    }
-
-    @[Provides IntoMap ViewModelKey(PAYMENT_DETAILS)]
-    fun viewModel(
-        sbpConfirmationUseCase: SBPConfirmationUseCase,
-    ): ViewModel {
-        return RuntimeViewModel<SBPConfirmationContract.State, SBPConfirmationContract.Action, SBPConfirmationContract.Effect>(
-            featureName = PAYMENT_DETAILS,
-            initial = {
-                Out(SBPConfirmationContract.State.Initial) {
-                    input { showState(state) }
-                }
-            },
-            logic = {
-                SBPConfirmationBusinessLogic(
-                    showState = showState,
-                    showEffect = showEffect,
-                    source = source,
-                    paymentDetailsUseCase = sbpConfirmationUseCase
-                )
-            }
-        )
     }
 
     companion object {

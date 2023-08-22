@@ -22,11 +22,12 @@
 package ru.yoomoney.sdk.kassa.payments.ui.model
 
 import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentMethodType
 
 @Parcelize
 internal data class StartScreenData(
     val paymentMethodType: Set<PaymentMethodType> = emptySet(),
-    val confirmationData: String? = null
+    val confirmationData: String? = null,
+    val paymentMethodId: String? = null,
 ): Parcelable

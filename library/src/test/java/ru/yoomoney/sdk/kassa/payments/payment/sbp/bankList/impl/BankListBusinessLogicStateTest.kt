@@ -84,6 +84,8 @@ internal class BankListBusinessLogicStateTest(
             val activityNotFoundState = State.ActivityNotFoundError(throwable, shortBankListContentState)
             val activityNotFoundStateFullBankList = State.ActivityNotFoundError(throwable, fullBankListContentState)
             val activityNotFoundAction = Action.ActivityNotFound(throwable)
+            val searchAction = Action.Search("sber")
+            val cancelSearchAction = Action.CancelSearch
             return generateBusinessLogicTests<State, Action>(
                 generateState = { kClassState ->
                     when (kClassState) {
@@ -114,6 +116,8 @@ internal class BankListBusinessLogicStateTest(
                         Action.LoadOtherBankList::class -> loadOtherBankListAction
                         Action.PaymentProcessInProgress::class -> paymentProcessInProgress
                         Action.ActivityNotFound::class -> activityNotFoundAction
+                        Action.Search::class -> searchAction
+                        Action.CancelSearch::class -> cancelSearchAction
                         else -> kClassAction.objectInstance ?: error(kClassAction)
                     }
                 },
@@ -143,6 +147,8 @@ internal class BankListBusinessLogicStateTest(
                         fullBankListContentState to activityNotFoundAction -> activityNotFoundStateFullBankList
                         paymentShortBankListStatusError to bankInteractionFinished -> shortBankListStatusProgress
                         paymentFullBankListStatusError to bankInteractionFinished -> fullBankListStatusProgress
+                        fullBankListContentState to searchAction -> fullBankListContentState.copy(searchText = searchAction.searchText)
+                        fullBankListContentState to cancelSearchAction -> fullBankListContentState
                         else -> state
                     }
                 }
@@ -157,7 +163,6 @@ internal class BankListBusinessLogicStateTest(
         interactor = mock(),
         confirmationUrl = confirmationUrl,
         paymentId = paymentId,
-        bankWasSelected = true,
     )
 
     @Test

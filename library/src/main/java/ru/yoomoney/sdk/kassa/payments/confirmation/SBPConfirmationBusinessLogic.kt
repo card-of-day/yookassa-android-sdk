@@ -41,24 +41,15 @@ internal class SBPConfirmationBusinessLogic(
         state: State,
         action: Action,
     ): Out<State, Action> = when (state) {
-        is State.Initial -> state.whenInitialization(action)
         is State.Loading -> state.whenLoading(action)
         is State.LoadingDataFailed -> state.whenLoadingDataFailed(action)
-    }
-
-    private fun State.Initial.whenInitialization(
-        action: Action,
-    ): Out<State, Action> {
-        return when (action) {
-            is Action.GetConfirmationDetails -> action.getConfirmationDetails()
-            else -> Out.skip(this, source)
-        }
     }
 
     private fun State.Loading.whenLoading(
         action: Action,
     ): Out<State, Action> {
         return when (action) {
+            is Action.GetConfirmationDetails -> action.getConfirmationDetails()
             is Action.GetConfirmationDetailsSuccess -> Out(this) {
                 input { showState(this.state) }
                 input { paymentDetailsUseCase.getPaymentDetails(action.paymentId, action.confirmationUrl) }

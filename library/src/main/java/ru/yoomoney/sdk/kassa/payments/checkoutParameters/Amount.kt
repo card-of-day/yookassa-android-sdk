@@ -24,7 +24,7 @@ package ru.yoomoney.sdk.kassa.payments.checkoutParameters
 import android.annotation.SuppressLint
 import android.os.Parcelable
 import androidx.annotation.Keep
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import java.math.BigDecimal
 import java.util.Currency
 

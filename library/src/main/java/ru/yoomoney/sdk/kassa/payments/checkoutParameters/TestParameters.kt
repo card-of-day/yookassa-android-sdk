@@ -25,7 +25,7 @@ import android.annotation.SuppressLint
 import android.os.Parcelable
 import androidx.annotation.Keep
 import com.google.android.gms.wallet.WalletConstants
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 /**
  * Wrapper for test parameters. This class is used in [Checkout.createTokenizeIntent].

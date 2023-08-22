@@ -25,12 +25,6 @@ import android.net.Uri
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.ym_item_common.view.divider
-import kotlinx.android.synthetic.main.ym_item_common.view.image
-import kotlinx.android.synthetic.main.ym_item_common.view.options
-import kotlinx.android.synthetic.main.ym_item_common.view.primaryText
-import kotlinx.android.synthetic.main.ym_item_common.view.secondaryText
-import kotlinx.android.synthetic.main.ym_item_payment_option.view.delete
 import ru.yoomoney.sdk.kassa.payments.extensions.visible
 
 internal class PaymentOptionListRecyclerViewAdapter internal constructor(

@@ -21,8 +21,8 @@
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-parcelize'
 apply from: 'jacoco.gradle'
 applyFromFileIfExists('buildInternal.gradle')
 
@@ -80,6 +80,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8
+    }
+    buildFeatures {
+        viewBinding true
     }
 }
 

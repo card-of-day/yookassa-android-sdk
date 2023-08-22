@@ -23,16 +23,31 @@ package ru.yoomoney.sdk.kassa.payments.paymentOptionList
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
-import ru.yoomoney.sdk.kassa.payments.R
+import ru.yoomoney.sdk.kassa.payments.databinding.YmItemPaymentOptionBinding
 
 internal class PaymentOptionView @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
 ) : FrameLayout(context, attrs, defStyleAttr) {
-    init {
-        View.inflate(context, R.layout.ym_item_payment_option, this)
+    private val binding: YmItemPaymentOptionBinding =
+        YmItemPaymentOptionBinding.inflate(LayoutInflater.from(context), this, true)
+
+    val image = binding.item.image
+    val primaryText = binding.item.primaryText
+    val secondaryText = binding.item.secondaryText
+    val divider = binding.item.divider.root
+    val delete = binding.delete
+    val options = binding.item.options
+
+    fun getContentContainer(): View {
+        return binding.item.root
+    }
+
+    fun getSwipeMenuContainer(): View {
+        return binding.delete
     }
 }

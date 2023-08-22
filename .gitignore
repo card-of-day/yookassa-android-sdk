@@ -23,7 +23,7 @@ workspace.xml
 *.session
 .gradle/
 .idea/*
-!.idea/codeStyles/
+!.idea/codeStyles/*
 !.idea/copyright/
 *.iml
 build/

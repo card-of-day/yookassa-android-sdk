@@ -52,7 +52,8 @@ internal open class PaymentOptionsListModule {
         return if (testParameters.mockConfiguration != null) {
             MockPaymentOptionListRepository(
                 testParameters.mockConfiguration.linkedCardsCount,
-                Fee(service = testParameters.mockConfiguration.serviceFee)
+                Fee(service = testParameters.mockConfiguration.serviceFee),
+                paymentParameters.customerId
             )
         } else {
             InternetDependentRepository(

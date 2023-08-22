@@ -27,7 +27,6 @@ import ru.yoomoney.sdk.kassa.payments.model.UserPaymentProcess
 internal class SBPConfirmationContract {
 
     internal sealed class State {
-        object Initial : State()
         object Loading : State()
         data class LoadingDataFailed(val throwable: Throwable) : State()
     }

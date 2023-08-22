@@ -23,11 +23,10 @@ package ru.yoomoney.sdk.kassa.payments.ui.view
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
+import android.view.LayoutInflater
 import androidx.constraintlayout.widget.ConstraintLayout
-import kotlinx.android.synthetic.main.ym_informer_view.view.action
-import kotlinx.android.synthetic.main.ym_informer_view.view.message
 import ru.yoomoney.sdk.kassa.payments.R
+import ru.yoomoney.sdk.kassa.payments.databinding.YmInformerViewBinding
 
 internal class InformerView
 @JvmOverloads constructor(
@@ -35,26 +34,26 @@ internal class InformerView
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
+    private val binding: YmInformerViewBinding = YmInformerViewBinding.inflate(LayoutInflater.from(context), this, true)
 
     var messageText: CharSequence? = null
         set(value) {
-            message.text = value
+            binding.message.text = value
             field = value
         }
 
     var actionText: CharSequence? = null
         set(value) {
-            action.text = value
+            binding.action.text = value
             field = value
         }
 
     init {
-        View.inflate(context, R.layout.ym_informer_view, this)
         setAttributes(context, attrs, defStyleAttr)
     }
 
     fun setActionClickListener(listener: OnClickListener) {
-        action.setOnClickListener(listener)
+        binding.action.setOnClickListener(listener)
     }
 
     private fun setAttributes(context: Context, attrs: AttributeSet?, defStyleAttr: Int) {

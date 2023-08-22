@@ -1,5 +1,5 @@
 <resources>
-  <string name='app_name'>Демо mSDK</string>
+  <string name='ym_app_name'>Демо mSDK</string>
   <string name='start_payment'>Начать платёж</string>
   <string name='tokenization_canceled'>Токенизация отменена</string>
   <string name='tokenization_success'>Токен: %1$s</string>

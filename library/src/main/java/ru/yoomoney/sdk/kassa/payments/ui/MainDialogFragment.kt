@@ -32,10 +32,10 @@ import android.view.ViewGroup
 import android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN
 import android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
 import android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN
+import androidx.appcompat.widget.AppCompatImageView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import kotlinx.android.synthetic.main.ym_fragment_bottom_sheet.topArrowLine
 import ru.yoomoney.sdk.gui.utils.extensions.hide
 import ru.yoomoney.sdk.kassa.payments.R
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.PaymentMethodType
@@ -83,6 +83,10 @@ internal class MainDialogFragment : BottomSheetDialogFragment() {
     @Inject
     lateinit var loadedPaymentOptionListRepository: GetLoadedPaymentOptionListRepository
 
+    private val startScreenData: StartScreenData by lazy {
+        requireNotNull(arguments?.getParcelable(START_SCREEN_DATA_INFO)) as StartScreenData
+    }
+
     init {
         setStyle(STYLE_NO_FRAME, R.style.ym_MainDialogTheme)
     }
@@ -107,7 +111,7 @@ internal class MainDialogFragment : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if (isTablet) {
-            topArrowLine.hide()
+            view.findViewById<AppCompatImageView>(R.id.topArrowLine).hide()
         }
 
         val startScreenData = arguments?.getParcelable(START_SCREEN_DATA_INFO) as StartScreenData?
@@ -171,9 +175,8 @@ internal class MainDialogFragment : BottomSheetDialogFragment() {
 
     private fun inflateBaseFragment() {
         router.screensData.observe(viewLifecycleOwner, Observer(::onScreenChanged))
-        val screenData = requireNotNull(arguments?.getParcelable(START_SCREEN_DATA_INFO)) as StartScreenData
         childFragmentManager.inTransaction {
-            if (screenData.paymentMethodType.contains(PaymentMethodType.YOO_MONEY)) {
+            if (startScreenData.paymentMethodType.contains(PaymentMethodType.YOO_MONEY)) {
                 add(
                     R.id.authContainer,
                     MoneyAuthFragment(), AUTH_FRAGMENT_TAG
@@ -181,7 +184,7 @@ internal class MainDialogFragment : BottomSheetDialogFragment() {
             }
             add(
                 R.id.containerBottomSheet,
-                PaymentOptionListFragment(),
+                PaymentOptionListFragment.create(startScreenData.paymentMethodId),
                 PAYMENT_OPTION_LIST_FRAGMENT_TAG
             )
         }
@@ -195,6 +198,7 @@ internal class MainDialogFragment : BottomSheetDialogFragment() {
                 ContractFragment(),
                 CONTRACT_FRAGMENT_TAG
             )
+
             is Screen.PaymentOptions -> {
                 with(childFragmentManager) {
                     val paymentOptionListFragment =
@@ -208,14 +212,17 @@ internal class MainDialogFragment : BottomSheetDialogFragment() {
                     paymentOptionListFragment.onAppear()
                 }
             }
+
             is Screen.MoneyAuth -> {
                 (childFragmentManager.findFragmentByTag(AUTH_FRAGMENT_TAG) as MoneyAuthFragment).authorize()
             }
+
             is Screen.Tokenize -> transitToFragment(
                 requireNotNull(currentFragment),
                 TokenizeFragment.newInstance(screen.tokenizeInputModel),
                 TOKENIZE_FRAGMENT_TAG
             )
+
             is Screen.TokenizeSuccessful -> {
                 val result = Intent()
                     .putExtra(EXTRA_PAYMENT_TOKEN, screen.tokenOutputModel.token)
@@ -226,25 +233,30 @@ internal class MainDialogFragment : BottomSheetDialogFragment() {
                     finish()
                 }
             }
+
             is Screen.TokenizeCancelled -> with(requireActivity()) {
                 setResult(Activity.RESULT_CANCELED)
                 finish()
             }
+
             is Screen.PaymentAuth -> transitToFragment(
                 requireNotNull(currentFragment),
                 PaymentAuthFragment.createFragment(screen.amount, screen.linkWalletToApp),
                 PAYMENT_AUTH_FRAGMENT_TAG
             )
+
             is Screen.UnbindLinkedCard -> transitToFragment(
                 requireNotNull(currentFragment),
                 UnbindCardFragment.createFragment(screen.paymentOption as LinkedCard),
                 UNBIND_CARD_FRAGMENT_TAG
             )
+
             is Screen.UnbindInstrument -> transitToFragment(
                 requireNotNull(currentFragment),
                 UnbindCardFragment.createFragment(screen.instrumentBankCard),
                 UNBIND_CARD_FRAGMENT_TAG
             )
+
             else -> Unit
         }
     }
@@ -257,15 +269,18 @@ internal class MainDialogFragment : BottomSheetDialogFragment() {
                 ConfirmationFragment.createFragment(screen.confirmationData),
                 CONFIRMATION_SBP_FRAGMENT_TAG
             )
+
             is Screen.SBPConfirmationSuccessful -> with(requireActivity()) {
                 setResult(Activity.RESULT_OK)
                 finish()
             }
+
             is Screen.BankList -> transitToFragment(
                 requireNotNull(currentFragment),
                 BankListFragment.newInstance(screen.confirmationUrl, screen.paymentId),
                 LIST_BANKS_FRAGMENT_TAG
             )
+
             else -> Unit
         }
     }

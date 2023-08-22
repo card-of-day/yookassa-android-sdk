@@ -24,7 +24,7 @@ package ru.yoomoney.sdk.kassa.payments.checkoutParameters
 import android.annotation.SuppressLint
 import android.os.Parcelable
 import androidx.annotation.Keep
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 
 /**
  * Wrapper for payment parameters. This class is used only in [Checkout.createSavedCardTokenizeIntent].

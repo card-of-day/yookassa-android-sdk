@@ -22,6 +22,7 @@
 package ru.yoomoney.sdk.kassa.payments.tokenize
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.addCallback
@@ -31,10 +32,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.fragment.app.setFragmentResultListener
 import androidx.lifecycle.ViewModelProvider
-import kotlinx.android.synthetic.main.ym_fragment_tokenize.errorView
-import kotlinx.android.synthetic.main.ym_fragment_tokenize.loadingView
-import kotlinx.android.synthetic.main.ym_fragment_tokenize.rootContainer
-import ru.yoomoney.sdk.kassa.payments.R
+import ru.yoomoney.sdk.kassa.payments.databinding.YmFragmentTokenizeBinding
 import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
 import ru.yoomoney.sdk.kassa.payments.errorFormatter.ErrorFormatter
 import ru.yoomoney.sdk.kassa.payments.extensions.hideSoftKeyboard
@@ -53,7 +51,7 @@ import javax.inject.Inject
 
 internal typealias TokenizeViewModel = RuntimeViewModel<Tokenize.State, Tokenize.Action, Tokenize.Effect>
 
-internal class TokenizeFragment : Fragment(R.layout.ym_fragment_tokenize) {
+internal class TokenizeFragment : Fragment() {
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -66,9 +64,18 @@ internal class TokenizeFragment : Fragment(R.layout.ym_fragment_tokenize) {
 
     private val viewModel: TokenizeViewModel by viewModel(TokenizeModule.TOKENIZE) { viewModelFactory }
 
+    private var _binding: YmFragmentTokenizeBinding? = null
+    private val binding get() = requireNotNull(_binding)
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         CheckoutInjector.injectTokenizeFragment(this)
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        _binding = YmFragmentTokenizeBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -85,7 +92,7 @@ internal class TokenizeFragment : Fragment(R.layout.ym_fragment_tokenize) {
             }
         )
         requireActivity().onBackPressedDispatcher.addCallback(this) {
-            rootContainer.hideSoftKeyboard()
+            binding.rootContainer.hideSoftKeyboard()
             parentFragmentManager.popBackStack()
             finishWithCancel()
         }
@@ -97,6 +104,11 @@ internal class TokenizeFragment : Fragment(R.layout.ym_fragment_tokenize) {
         viewModel.handleAction(Tokenize.Action.Tokenize(tokenizeInputModel))
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     private fun paymentAuthResult(result: Screen.PaymentAuth.PaymentAuthResult) {
         when (result) {
             Screen.PaymentAuth.PaymentAuthResult.SUCCESS -> viewModel.handleAction(Tokenize.Action.PaymentAuthSuccess)
@@ -105,14 +117,14 @@ internal class TokenizeFragment : Fragment(R.layout.ym_fragment_tokenize) {
     }
 
     private fun showError(throwable: Throwable, action: () -> Unit) {
-        errorView.setErrorText(errorFormatter.format(throwable))
-        errorView.setErrorButtonListener(action)
-        rootContainer.showChild(errorView)
-        loadingView.updateLayoutParams<ViewGroup.LayoutParams> { height = rootContainer.getViewHeight() }
+        binding.errorView.setErrorText(errorFormatter.format(throwable))
+        binding.errorView.setErrorButtonListener(action)
+        binding.rootContainer.showChild(binding.errorView)
+        binding.loadingView.updateLayoutParams<ViewGroup.LayoutParams> { height = binding.rootContainer.getViewHeight() }
     }
 
     private fun showLoadingState() {
-        rootContainer.showChild(loadingView)
+        binding.rootContainer.showChild(binding.loadingView)
     }
 
     private fun showState(state: Tokenize.State) = when (state) {
@@ -136,7 +148,7 @@ internal class TokenizeFragment : Fragment(R.layout.ym_fragment_tokenize) {
     private fun finishWithCancel() {
         setFragmentResult(TOKENIZE_RESULT_KEY, bundleOf(TOKENIZE_RESULT_EXTRA to Screen.Tokenize.TokenizeResult.CANCEL))
         parentFragmentManager.popBackStack()
-        rootContainer.hideSoftKeyboard()
+        binding.rootContainer.hideSoftKeyboard()
     }
 
     companion object {

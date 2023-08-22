@@ -24,45 +24,45 @@ package ru.yoomoney.sdk.kassa.payments.ui
 import android.content.Context
 import android.text.method.MovementMethod
 import android.util.AttributeSet
-import android.view.View
+import android.view.LayoutInflater
 import android.widget.FrameLayout
-import kotlinx.android.synthetic.main.ym_switch_with_description_view.view.descriptionView
-import kotlinx.android.synthetic.main.ym_switch_with_description_view.view.switchView
 import ru.yoomoney.sdk.kassa.payments.R
+import ru.yoomoney.sdk.kassa.payments.databinding.YmSwitchWithDescriptionViewBinding
 
 internal open class SwitchWithDescriptionView
 @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
-    defStyleAttr: Int = 0
+    defStyleAttr: Int = 0,
 ) : FrameLayout(context, attrs, defStyleAttr) {
-
+    private val binding: YmSwitchWithDescriptionViewBinding =
+        YmSwitchWithDescriptionViewBinding.inflate(LayoutInflater.from(context), this, true)
+    val switchView = binding.switchView
     var title: CharSequence?
         set(value) {
-            switchView.text = value
+            binding.switchView.text = value
         }
-        get() = switchView.text
+        get() = binding.switchView.text
 
     var description: CharSequence?
         set(value) {
-            descriptionView.text = value
+            binding.descriptionView.text = value
         }
-        get() = descriptionView.text
+        get() = binding.descriptionView.text
 
     var isChecked: Boolean
         set(value) {
-            switchView.isChecked = value
+            binding.switchView.isChecked = value
         }
-        get() = switchView.isChecked
+        get() = binding.switchView.isChecked
 
     var movementMethod: MovementMethod
         set(value) {
-            switchView.movementMethod = value
+            binding.switchView.movementMethod = value
         }
-        get() = switchView.movementMethod
+        get() = binding.switchView.movementMethod
 
     init {
-        inflate()
         val attributes = context.theme.obtainStyledAttributes(
             attrs,
             R.styleable.ym_ListItemSwitchWithDescription, defStyleAttr, 0
@@ -79,10 +79,6 @@ internal open class SwitchWithDescriptionView
         attributes.getText(R.styleable.ym_ListItemSwitchWithDescription_ym_description)?.apply {
             description = this
         }
-    }
-
-    private fun inflate() {
-        View.inflate(context, R.layout.ym_switch_with_description_view, this)
     }
 }
 

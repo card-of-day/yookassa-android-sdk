@@ -34,7 +34,6 @@ internal class BankListBusinessLogic(
     val interactor: BankListInteractor,
     val confirmationUrl: String,
     val paymentId: String,
-    var bankWasSelected: Boolean = false,
 ) : Logic<BankList.State, BankList.Action> {
 
     override fun invoke(
@@ -74,18 +73,14 @@ internal class BankListBusinessLogic(
     }
 
     private fun handleBankInteractionFinishedShortList(state: BankList.State.ShortBankListContent) =
-        if (bankWasSelected) {
-            Out(
-                BankList.State.ShortBankListStatusProgress(
-                    state.shortBankList,
-                    state.fullBankList
-                )
-            ) {
-                input { showState(this.state) }
-                input { interactor.getPaymentStatus(paymentId) }
-            }
-        } else {
-            Out.skip(state, source)
+        Out(
+            BankList.State.ShortBankListStatusProgress(
+                state.shortBankList,
+                state.fullBankList
+            )
+        ) {
+            input { showState(this.state) }
+            input { interactor.getPaymentStatus(paymentId) }
         }
 
     private fun handleFullBankListContent(
@@ -114,22 +109,36 @@ internal class BankListBusinessLogic(
         is BankList.Action.BankInteractionFinished -> handleBankInteractionFinishedFullList(fullBankListContent)
 
         is BankList.Action.ActivityNotFound -> handleActivityNotFound(action.throwable, fullBankListContent)
+        is BankList.Action.Search -> Out(
+            fullBankListContent.copy(
+                searchText = action.searchText,
+                searchedBanks = interactor.searchBank(action.searchText, fullBankListContent.bankList)
+            )
+        ) {
+            input { showState(this.state) }
+        }
+
+        is BankList.Action.CancelSearch -> Out(
+            fullBankListContent.copy(
+                searchText = "",
+                searchedBanks = emptyList()
+            )
+        ) {
+            input { showState(this.state) }
+        }
+
         else -> Out.skip(fullBankListContent, source)
     }
 
     private fun handleBankInteractionFinishedFullList(fullBankListContent: BankList.State.FullBankListContent) =
-        if (bankWasSelected) {
-            Out(
-                BankList.State.FullBankListStatusProgress(
-                    fullBankListContent.bankList,
-                    fullBankListContent.showBackNavigation
-                )
-            ) {
-                input { showState(this.state) }
-                input { interactor.getPaymentStatus(paymentId) }
-            }
-        } else {
-            Out.skip(fullBankListContent, source)
+        Out(
+            BankList.State.FullBankListStatusProgress(
+                fullBankListContent.bankList,
+                fullBankListContent.showBackNavigation
+            )
+        ) {
+            input { showState(this.state) }
+            input { interactor.getPaymentStatus(paymentId) }
         }
 
     private fun handleProgress(
@@ -272,7 +281,7 @@ internal class BankListBusinessLogic(
     private fun handleOpenBank(state: BankList.State, deeplink: String) = Out(state) {
         input(source)
         output { showEffect(BankList.Effect.OpenBank(deeplink)) }
-        bankWasSelected = true
+        interactor.bankWasSelected = true
     }
 
     private fun handleActivityNotFound(throwable: Throwable, state: BankList.State) =
@@ -287,6 +296,7 @@ internal class BankListBusinessLogic(
         is BankList.Action.BackToBankList -> Out(state.previosListState) {
             input { showState(this.state) }
         }
+
         is BankList.Action.BankInteractionFinished -> Out(state) {
             input { showState(this.state) }
         }

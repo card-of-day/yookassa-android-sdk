@@ -45,6 +45,10 @@ internal class CheckoutTextInputView @JvmOverloads constructor(
         }
     }
 
+    fun setImeOptions(imeOptions: Int) {
+        editText.imeOptions = imeOptions
+    }
+
     private fun typeColorStateList(context: Context): ColorStateList {
         val color = intArrayOf(
             ContextCompat.getColor(context, R.color.color_type_ghost),

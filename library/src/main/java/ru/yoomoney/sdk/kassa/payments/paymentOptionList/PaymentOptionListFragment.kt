@@ -28,25 +28,24 @@ import android.text.Spannable
 import android.text.SpannableStringBuilder
 import android.text.style.TextAppearanceSpan
 import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.widget.FrameLayout
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResultListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.squareup.picasso.Picasso
-import kotlinx.android.synthetic.main.ym_dialog_top_bar.view.logo
-import kotlinx.android.synthetic.main.ym_fragment_payment_options.contentContainer
-import kotlinx.android.synthetic.main.ym_fragment_payment_options.topBar
 import ru.yoomoney.sdk.gui.dialog.YmAlertDialog
 import ru.yoomoney.sdk.kassa.payments.R
-import ru.yoomoney.sdk.kassa.payments.checkoutParameters.SavedBankCardPaymentParameters
 import ru.yoomoney.sdk.kassa.payments.checkoutParameters.UiParameters
+import ru.yoomoney.sdk.kassa.payments.databinding.YmFragmentPaymentOptionsBinding
 import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
 import ru.yoomoney.sdk.kassa.payments.di.PaymentOptionsListFormatter
 import ru.yoomoney.sdk.kassa.payments.di.PaymentOptionsViewModel
@@ -64,7 +63,6 @@ import ru.yoomoney.sdk.kassa.payments.model.Wallet
 import ru.yoomoney.sdk.kassa.payments.navigation.Router
 import ru.yoomoney.sdk.kassa.payments.navigation.Screen
 import ru.yoomoney.sdk.kassa.payments.ui.CheckoutAlertDialog
-import ru.yoomoney.sdk.kassa.payments.ui.EXTRA_CSC_PARAMETERS
 import ru.yoomoney.sdk.kassa.payments.ui.changeViewWithAnimation
 import ru.yoomoney.sdk.kassa.payments.ui.getViewHeight
 import ru.yoomoney.sdk.kassa.payments.ui.isTablet
@@ -79,8 +77,9 @@ import ru.yoomoney.sdk.kassa.payments.utils.viewModel
 import ru.yoomoney.sdk.march.observe
 import javax.inject.Inject
 
+private const val PAYMENT_METHOD_ID = "PAYMENT_METHOD_ID"
 internal class PaymentOptionListFragment :
-    Fragment(R.layout.ym_fragment_payment_options),
+    Fragment(),
     PaymentOptionListRecyclerViewAdapter.PaymentOptionClickListener {
 
     @Inject
@@ -91,7 +90,7 @@ internal class PaymentOptionListFragment :
     lateinit var errorFormatter: ErrorFormatter
 
     private val paymentMethodId: String? by lazy {
-        (arguments?.getParcelable(EXTRA_CSC_PARAMETERS) as SavedBankCardPaymentParameters?)?.paymentMethodId
+        arguments?.getString(PAYMENT_METHOD_ID)
     }
 
     @Inject
@@ -122,9 +121,17 @@ internal class PaymentOptionListFragment :
         SwipeItemHelper(requireContext(), swipeConfig)
     }
 
+    private var _binding: YmFragmentPaymentOptionsBinding? = null
+    private val binding get() = requireNotNull(_binding)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         CheckoutInjector.injectPaymentOptionListFragment(this)
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        _binding = YmFragmentPaymentOptionsBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -170,9 +177,10 @@ internal class PaymentOptionListFragment :
     }
 
     override fun onDestroyView() {
-        contentContainer.removeAllViews()
-        swipeItemHelper.detachFromRecyclerView()
         super.onDestroyView()
+        binding.contentContainer.removeAllViews()
+        swipeItemHelper.detachFromRecyclerView()
+        _binding = null
     }
 
     override fun onPaymentOptionClick(optionId: Int, instrumentId: String?) {
@@ -215,8 +223,8 @@ internal class PaymentOptionListFragment :
 
     private fun showState(state: PaymentOptionList.State) {
         Picasso.get().load(Uri.parse(state.yooMoneyLogoUrl))
-            .placeholder(topBar.logo.drawable)
-            .into(topBar.logo)
+            .placeholder(binding.topBar.logo.drawable)
+            .into(binding.topBar.logo)
         showState(!isTablet) {
             when (state) {
                 is PaymentOptionList.State.Loading -> showLoadingState()
@@ -235,7 +243,7 @@ internal class PaymentOptionListFragment :
 
     private fun showState(withAnimation: Boolean, changeView: () -> Unit) {
         if (withAnimation) {
-            changeViewWithAnimation(contentContainer, changeView)
+            changeViewWithAnimation(binding.contentContainer, changeView)
         } else {
             changeView()
         }
@@ -267,7 +275,7 @@ internal class PaymentOptionListFragment :
     }
 
     private fun showLoadingState() {
-        topBar.isLogoVisible = uiParameters.showLogo
+        binding.topBar.isLogoVisible = uiParameters.showLogo
         replaceDynamicView(loadingView)
     }
 
@@ -276,7 +284,7 @@ internal class PaymentOptionListFragment :
             is PaymentOptionListSuccessOutputModel -> showPaymentOptions(content)
             is PaymentOptionListNoWalletOutputModel -> showAuthNoWalletViewModel()
         }
-        loadingView.updateLayoutParams<ViewGroup.LayoutParams> { height = contentContainer.getViewHeight() }
+        loadingView.updateLayoutParams<ViewGroup.LayoutParams> { height = binding.contentContainer.getViewHeight() }
     }
 
     private fun showPaymentOptions(content: PaymentOptionListSuccessOutputModel) {
@@ -284,7 +292,7 @@ internal class PaymentOptionListFragment :
             it.getPaymentOptionListItems(requireContext())
         }.flatten()
 
-        topBar.isLogoVisible = uiParameters.showLogo
+        binding.topBar.isLogoVisible = uiParameters.showLogo
         replaceDynamicView(recyclerView)
         recyclerView.adapter = PaymentOptionListRecyclerViewAdapter(this, listItems)
         swipeItemHelper.attachToRecyclerView(recyclerView)
@@ -315,9 +323,9 @@ internal class PaymentOptionListFragment :
     }
 
     private fun showErrorState(state: PaymentOptionList.State.Error) {
-        topBar.isLogoVisible = uiParameters.showLogo
+        binding.topBar.isLogoVisible = uiParameters.showLogo
         showError(state.error)
-        loadingView.updateLayoutParams<ViewGroup.LayoutParams> { height = contentContainer.getViewHeight() }
+        loadingView.updateLayoutParams<ViewGroup.LayoutParams> { height = binding.contentContainer.getViewHeight() }
     }
 
     private fun showError(throwable: Throwable) {
@@ -340,6 +348,7 @@ internal class PaymentOptionListFragment :
                 showLoadingState()
                 router.navigateTo(Screen.MoneyAuth)
             }
+
             is PaymentOptionList.Effect.Cancel -> router.navigateTo(Screen.TokenizeCancelled)
             is PaymentOptionList.Effect.UnbindLinkedCard -> router.navigateTo(Screen.UnbindLinkedCard(effect.paymentOption))
             is PaymentOptionList.Effect.UnbindInstrument -> router.navigateTo(Screen.UnbindInstrument(effect.instrumentBankCard))
@@ -368,17 +377,21 @@ internal class PaymentOptionListFragment :
     }
 
     private fun replaceDynamicView(view: View) {
-        contentContainer.getChildAt(0)?.also {
+        binding.contentContainer.getChildAt(0)?.also {
             if (it === view) {
                 return
             }
-            contentContainer.removeView(it)
+            binding.contentContainer.removeView(it)
         }
-        contentContainer.addView(view)
+        binding.contentContainer.addView(view)
     }
 
     companion object {
         private const val MENU_ITEM_COUNT = 1
+
+        fun create(paymentMethodId: String?): Fragment = PaymentOptionListFragment().apply {
+            arguments = bundleOf(PAYMENT_METHOD_ID to paymentMethodId)
+        }
     }
 }
 

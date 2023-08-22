@@ -23,6 +23,7 @@ package ru.yoomoney.sdk.kassa.payments.unbind
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
@@ -36,13 +37,9 @@ import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.setFragmentResult
 import androidx.lifecycle.ViewModelProvider
-import kotlinx.android.synthetic.main.ym_fragment_unbind_card.bankCardView
-import kotlinx.android.synthetic.main.ym_fragment_unbind_card.informerView
-import kotlinx.android.synthetic.main.ym_fragment_unbind_card.rootContainer
-import kotlinx.android.synthetic.main.ym_fragment_unbind_card.topBar
-import kotlinx.android.synthetic.main.ym_fragment_unbind_card.unbindCardButton
 import ru.yoomoney.sdk.kassa.payments.R
 import ru.yoomoney.sdk.kassa.payments.contract.SavePaymentMethodInfoActivity
+import ru.yoomoney.sdk.kassa.payments.databinding.YmFragmentUnbindCardBinding
 import ru.yoomoney.sdk.kassa.payments.di.CheckoutInjector
 import ru.yoomoney.sdk.kassa.payments.extensions.showSnackbar
 import ru.yoomoney.sdk.kassa.payments.metrics.Reporter
@@ -59,7 +56,7 @@ import javax.inject.Inject
 
 internal typealias UntieCardViewModel = RuntimeViewModel<UnbindCard.State, UnbindCard.Action, UnbindCard.Effect>
 
-internal class UnbindCardFragment : Fragment(R.layout.ym_fragment_unbind_card) {
+internal class UnbindCardFragment : Fragment() {
 
     @Inject
     lateinit var viewModelFactory: ViewModelProvider.Factory
@@ -70,17 +67,26 @@ internal class UnbindCardFragment : Fragment(R.layout.ym_fragment_unbind_card) {
     @Inject
     lateinit var reporter: Reporter
 
-    private val topBarAnimator: ViewPropertyAnimator? by lazy { topBar?.animate() }
+    private lateinit var topBarAnimator: ViewPropertyAnimator
 
     private val viewModel: UntieCardViewModel by viewModel(UnbindCardModule.UNBIND_CARD) { viewModelFactory }
+
+    private var _binding: YmFragmentUnbindCardBinding? = null
+    private val binding get() = requireNotNull(_binding)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         CheckoutInjector.injectUntieCardFragment(this)
     }
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        _binding = YmFragmentUnbindCardBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        topBarAnimator = binding.topBar.animate()
+
         requireActivity().onBackPressedDispatcher.addCallback(this) {
             closeScreen()
         }
@@ -97,18 +103,23 @@ internal class UnbindCardFragment : Fragment(R.layout.ym_fragment_unbind_card) {
         viewModel.handleAction(UnbindCard.Action.StartDisplayData(linkedCard, instrumental))
     }
 
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        topBarAnimator?.cancel()
+        topBarAnimator.cancel()
     }
 
     private fun setupToolbar(pan: String) {
-        topBar.title = "•••• $pan"
-        topBar.onBackButton { closeScreen() }
+        binding.topBar.title = "•••• $pan"
+        binding.topBar.onBackButton { closeScreen() }
     }
 
     private fun setUpCardForm(pan: String, name: String) {
-        with(bankCardView) {
+        with(binding.bankCardView) {
             setChangeCardAvailable(false)
             showBankLogo(pan)
             setCardData(
@@ -121,19 +132,19 @@ internal class UnbindCardFragment : Fragment(R.layout.ym_fragment_unbind_card) {
 
     private fun setupText(isWalletLinked: Boolean) {
         if (isWalletLinked) {
-            informerView.messageText = getString(R.string.ym_informer_unbind_card_wallet)
+            binding.informerView.messageText = getString(R.string.ym_informer_unbind_card_wallet)
         } else {
-            informerView.messageText = getString(R.string.ym_informer_unbind_text)
+            binding.informerView.messageText = getString(R.string.ym_informer_unbind_text)
         }
-        informerView.actionText = getString(R.string.ym_informer_unbind_action)
+        binding.informerView.actionText = getString(R.string.ym_informer_unbind_action)
     }
 
     private fun setupButton(cardId: String, isWalletLinked: Boolean) {
-        unbindCardButton.setOnClickListener {
+        binding.unbindCardButton.setOnClickListener {
             viewModel.handleAction(UnbindCard.Action.StartUnbinding(cardId))
         }
 
-        unbindCardButton.isVisible = !isWalletLinked
+        binding.unbindCardButton.isVisible = !isWalletLinked
     }
 
     private fun showEffect(effect: UnbindCard.Effect) {
@@ -149,7 +160,7 @@ internal class UnbindCardFragment : Fragment(R.layout.ym_fragment_unbind_card) {
                 closeScreen()
             }
             is UnbindCard.Effect.UnbindFailed -> {
-                unbindCardButton.showProgress(false)
+                binding.unbindCardButton.showProgress(false)
                 view?.showSnackbar(
                     message = getString(R.string.ym_unbinding_card_failed, effect.instrumentBankCard.last4),
                     textColorResId = R.color.color_type_inverse,
@@ -163,7 +174,7 @@ internal class UnbindCardFragment : Fragment(R.layout.ym_fragment_unbind_card) {
         when (state) {
             is UnbindCard.State.Initial -> Unit
             is UnbindCard.State.ContentLinkedBankCard -> showContentLinkedBankCard(state)
-            is UnbindCard.State.LoadingUnbinding -> unbindCardButton.showProgress(true)
+            is UnbindCard.State.LoadingUnbinding -> binding.unbindCardButton.showProgress(true)
             is UnbindCard.State.ContentLinkedWallet -> showContentLinkedWallet(state)
         }
     }
@@ -176,10 +187,10 @@ internal class UnbindCardFragment : Fragment(R.layout.ym_fragment_unbind_card) {
         setupButton(instrumentBankCard.paymentInstrumentId, false)
         setupToolbar(instrumentBankCard.last4)
         setupText(false)
-        informerView.updateLayoutParams<ViewGroup.LayoutParams> {
+        binding.informerView.updateLayoutParams<ViewGroup.LayoutParams> {
             height = resources.getDimensionPixelSize(R.dimen.ym_informer_linked_card_height)
         }
-        informerView.setActionClickListener(
+        binding.informerView.setActionClickListener(
             listener = setupInformerViewAction(
                 R.string.ym_how_works_auto_write_title,
                 R.string.ym_how_works_auto_write_body,
@@ -196,10 +207,10 @@ internal class UnbindCardFragment : Fragment(R.layout.ym_fragment_unbind_card) {
         setupButton(linkedCard.cardId, true)
         setupToolbar(linkedCard.pan.takeLast(4))
         setupText(true)
-        informerView.updateLayoutParams<ViewGroup.LayoutParams> {
+        binding.informerView.updateLayoutParams<ViewGroup.LayoutParams> {
             height = resources.getDimensionPixelSize(R.dimen.ym_informer_wallet_linked_card_height)
         }
-        informerView.setActionClickListener(
+        binding.informerView.setActionClickListener(
             listener = setupInformerViewAction(
                 R.string.ym_how_unbind_wallet_card_title,
                 R.string.ym_how_unbind_wallet_card_body,
@@ -211,7 +222,7 @@ internal class UnbindCardFragment : Fragment(R.layout.ym_fragment_unbind_card) {
 
     private fun updateViewMargin() {
         val margin = resources.getDimensionPixelSize(R.dimen.ym_space_m)
-        informerView.layoutParams = LinearLayout.LayoutParams(
+        binding.informerView.layoutParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
         ).apply {
@@ -222,8 +233,8 @@ internal class UnbindCardFragment : Fragment(R.layout.ym_fragment_unbind_card) {
     }
 
     private fun resumePostponedViewSetup() {
-        rootContainer.updateLayoutParams<ViewGroup.LayoutParams> { height = MATCH_PARENT }
-        resumePostponedTransition(rootContainer)
+        binding.rootContainer.updateLayoutParams<ViewGroup.LayoutParams> { height = MATCH_PARENT }
+        resumePostponedTransition(binding.rootContainer)
     }
 
     private fun setupInformerViewAction(
